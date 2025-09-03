@@ -10,8 +10,9 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "TheJury - ",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "TheJury - Create and Share Polls Instantly",
+  description:
+    "Create polls quickly and easily. Share with a simple code, get real-time results. Perfect for teams, events, and decision-making.",
 };
 
 const outfitSans = Outfit({
