@@ -313,7 +313,7 @@ export default function PollAnswerPage() {
                           </div>
                           <div className="text-sm text-gray-500">
                             {result.vote_count}{" "}
-                            {result.vote_count === 1 ? "person" : "people"}
+                            {result.vote_count === 1 ? "vote" : "votes"}
                           </div>
                         </div>
                       </div>
