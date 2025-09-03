@@ -1,8 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
-import { checkUsernameAvailable } from "@/lib/supabaseHelpers";
+import { checkUsernameAvailable, getProfile } from "@/lib/supabaseHelpers";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { IconCheck, IconX, IconLoader } from "@tabler/icons-react";
+import { supabase } from "@/lib/supabase";
 
 export function SignUpForm({
   className,
@@ -62,16 +62,6 @@ export function SignUpForm({
     const timeoutId = setTimeout(checkUsername, 500);
     return () => clearTimeout(timeoutId);
   }, [username]);
-
-  // Auto-generate username suggestion from email
-  useEffect(() => {
-    if (email && !username) {
-      const emailUsername = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "");
-      if (emailUsername.length >= 3) {
-        setUsername(emailUsername);
-      }
-    }
-  }, [email, username]);
 
   const getUsernameStatusIcon = () => {
     switch (usernameStatus) {
@@ -120,24 +110,34 @@ export function SignUpForm({
     }
   };
 
+  const createUserProfile = async (user: any, desiredUsername: string) => {
+    // Check if profile already exists
+    const existingProfile = await getProfile(user.id);
+    if (existingProfile) return;
+
+    // Generate unique username if needed
+    let finalUsername = desiredUsername;
+    let isAvailable = await checkUsernameAvailable(finalUsername);
+    let counter = 1;
+
+    while (!isAvailable) {
+      finalUsername = `${desiredUsername}${counter}`;
+      isAvailable = await checkUsernameAvailable(finalUsername);
+      counter++;
+    }
+
+    // Create profile
+    await supabase.from("profiles").insert({
+      id: user.id,
+      username: finalUsername,
+      avatar_url: user.user_metadata?.avatar_url || null,
+    });
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
-
-    // Validation
-    if (password !== repeatPassword) {
-      setError("Passwords do not match");
-      setIsLoading(false);
-      return;
-    }
-
-    if (usernameStatus !== "available") {
-      setError("Please choose a valid, available username");
-      setIsLoading(false);
-      return;
-    }
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -146,37 +146,29 @@ export function SignUpForm({
         options: {
           emailRedirectTo: `${window.location.origin}/protected`,
           data: {
-            username: username, // Pass username to the signup process
+            username: username, // Pass the input username
           },
         },
       });
 
       if (error) throw error;
 
-      // If signup was successful and user is created immediately (no email confirmation)
-      if (data.user && !data.user.email_confirmed_at) {
-        // User needs to confirm email
-        router.push("/auth/sign-up-success");
-      } else if (data.user) {
-        // User is created and confirmed, update their profile with the username
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update({ username })
-          .eq("id", data.user.id);
+      // Create profile immediately after successful signup
+      if (data.user) {
+        const { error: profileError } = await supabase.from("profiles").insert({
+          id: data.user.id,
+          username: username, // Use the form input
+          avatar_url: data.user.user_metadata?.avatar_url || null,
+        });
 
         if (profileError) {
-          console.error("Error updating profile:", profileError);
-          // Don't fail the signup, just log the error
+          console.error("Error creating profile:", profileError);
         }
-
-        router.push("/protected");
-      } else {
-        router.push("/auth/sign-up-success");
       }
-    } catch (error: unknown) {
+
+      router.push("/auth/sign-up-success");
+    } catch (error) {
       setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
     }
   };
 
