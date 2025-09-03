@@ -1,4 +1,3 @@
-import { Container } from "@/components/Container";
 import { HeroButtons } from "@/components/HeroButtons"; // You'll replace this with your poll creation mockup
 
 export const Hero = () => {
