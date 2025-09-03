@@ -171,7 +171,7 @@ export function SignUpForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="bruce@wayne.enterprises"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -184,7 +184,7 @@ export function SignUpForm({
                   <Input
                     id="username"
                     type="text"
-                    placeholder="your_username"
+                    placeholder="brucewayne"
                     required
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase())}
