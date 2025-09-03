@@ -138,30 +138,22 @@ export default function PollAnswerPage() {
     if (selectedOptions.length === 0 || !poll) return;
 
     setIsSubmitting(true);
+    setError(null); // Clear any previous errors
+
     try {
       const user = await getCurrentUser();
       let success = false;
 
       if (user) {
         // Authenticated user
-        success = await submitVote(poll.id, selectedOptions, user.id);
+        await submitVote(poll.id, selectedOptions, user.id);
+        success = true;
       } else {
         // Anonymous user
-        try {
-          const ip = await getClientIP();
-          const fingerprint = generateFingerprint();
-          success = await submitVote(
-            poll.id,
-            selectedOptions,
-            undefined,
-            ip,
-            fingerprint,
-          );
-        } catch (err) {
-          console.error("Error with anonymous voting:", err);
-          setError("Failed to submit vote. Please try again.");
-          return;
-        }
+        const ip = await getClientIP();
+        const fingerprint = generateFingerprint();
+        await submitVote(poll.id, selectedOptions, undefined, ip, fingerprint);
+        success = true;
       }
 
       if (success) {
@@ -170,12 +162,14 @@ export default function PollAnswerPage() {
         setResults(pollResults);
         setJustVotedFor([...selectedOptions]);
         setHasVotedFlag(true);
-      } else {
-        setError("Failed to submit vote. Please try again.");
       }
     } catch (err) {
       console.error("Error submitting vote:", err);
-      setError("Failed to submit vote. Please try again.");
+      if (err instanceof Error) {
+        setError(err.message); // This will show "You have already voted in this poll" or other specific errors
+      } else {
+        setError("Failed to submit vote. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }

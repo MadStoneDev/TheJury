@@ -417,49 +417,7 @@ export const submitVote = async (
       throw new Error("This poll only allows single selection");
     }
 
-    // Check if user has already voted
-    let hasVoted = false;
-
-    if (userId) {
-      const { data: existingVote } = await supabase
-        .from("votes")
-        .select("id")
-        .eq("poll_id", pollId)
-        .eq("user_id", userId)
-        .single();
-
-      hasVoted = !!existingVote;
-    } else if (voterIP && voterFingerprint) {
-      const { data: existingVote } = await supabase
-        .from("votes")
-        .select("id")
-        .eq("poll_id", pollId)
-        .eq("voter_ip", voterIP)
-        .eq("voter_fingerprint", voterFingerprint)
-        .single();
-
-      hasVoted = !!existingVote;
-    }
-
-    if (hasVoted) {
-      // Delete existing votes for this user/poll
-      if (userId) {
-        await supabase
-          .from("votes")
-          .delete()
-          .eq("poll_id", pollId)
-          .eq("user_id", userId);
-      } else {
-        await supabase
-          .from("votes")
-          .delete()
-          .eq("poll_id", pollId)
-          .eq("voter_ip", voterIP)
-          .eq("voter_fingerprint", voterFingerprint);
-      }
-    }
-
-    // Submit new votes
+    // Submit new vote (let database handle duplicate detection)
     const votes = {
       poll_id: pollId,
       options: optionIds,
@@ -470,11 +428,21 @@ export const submitVote = async (
 
     const { error: voteError } = await supabase.from("votes").insert(votes);
 
-    if (voteError) throw voteError;
+    if (voteError) {
+      // Check if it's a duplicate key error
+      if (
+        voteError.code === "23505" &&
+        voteError.message.includes("duplicate key")
+      ) {
+        throw new Error("You have already voted in this poll");
+      }
+      throw voteError;
+    }
+
     return true;
   } catch (error) {
     console.error("Error submitting vote:", error);
-    return false;
+    throw error; // Re-throw so the component can handle the specific error message
   }
 };
 
@@ -542,7 +510,15 @@ export const getUserVotes = async (
 
     const { data, error } = await query.single();
 
-    if (error) throw error;
+    if (error) {
+      // If no vote found, return empty array instead of throwing
+      if (error.code === "PGRST116") {
+        // No rows returned
+        return [];
+      }
+      throw error;
+    }
+
     return data?.options || [];
   } catch (error) {
     console.error("Error fetching user votes:", error);
