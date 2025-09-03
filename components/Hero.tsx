@@ -1,6 +1,4 @@
-import Image from "next/image";
 import { Container } from "@/components/Container";
-import heroImg from "@/public/img/hero.png";
 import { HeroButtons } from "@/components/HeroButtons"; // You'll replace this with your poll creation mockup
 
 export const Hero = () => {

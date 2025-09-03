@@ -16,6 +16,7 @@ import {
   generateFingerprint,
 } from "@/lib/supabaseHelpers";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
+import Link from "next/link";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -200,12 +201,12 @@ export default function PollAnswerPage() {
                 {pollCode}
               </span>
             </p>
-            <a
+            <Link
               href="/"
               className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
             >
               Back to Home
-            </a>
+            </Link>
           </div>
         </Container>
       </div>

@@ -4,9 +4,10 @@ import PollForm from "@/components/PollForm";
 import { createClient } from "@/lib/supabase/server";
 
 interface EditPollPageProps {
-  params: {
+  params: Promise<{
     pollCode: string;
-  };
+  }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 export default async function EditPollPage({ params }: EditPollPageProps) {
@@ -17,7 +18,7 @@ export default async function EditPollPage({ params }: EditPollPageProps) {
     redirect("/auth/login");
   }
 
-  const { pollCode } = params;
+  const { pollCode } = await params; // Await the params Promise
 
   if (!pollCode) {
     notFound();

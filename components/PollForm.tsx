@@ -179,6 +179,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
           pollCode = await generateUniquePollCode();
           setGeneratedPollCode(pollCode);
         } catch (codeError) {
+          console.error("Error generating poll code:", codeError);
+
           throw new Error(
             "Unable to generate unique poll code. Please try again.",
           );
