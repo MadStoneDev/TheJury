@@ -204,7 +204,7 @@ export default function PollAnswerPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Container>
-          <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
+          <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-4 sm:p-8">
             <div className="text-red-500 text-6xl mb-4">⚠️</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
             <p className="text-gray-600 mb-6">{error}</p>
@@ -237,7 +237,7 @@ export default function PollAnswerPage() {
       <Container>
         <div className="max-w-2xl mx-auto">
           {/* Poll Header */}
-          <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mb-6">
             <div className="text-center mb-6">
               <div className="text-sm text-gray-500 mb-2">
                 Poll Code: {pollCode}

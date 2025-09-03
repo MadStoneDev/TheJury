@@ -274,7 +274,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
       <div className="min-h-screen bg-gray-50 py-12">
         <Container>
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 text-center">
               <div className="text-emerald-600 text-6xl mb-4">🎉</div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
                 {isEditing ? "Poll Updated!" : "Poll Created!"}
@@ -360,7 +360,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
     <div className="min-h-screen bg-gray-50 py-8">
       <Container>
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 {isEditing ? "Edit Poll" : "Create New Poll"}
