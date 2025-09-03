@@ -17,6 +17,7 @@ import {
 } from "@/lib/supabaseHelpers";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -30,6 +31,7 @@ export default function PollAnswerPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
+  const [totalVoters, setTotalVoters] = useState(0);
 
   useEffect(() => {
     const loadPoll = async () => {
@@ -64,9 +66,17 @@ export default function PollAnswerPage() {
 
         setPoll(pollData);
 
-        // ALWAYS load results first
+        // Load results and total voter count
         const pollResults = await getPollResults(pollData.id);
         setResults(pollResults);
+
+        // Get total number of unique voters
+        const { count: voterCount } = await supabase
+          .from("votes")
+          .select("*", { count: "exact", head: true })
+          .eq("poll_id", pollData.id);
+
+        setTotalVoters(voterCount || 0);
 
         // Then check if user has voted
         const user = await getCurrentUser();
@@ -150,9 +160,18 @@ export default function PollAnswerPage() {
       }
 
       if (success) {
-        // Load updated results
+        // Load updated results and voter count
         const pollResults = await getPollResults(poll.id);
         setResults(pollResults);
+
+        // Update voter count
+        const { count: voterCount } = await supabase
+          .from("votes")
+          .select("*", { count: "exact", head: true })
+          .eq("poll_id", poll.id);
+
+        setTotalVoters(voterCount || 0);
+
         setJustVotedFor([...selectedOptions]);
         setHasVotedFlag(true);
       }
@@ -209,13 +228,8 @@ export default function PollAnswerPage() {
 
   if (!poll) return null;
 
-  const getTotalVotes = () => {
-    return results.reduce((sum, result) => sum + result.vote_count, 0);
-  };
-
   const getPercentage = (votes: number) => {
-    const total = getTotalVotes();
-    return total > 0 ? Math.round((votes / total) * 100) : 0;
+    return totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0;
   };
 
   return (
@@ -235,7 +249,8 @@ export default function PollAnswerPage() {
                 <p className="text-lg text-gray-600">{poll.description}</p>
               )}
               <div className="text-sm text-gray-500 mt-4">
-                {getTotalVotes()} votes so far
+                {totalVoters} {totalVoters === 1 ? "person has" : "people have"}{" "}
+                voted so far
               </div>
             </div>
 
@@ -297,7 +312,8 @@ export default function PollAnswerPage() {
                             {getPercentage(result.vote_count)}%
                           </div>
                           <div className="text-sm text-gray-500">
-                            {result.vote_count} votes
+                            {result.vote_count}{" "}
+                            {result.vote_count === 1 ? "person" : "people"}
                           </div>
                         </div>
                       </div>
