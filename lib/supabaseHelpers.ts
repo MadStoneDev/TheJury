@@ -36,7 +36,7 @@ export interface Poll {
 export interface Vote {
   id: string;
   poll_id: string;
-  option_id: string;
+  options: string[];
   user_id?: string;
   voter_ip?: string;
   voter_fingerprint?: string;
@@ -462,7 +462,7 @@ export const submitVote = async (
     // Submit new votes
     const votes = {
       poll_id: pollId,
-      option_id: optionIds,
+      options: optionIds,
       user_id: userId || null,
       voter_ip: voterIP || null,
       voter_fingerprint: voterFingerprint || null,
