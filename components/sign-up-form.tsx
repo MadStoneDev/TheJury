@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { checkUsernameAvailable, getProfile } from "@/lib/supabaseHelpers";
+import { checkUsernameAvailable } from "@/lib/supabaseHelpers";
 import { Button } from "@/components/ui/button";
 import {
   Card,
