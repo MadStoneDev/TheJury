@@ -78,16 +78,23 @@ export default function PollAnswerPage() {
         } else {
           // Anonymous user - check by IP + fingerprint
           try {
+            const checkLocalStorage = JSON.parse(
+              localStorage.getItem("user_votes") || "false",
+            );
             const ip = await getClientIP();
             const fingerprint = generateFingerprint();
-            voted = await hasUserVoted(pollData.id, undefined, ip, fingerprint);
-            if (voted) {
-              userVotes = await getUserVotes(
-                pollData.id,
-                undefined,
-                ip,
-                fingerprint,
-              );
+
+            if (checkLocalStorage) {
+              voted = checkLocalStorage.polls.includes(pollCode);
+
+              if (voted) {
+                userVotes = await getUserVotes(
+                  pollData.id,
+                  undefined,
+                  ip,
+                  fingerprint,
+                );
+              }
             }
           } catch (err) {
             console.warn("Could not check anonymous voting status:", err);

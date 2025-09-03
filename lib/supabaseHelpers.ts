@@ -419,6 +419,7 @@ export const submitVote = async (
 
     // Check if user has already voted
     let hasVoted = false;
+
     if (userId) {
       const { data: existingVote } = await supabase
         .from("votes")
@@ -459,13 +460,13 @@ export const submitVote = async (
     }
 
     // Submit new votes
-    const votes = optionIds.map((optionId) => ({
+    const votes = {
       poll_id: pollId,
-      option_id: optionId,
+      option_id: optionIds,
       user_id: userId || null,
       voter_ip: voterIP || null,
       voter_fingerprint: voterFingerprint || null,
-    }));
+    };
 
     const { error: voteError } = await supabase.from("votes").insert(votes);
 
@@ -527,10 +528,7 @@ export const getUserVotes = async (
   voterFingerprint?: string,
 ): Promise<string[]> => {
   try {
-    let query = supabase
-      .from("votes")
-      .select("option_id")
-      .eq("poll_id", pollId);
+    let query = supabase.from("votes").select("options").eq("poll_id", pollId);
 
     if (userId) {
       query = query.eq("user_id", userId);
@@ -542,10 +540,10 @@ export const getUserVotes = async (
       return [];
     }
 
-    const { data, error } = await query;
+    const { data, error } = await query.single();
 
     if (error) throw error;
-    return data.map((vote) => vote.option_id);
+    return data?.options || [];
   } catch (error) {
     console.error("Error fetching user votes:", error);
     return [];
