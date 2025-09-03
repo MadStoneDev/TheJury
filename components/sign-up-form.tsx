@@ -110,30 +110,6 @@ export function SignUpForm({
     }
   };
 
-  const createUserProfile = async (user: any, desiredUsername: string) => {
-    // Check if profile already exists
-    const existingProfile = await getProfile(user.id);
-    if (existingProfile) return;
-
-    // Generate unique username if needed
-    let finalUsername = desiredUsername;
-    let isAvailable = await checkUsernameAvailable(finalUsername);
-    let counter = 1;
-
-    while (!isAvailable) {
-      finalUsername = `${desiredUsername}${counter}`;
-      isAvailable = await checkUsernameAvailable(finalUsername);
-      counter++;
-    }
-
-    // Create profile
-    await supabase.from("profiles").insert({
-      id: user.id,
-      username: finalUsername,
-      avatar_url: user.user_metadata?.avatar_url || null,
-    });
-  };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
