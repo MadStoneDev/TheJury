@@ -64,7 +64,11 @@ export default function PollAnswerPage() {
 
         setPoll(pollData);
 
-        // Check if user has already voted
+        // ALWAYS load results first
+        const pollResults = await getPollResults(pollData.id);
+        setResults(pollResults);
+
+        // Then check if user has voted
         const user = await getCurrentUser();
         let voted = false;
         let userVotes: string[] = [];
@@ -76,25 +80,18 @@ export default function PollAnswerPage() {
             userVotes = await getUserVotes(pollData.id, user.id);
           }
         } else {
-          // Anonymous user - check by IP + fingerprint
+          // Anonymous user - check database, not localStorage
           try {
-            const checkLocalStorage = JSON.parse(
-              localStorage.getItem("user_votes") || "false",
-            );
             const ip = await getClientIP();
             const fingerprint = generateFingerprint();
-
-            if (checkLocalStorage) {
-              voted = checkLocalStorage.polls.includes(pollCode);
-
-              if (voted) {
-                userVotes = await getUserVotes(
-                  pollData.id,
-                  undefined,
-                  ip,
-                  fingerprint,
-                );
-              }
+            voted = await hasUserVoted(pollData.id, undefined, ip, fingerprint);
+            if (voted) {
+              userVotes = await getUserVotes(
+                pollData.id,
+                undefined,
+                ip,
+                fingerprint,
+              );
             }
           } catch (err) {
             console.warn("Could not check anonymous voting status:", err);
@@ -102,11 +99,7 @@ export default function PollAnswerPage() {
         }
 
         setHasVotedFlag(voted);
-
         if (voted) {
-          // Load results and highlight user's previous votes
-          const pollResults = await getPollResults(pollData.id);
-          setResults(pollResults);
           setJustVotedFor(userVotes);
         }
       } catch (err) {
