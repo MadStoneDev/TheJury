@@ -11,9 +11,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "TheJury - Create and Share Polls Instantly",
-  description:
-    "Create polls quickly and easily. Share with a simple code, get real-time results. Perfect for teams, events, and decision-making.",
+  title: "TheJury - Polling Platform",
+  description: "Create and participate in polls with TheJury",
 };
 
 const outfitSans = Outfit({
@@ -29,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfitSans.className} antialiased`}>
+      <body className={`${outfitSans.className} antialiased pb-8`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -37,19 +36,22 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
-        </ThemeProvider>
 
-        <footer className={`p-4 sm:p-8 text-center text-xs text-neutral-600`}>
-          <p>
-            Made with ❤️ by{" "}
-            <Link
-              href={`https://ravenci.solutions`}
-              className={`hover:p-1 hover:bg-emerald-600 hover:text-white transition-all duration-300 ease-in-out`}
-            >
-              RAVENCI
-            </Link>
-          </p>
-        </footer>
+          <footer
+            className={`fixed bottom-0 left-0 right-0 p-2 bg-white text-center text-xs text-neutral-600`}
+          >
+            <p>
+              Made with ❤️ by{" "}
+              <Link
+                target="_blank"
+                href={`https://ravenci.solutions`}
+                className={`hover:p-1 hover:bg-emerald-600 hover:text-white transition-all duration-300 ease-in-out`}
+              >
+                RAVENCI
+              </Link>
+            </p>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   );

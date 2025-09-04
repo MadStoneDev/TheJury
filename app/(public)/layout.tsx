@@ -1,11 +1,5 @@
 ﻿// app/(public)/layout.tsx
-import type { Metadata } from "next";
 import { Navbar } from "@/components/Navbar";
-
-export const metadata: Metadata = {
-  title: "TheJury - ",
-  description: "The fastest way to build apps with Next.js and Supabase",
-};
 
 export default function RootLayout({
   children,

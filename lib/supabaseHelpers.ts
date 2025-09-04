@@ -182,7 +182,7 @@ export const updatePoll = async (
     allow_multiple: boolean;
     start_date: string | null;
   },
-  options?: { text: string }[],
+  options?: { text: string; id?: string }[],
 ): Promise<boolean> => {
   try {
     // Update poll data
@@ -195,26 +195,44 @@ export const updatePoll = async (
 
     // Update options if provided
     if (options) {
-      // Delete existing options
-      const { error: deleteError } = await supabase
+      // Get existing options
+      const { data: existingOptions } = await supabase
         .from("poll_options")
-        .delete()
+        .select("*")
         .eq("poll_id", pollId);
 
-      if (deleteError) throw deleteError;
+      // Update/insert options while preserving IDs where possible
+      for (let i = 0; i < options.length; i++) {
+        const option = options[i];
+        const existingOption = existingOptions?.[i];
 
-      // Insert new options
-      const optionsData = options.map((option, index) => ({
-        poll_id: pollId,
-        text: option.text,
-        option_order: index + 1,
-      }));
+        if (existingOption) {
+          // Update existing option (preserves ID)
+          await supabase
+            .from("poll_options")
+            .update({
+              text: option.text,
+              option_order: i + 1,
+            })
+            .eq("id", existingOption.id);
+        } else {
+          // Insert new option
+          await supabase.from("poll_options").insert({
+            poll_id: pollId,
+            text: option.text,
+            option_order: i + 1,
+          });
+        }
+      }
 
-      const { error: optionsError } = await supabase
-        .from("poll_options")
-        .insert(optionsData);
+      // Delete any extra options if the new list is shorter
+      if (existingOptions && existingOptions.length > options.length) {
+        const idsToDelete = existingOptions
+          .slice(options.length)
+          .map((opt) => opt.id);
 
-      if (optionsError) throw optionsError;
+        await supabase.from("poll_options").delete().in("id", idsToDelete);
+      }
     }
 
     return true;
