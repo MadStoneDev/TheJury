@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
-  params: { pollCode: string };
+  params: Promise<{ pollCode: string }>;
   children: React.ReactNode;
 };
 

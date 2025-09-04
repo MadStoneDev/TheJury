@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = {
-  params: { pollCode: string };
+  params: Promise<{ pollCode: string }>;
   children: React.ReactNode;
 };
 
@@ -33,7 +33,8 @@ async function getPollForMetadata(code: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const poll = await getPollForMetadata(params.pollCode);
+    const { pollCode } = await params;
+    const poll = await getPollForMetadata(pollCode);
 
     if (!poll) {
       return {
@@ -52,15 +53,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${truncatedQuestion} - Results - TheJury`,
       description: poll.description || `Vote on: ${poll.question}`,
       openGraph: {
-        title: poll.question,
-        description: poll.description || `Vote on: ${poll.question}`,
+        title: `${poll.question} - Results`,
+        description: poll.description || `View results for: ${poll.question}`,
         type: "website",
         siteName: "TheJury",
       },
       twitter: {
         card: "summary_large_image",
-        title: poll.question,
-        description: poll.description || `Vote on: ${poll.question}`,
+        title: `${poll.question} - Results`,
+        description: poll.description || `View results for: ${poll.question}`,
       },
     };
   } catch (error) {
