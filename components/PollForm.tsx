@@ -258,11 +258,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <Container>
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading poll...</p>
+            <p className="text-neutral-600">Loading poll...</p>
           </div>
         </Container>
       </div>
@@ -271,28 +271,28 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-neutral-50 py-12">
         <Container>
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 text-center">
               <div className="text-emerald-600 text-6xl mb-4">🎉</div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
+              <h1 className="text-3xl font-bold text-neutral-900 mb-4">
                 {isEditing ? "Poll Updated!" : "Poll Created!"}
               </h1>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-lg text-neutral-600 mb-8">
                 Your poll is live and ready to collect votes.
               </p>
 
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
-                <h3 className="font-semibold text-gray-900 mb-4">
+              <div className="bg-neutral-50 rounded-lg p-6 mb-6">
+                <h3 className="font-semibold text-neutral-900 mb-4">
                   Share your poll:
                 </h3>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between bg-white rounded border p-3">
                     <div className="flex-1">
-                      <div className="text-sm text-gray-500">Poll Code</div>
-                      <div className="font-mono font-bold text-lg">
+                      <div className="text-sm text-neutral-500">Poll Code</div>
+                      <div className="font-mono font-bold text-lg text-neutral-900">
                         {generatedPollCode}
                       </div>
                     </div>
@@ -311,8 +311,10 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
                   <div className="flex items-center justify-between bg-white rounded border p-3">
                     <div className="flex-1 truncate">
-                      <div className="text-sm text-gray-500">Direct Link</div>
-                      <div className="font-mono text-sm text-gray-700 truncate">
+                      <div className="text-sm text-neutral-500">
+                        Direct Link
+                      </div>
+                      <div className="font-mono text-sm text-neutral-900 truncate">
                         {`${
                           typeof window !== "undefined"
                             ? window.location.origin
@@ -344,7 +346,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 </button>
                 <button
                   onClick={() => setShowSuccess(false)}
-                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-md font-medium transition-colors"
+                  className="border border-neutral-300 hover:border-neutral-400 text-neutral-700 px-6 py-3 rounded-md font-medium transition-colors"
                 >
                   {isEditing ? "Edit Another" : "Create Another"}
                 </button>
@@ -357,21 +359,21 @@ export default function PollForm({ pollCode }: PollFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-neutral-50 py-8">
       <Container>
         <div className="max-w-2xl mx-auto">
           <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="text-3xl font-bold text-neutral-900 mb-2">
                 {isEditing ? "Edit Poll" : "Create New Poll"}
               </h1>
-              <p className="text-gray-600">
+              <p className="text-neutral-600">
                 {isEditing
                   ? "Make changes to your poll"
                   : "Build a poll that gets results"}
               </p>
               {isEditing && (
-                <div className="mt-2 text-sm text-gray-500">
+                <div className="mt-2 text-sm text-neutral-500">
                   Poll Code:{" "}
                   <span className="font-mono font-semibold">{pollCode}</span>
                 </div>
@@ -387,7 +389,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Question */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Poll Question *
                 </label>
                 <input
@@ -400,14 +402,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     }))
                   }
                   placeholder="What's your question?"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg"
+                  className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Description (optional)
                 </label>
                 <textarea
@@ -420,13 +422,13 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   }
                   placeholder="Add context or instructions..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
 
               {/* Options */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Answer Options *
                 </label>
                 <div className="space-y-3">
@@ -435,7 +437,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                       key={option.id}
                       className="flex items-center space-x-3"
                     >
-                      <span className="text-gray-500 text-sm w-8">
+                      <span className="text-neutral-500 text-sm w-8">
                         #{index + 1}
                       </span>
                       <input
@@ -445,7 +447,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           updateOption(option.id, e.target.value)
                         }
                         placeholder={`Option ${index + 1}`}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                        className="flex-1 px-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                       />
                       {formData.options.length > 2 && (
                         <button
@@ -471,8 +473,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
               </div>
 
               {/* Settings */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="font-medium text-gray-900 mb-3">
+              <div className="bg-neutral-50 rounded-lg p-4">
+                <h3 className="font-medium text-neutral-900 mb-3">
                   Poll Settings
                 </h3>
 
@@ -487,9 +489,9 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           allowMultiple: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">
+                    <span className="ml-2 text-sm text-neutral-700">
                       Allow multiple selections
                     </span>
                   </label>
@@ -504,9 +506,9 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           isActive: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">
+                    <span className="ml-2 text-sm text-neutral-700">
                       Poll is active (people can vote)
                     </span>
                   </label>
@@ -523,18 +525,18 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           endDate: e.target.checked ? prev.endDate : "",
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
-                    <span className="ml-2 text-sm text-gray-700">
+                    <span className="ml-2 text-sm text-neutral-700">
                       Set time limit for voting
                     </span>
                   </label>
 
                   {formData.hasTimeLimit && (
-                    <div className="mt-4 p-4 bg-white rounded border border-gray-200">
+                    <div className="mt-4 p-4 bg-white rounded border border-neutral-200">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
                             Start Date & Time
                           </label>
                           <input
@@ -546,11 +548,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
                                 startDate: e.target.value,
                               }))
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                          <label className="block text-sm font-medium text-neutral-700 mb-1">
                             End Date & Time
                           </label>
                           <input
@@ -562,11 +564,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
                                 endDate: e.target.value,
                               }))
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                           />
                         </div>
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-neutral-500 mt-2">
                         Poll will only accept votes between these dates. Leave
                         empty to allow voting indefinitely.
                       </p>
@@ -580,7 +582,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 bg-emerald-800 hover:bg-emerald-900 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-md font-medium text-lg transition-colors"
+                  className="flex-1 bg-emerald-800 hover:bg-emerald-900 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-md font-medium text-lg transition-colors"
                 >
                   {isSaving
                     ? "Saving..."
@@ -592,7 +594,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 <button
                   type="button"
                   onClick={() => router.push("/dashboard")}
-                  className="px-6 py-3 border border-gray-300 hover:border-gray-400 text-gray-700 rounded-md font-medium transition-colors"
+                  className="px-6 py-3 border border-neutral-300 hover:border-neutral-400 text-neutral-700 rounded-md font-medium transition-colors"
                 >
                   Cancel
                 </button>
