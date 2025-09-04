@@ -5,9 +5,11 @@ import { Outfit } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 
-const defaultUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+const defaultUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://thejury.app"
+    : "http://localhost:3888");
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
@@ -21,7 +23,7 @@ export const metadata: Metadata = {
     url: defaultUrl,
     images: [
       {
-        url: "/thejury-opengraph.jpg",
+        url: "thejury-opengraph.jpg",
         width: 1200,
         height: 630,
         alt: "TheJury - Polling Platform",
@@ -32,7 +34,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TheJury - Polling Platform",
     description: "Create and participate in polls with TheJury",
-    images: ["/thejury-opengraph.jpg"],
+    images: ["thejury-opengraph.jpg"],
   },
 };
 
