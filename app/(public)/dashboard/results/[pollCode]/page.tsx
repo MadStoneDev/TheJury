@@ -139,7 +139,7 @@ export default function PollResultsPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
             <p className="text-gray-600 mb-6">{error}</p>
             <Link
-              href="/dashboard"
+              href={`/dashboard`}
               className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
             >
               <IconArrowLeft size={20} />
@@ -162,7 +162,7 @@ export default function PollResultsPage() {
           {/* Header with Navigation */}
           <div className="mb-8">
             <Link
-              href="/dashboard"
+              href={`/dashboard`}
               className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
             >
               <IconArrowLeft size={20} className="mr-2" />
@@ -283,7 +283,7 @@ export default function PollResultsPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {results.map((result, index) => {
+                {results.map((result) => {
                   const percentage = getPercentage(result.vote_count);
                   const isTopChoice =
                     result.vote_count === maxVotes && maxVotes > 0;
