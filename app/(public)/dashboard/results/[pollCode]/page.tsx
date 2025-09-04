@@ -30,7 +30,6 @@ export default function PollResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
   const [copiedText, setCopiedText] = useState<string>("");
-  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     const loadPollResults = async () => {
@@ -50,7 +49,7 @@ export default function PollResultsPage() {
 
         // Check if current user owns this poll
         if (user && pollData.user_id === user.id) {
-          setIsOwner(true);
+          // setIsOwner(true);
         } else {
           // If not the owner and poll is not public, restrict access
           // You can modify this logic based on your privacy requirements
