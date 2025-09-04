@@ -57,11 +57,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: poll.description || `View results for: ${poll.question}`,
         type: "website",
         siteName: "TheJury",
+        images: [
+          {
+            url: "thejury-opengraph.jpg",
+            width: 1200,
+            height: 630,
+            alt: "TheJury - Polling Platform",
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
         title: `${poll.question} - Results`,
         description: poll.description || `View results for: ${poll.question}`,
+        images: ["thejury-opengraph.jpg"],
       },
     };
   } catch (error) {
