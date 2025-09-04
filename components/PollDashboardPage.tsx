@@ -12,6 +12,7 @@ import {
   IconTrash,
   IconCheck,
   IconX,
+  IconChartBar,
 } from "@tabler/icons-react";
 import {
   getUserPolls,
@@ -276,13 +277,22 @@ export default function PollDashboardPage() {
                         )}
                       </button>
 
-                      {/* View Results */}
+                      {/* View Poll */}
                       <Link
                         href={`/answer/${poll.code}`}
                         className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
                         title="View poll"
                       >
                         <IconEye size={18} />
+                      </Link>
+
+                      {/* View Results - NEW */}
+                      <Link
+                        href={`/dashboard/results/${poll.code}`}
+                        className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="View detailed results"
+                      >
+                        <IconChartBar size={18} />
                       </Link>
 
                       {/* Edit */}
