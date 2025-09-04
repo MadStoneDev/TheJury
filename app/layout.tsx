@@ -13,6 +13,27 @@ export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "TheJury - Polling Platform",
   description: "Create and participate in polls with TheJury",
+  openGraph: {
+    type: "website",
+    siteName: "TheJury",
+    title: "TheJury - Polling Platform",
+    description: "Create and participate in polls with TheJury",
+    url: defaultUrl,
+    images: [
+      {
+        url: "/thejury-opengraph.jpg",
+        width: 1200,
+        height: 630,
+        alt: "TheJury - Polling Platform",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "TheJury - Polling Platform",
+    description: "Create and participate in polls with TheJury",
+    images: ["/thejury-opengraph.jpg"],
+  },
 };
 
 const outfitSans = Outfit({

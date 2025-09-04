@@ -14,7 +14,7 @@ export const HeroButtons = () => {
   };
 
   return (
-    <div className="flex flex-col items-start space-y-8">
+    <div className="flex flex-col items-start md:items-center lg:items-start space-y-8">
       <div className="flex flex-col sm:flex-row items-start space-y-3 sm:space-x-4 sm:space-y-0 sm:items-center">
         <a
           href="/create"
