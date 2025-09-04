@@ -33,7 +33,8 @@ async function getPollForMetadata(code: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
-    const poll = await getPollForMetadata(params.pollCode);
+    const { pollCode } = await params;
+    const poll = await getPollForMetadata(pollCode);
 
     if (!poll) {
       return {
