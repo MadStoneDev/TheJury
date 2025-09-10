@@ -26,6 +26,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -318,7 +319,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
     }));
   };
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
@@ -326,7 +327,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
         const oldIndex = prev.options.findIndex(
           (item) => item.id === active.id,
         );
-        const newIndex = prev.options.findIndex((item) => item.id === over.id);
+        const newIndex = prev.options.findIndex((item) => item.id === over!.id);
 
         const newOptions = [...prev.options];
         const [reorderedItem] = newOptions.splice(oldIndex, 1);

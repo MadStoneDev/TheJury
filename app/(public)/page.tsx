@@ -3,12 +3,10 @@
 import React, { useState } from "react";
 import {
   IconChevronDown,
-  IconClock,
   IconUsers,
   IconCode,
   IconShare,
   IconChartBar,
-  IconCalendar,
   IconGlobe,
   IconArrowRight,
   IconScale,
@@ -233,9 +231,9 @@ const HomePage: React.FC = () => {
               Receive the Verdict
             </h3>
             <p className="text-gray-600 mb-6">
-              Analyze the jury's decision with detailed insights, export the
-              evidence, and share the final verdict. Get the clarity you need
-              for confident decisions.
+              Analyze the jury&apos;s decision with detailed insights, export
+              the evidence, and share the final verdict. Get the clarity you
+              need for confident decisions.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <IconChartBar className="w-8 h-8 text-emerald-600 mx-auto mb-3" />

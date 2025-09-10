@@ -42,7 +42,7 @@ const demoPollAPI = {
     pollId: string,
     selectedOptions: string[],
     voterFingerprint: string,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<unknown>> {
     const response = await fetch("/api/demo-polls/vote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -125,8 +125,12 @@ const DemoPollWidget: React.FC = () => {
   const [voterFingerprint] = useState<string>(() => generateFingerprint());
 
   useEffect(() => {
-    loadDemoPoll();
-  }, []);
+    const initializeDemoPoll = async () => {
+      await loadDemoPoll();
+    };
+
+    initializeDemoPoll();
+  }); // Empty dependency array is intentional - we only want this to run once on mount
 
   const loadDemoPoll = async (): Promise<void> => {
     try {
@@ -314,9 +318,9 @@ const DemoPollWidget: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          <div className="flex justify-center items-center gap-2 text-emerald-600 font-semibold mb-8">
-            <Check className="w-6 h-6" />
+        <div className="space-y-4">
+          <div className="text-center text-emerald-600 font-semibold mb-4">
+            <Check className="w-6 h-6 mx-auto mb-2" />
             Thanks for voting!
           </div>
 
@@ -327,14 +331,14 @@ const DemoPollWidget: React.FC = () => {
             return (
               <div
                 key={result.option_id}
-                className={`p-3 rounded-lg border-2 ${
+                className={`p-4 rounded-lg border-2 ${
                   isSelected
                     ? "bg-emerald-50 border-emerald-200"
                     : "bg-gray-50 border-gray-200"
                 }`}
               >
                 <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center text-neutral-900">
+                  <div className="flex items-center">
                     {isSelected && (
                       <Check className="w-4 h-4 text-emerald-600 mr-2" />
                     )}

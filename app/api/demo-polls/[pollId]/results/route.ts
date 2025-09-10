@@ -87,7 +87,7 @@ export async function GET(
     const voteCounts: Record<string, number> = {};
 
     // Initialize all options with 0 votes
-    options.forEach((option: any) => {
+    options.forEach((option: { id: string; text: string }) => {
       voteCounts[option.id] = 0;
     });
 
@@ -109,7 +109,7 @@ export async function GET(
     });
 
     // Format results
-    const results = options.map((option: any) => ({
+    const results = options.map((option: { id: string; text: string }) => ({
       option_id: option.id,
       option_text: option.text,
       vote_count: voteCounts[option.id] || 0,
