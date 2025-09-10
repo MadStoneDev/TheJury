@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Container } from "@/components/Container";
-import { IconPlus, IconX, IconCopy, IconCheck } from "@tabler/icons-react";
+import {
+  IconPlus,
+  IconX,
+  IconCopy,
+  IconCheck,
+  IconGripVertical,
+  IconTrash,
+} from "@tabler/icons-react";
 import { generateUniquePollCode } from "@/utils/pollCodeGenerator";
 import {
   createPoll,
@@ -11,10 +18,30 @@ import {
   getPollByCode,
   getCurrentUser,
 } from "@/lib/supabaseHelpers";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
+import { CSS } from "@dnd-kit/utilities";
 
 interface PollOption {
   id: string;
   text: string;
+  optionOrder?: number;
 }
 
 interface PollFormData {
@@ -32,16 +59,147 @@ interface PollFormProps {
   pollCode?: string; // Optional pollCode for editing
 }
 
+// SortableOption component
+interface SortableOptionProps {
+  option: PollOption;
+  index: number;
+  updateOption: (id: string, text: string) => void;
+  removeOption: (id: string) => void;
+  canRemove: boolean;
+}
+
+function SortableOption({
+  option,
+  index,
+  updateOption,
+  removeOption,
+  canRemove,
+}: SortableOptionProps) {
+  // States
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: option.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`relative flex items-center space-x-2 p-2 pl-0 bg-white border rounded-lg transition-all ${
+        isDragging ? "shadow-lg border-emerald-300" : "border-neutral-300"
+      } overflow-hidden`}
+    >
+      {/* Confirm delete */}
+      <div
+        className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center flex-wrap gap-2 bg-white text-neutral-900 ${
+          isDeleting
+            ? "pointer-events-auto opacity-100"
+            : "pointer-events-none opacity-0"
+        } transition-all duration-300 ease-in-out`}
+      >
+        <p>Delete this option?</p>
+        <div className={`flex items-center space-x-2 text-sm`}>
+          <button
+            type="button"
+            onClick={() => removeOption(option.id)}
+            className={`p-1 flex items-center space-x-1 rounded-lg border border-red-500 hover:bg-red-500 hover:text-white transition-colors`}
+          >
+            <IconTrash size={18} />
+            <p>
+              Yes<span className={`hidden md:inline`}>, delete it</span>
+            </p>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsDeleting(false)}
+            className={`p-1 flex items-center space-x-1 rounded-lg border border-neutral-400 hover:bg-neutral-400 transition-colors`}
+          >
+            <IconX size={18} />
+            <p>
+              No<span className={`hidden md:inline`}>, keep it</span>
+            </p>
+          </button>
+        </div>
+      </div>
+
+      {/* Drag handle */}
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600 touch-none"
+        aria-label="Drag to reorder"
+      >
+        <IconGripVertical size={20} />
+      </div>
+
+      {/* Option number */}
+      <div className="hidden sm:flex flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full items-center justify-center">
+        {index + 1}
+      </div>
+
+      {/* Option input */}
+      <input
+        type="text"
+        value={option.text}
+        onChange={(e) => updateOption(option.id, e.target.value)}
+        placeholder={`Option ${index + 1}`}
+        className="flex-1 px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+        required
+      />
+
+      {/* Remove button */}
+      {canRemove && (
+        <button
+          type="button"
+          onClick={() => setIsDeleting(true)}
+          className="flex-shrink-0 text-neutral-400 hover:text-red-600 transition-colors p-1"
+          aria-label="Remove option"
+        >
+          <IconTrash size={18} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function PollForm({ pollCode }: PollFormProps) {
   const router = useRouter();
   const isEditing = !!pollCode;
+
+  // Configure sensors for both mouse/touch interaction
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // Requires 8px of movement before drag starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms delay before touch drag starts (helps with scrolling)
+        tolerance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor),
+  );
 
   const [formData, setFormData] = useState<PollFormData>({
     question: "",
     description: "",
     options: [
-      { id: "1", text: "" },
-      { id: "2", text: "" },
+      { id: "1", text: "", optionOrder: 0 },
+      { id: "2", text: "", optionOrder: 1 },
     ],
     allowMultiple: false,
     isActive: true,
@@ -54,7 +212,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [generatedPollCode, setGeneratedPollCode] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copiedPoll, setCopiedPoll] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState<string>("");
   const [pollId, setPollId] = useState<string>("");
 
@@ -76,17 +235,26 @@ export default function PollForm({ pollCode }: PollFormProps) {
             return;
           }
 
-          // Convert poll data to form format
+          // Convert poll data to form format, sort by option_order
+          const sortedOptions =
+            poll.options?.sort(
+              (a, b) => (a.option_order || 0) - (b.option_order || 0),
+            ) || [];
+
           setFormData({
             question: poll.question,
             description: poll.description || "",
-            options: poll.options?.map((opt, index) => ({
-              id: (index + 1).toString(),
-              text: opt.text,
-            })) || [
-              { id: "1", text: "" },
-              { id: "2", text: "" },
-            ],
+            options:
+              sortedOptions.length > 0
+                ? sortedOptions.map((opt, index) => ({
+                    id: (index + 1).toString(),
+                    text: opt.text,
+                    optionOrder: opt.option_order || index,
+                  }))
+                : [
+                    { id: "1", text: "", optionOrder: 0 },
+                    { id: "2", text: "", optionOrder: 1 },
+                  ],
             allowMultiple: poll.allow_multiple,
             isActive: poll.is_active,
             hasTimeLimit: poll.has_time_limit,
@@ -114,18 +282,31 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
   const addOption = () => {
     const newId = (formData.options.length + 1).toString();
+    const newOrder =
+      Math.max(...formData.options.map((opt) => opt.optionOrder || 0)) + 1;
     setFormData((prev) => ({
       ...prev,
-      options: [...prev.options, { id: newId, text: "" }],
+      options: [
+        ...prev.options,
+        { id: newId, text: "", optionOrder: newOrder },
+      ],
     }));
   };
 
   const removeOption = (id: string) => {
     if (formData.options.length <= 2) return; // Minimum 2 options
-    setFormData((prev) => ({
-      ...prev,
-      options: prev.options.filter((option) => option.id !== id),
-    }));
+    setFormData((prev) => {
+      const filteredOptions = prev.options.filter((option) => option.id !== id);
+      // Reorder remaining options
+      const reorderedOptions = filteredOptions.map((option, index) => ({
+        ...option,
+        optionOrder: index,
+      }));
+      return {
+        ...prev,
+        options: reorderedOptions,
+      };
+    });
   };
 
   const updateOption = (id: string, text: string) => {
@@ -135,6 +316,34 @@ export default function PollForm({ pollCode }: PollFormProps) {
         option.id === id ? { ...option, text } : option,
       ),
     }));
+  };
+
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      setFormData((prev) => {
+        const oldIndex = prev.options.findIndex(
+          (item) => item.id === active.id,
+        );
+        const newIndex = prev.options.findIndex((item) => item.id === over.id);
+
+        const newOptions = [...prev.options];
+        const [reorderedItem] = newOptions.splice(oldIndex, 1);
+        newOptions.splice(newIndex, 0, reorderedItem);
+
+        // Update option orders
+        const updatedOptions = newOptions.map((option, index) => ({
+          ...option,
+          optionOrder: index,
+        }));
+
+        return {
+          ...prev,
+          options: updatedOptions,
+        };
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,7 +389,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
           setGeneratedPollCode(pollCode);
         } catch (codeError) {
           console.error("Error generating poll code:", codeError);
-
           throw new Error(
             "Unable to generate unique poll code. Please try again.",
           );
@@ -246,14 +454,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const copyPollLink = async () => {
     const link = `${window.location.origin}/answer/${generatedPollCode}`;
     await navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   };
 
   const copyPollCode = async () => {
     await navigator.clipboard.writeText(generatedPollCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedPoll(true);
+    setTimeout(() => setCopiedPoll(false), 2000);
   };
 
   if (isLoading) {
@@ -300,12 +508,12 @@ export default function PollForm({ pollCode }: PollFormProps) {
                       onClick={copyPollCode}
                       className="flex items-center space-x-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded transition-colors"
                     >
-                      {copied ? (
+                      {copiedPoll ? (
                         <IconCheck size={16} />
                       ) : (
                         <IconCopy size={16} />
                       )}
-                      <span>{copied ? "Copied!" : "Copy"}</span>
+                      <span>{copiedPoll ? "Copied!" : "Copy"}</span>
                     </button>
                   </div>
 
@@ -326,12 +534,12 @@ export default function PollForm({ pollCode }: PollFormProps) {
                       onClick={copyPollLink}
                       className="flex items-center space-x-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded transition-colors"
                     >
-                      {copied ? (
+                      {copiedLink ? (
                         <IconCheck size={16} />
                       ) : (
                         <IconCopy size={16} />
                       )}
-                      <span>{copied ? "Copied!" : "Copy"}</span>
+                      <span>{copiedLink ? "Copied!" : "Copy"}</span>
                     </button>
                   </div>
                 </div>
@@ -431,36 +639,34 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
                   Answer Options *
                 </label>
-                <div className="space-y-3">
-                  {formData.options.map((option, index) => (
-                    <div
-                      key={option.id}
-                      className="flex items-center space-x-3"
-                    >
-                      <span className="text-neutral-500 text-sm w-8">
-                        #{index + 1}
-                      </span>
-                      <input
-                        type="text"
-                        value={option.text}
-                        onChange={(e) =>
-                          updateOption(option.id, e.target.value)
-                        }
-                        placeholder={`Option ${index + 1}`}
-                        className="flex-1 px-4 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                      />
-                      {formData.options.length > 2 && (
-                        <button
-                          type="button"
-                          onClick={() => removeOption(option.id)}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <IconX size={20} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                <div className="text-xs text-neutral-500 mb-3">
+                  Drag the grip handle to reorder options
                 </div>
+
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                  modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                >
+                  <SortableContext
+                    items={formData.options.map((option) => option.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-3">
+                      {formData.options.map((option, index) => (
+                        <SortableOption
+                          key={option.id}
+                          option={option}
+                          index={index}
+                          updateOption={updateOption}
+                          removeOption={removeOption}
+                          canRemove={formData.options.length > 2}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
 
                 <button
                   type="button"
