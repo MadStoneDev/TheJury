@@ -1,7 +1,4 @@
-﻿// Helper function to add more demo polls (you can run this via API or directly in database)
-// app/api/demo-polls/seed/route.ts
-"use server";
-
+﻿// app/api/demo-polls/seed/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -48,32 +45,109 @@ export async function POST() {
       },
     ];
 
-    // Insert additional demo polls
-    const { error } = await supabase.from("demo_polls").insert(
-      additionalPolls.map((poll) => ({
-        question: poll.question,
-        description: poll.description,
-        options: JSON.stringify(poll.options),
-        category: poll.category,
-        display_order: poll.display_order,
-        is_active: true,
-      })),
+    let successCount = 0;
+    let skippedCount = 0;
+    const results = [];
+
+    // Insert each poll individually to handle duplicates gracefully
+    for (const poll of additionalPolls) {
+      try {
+        // First check if poll already exists
+        const { data: existing } = await supabase
+          .from("demo_polls")
+          .select("id, question")
+          .eq("question", poll.question)
+          .single();
+
+        if (existing) {
+          skippedCount++;
+          results.push({
+            question: poll.question,
+            status: "skipped",
+            reason: "already exists",
+          });
+          continue;
+        }
+
+        // Insert the new poll
+        const { data: inserted, error: insertError } = await supabase
+          .from("demo_polls")
+          .insert({
+            question: poll.question,
+            description: poll.description,
+            options: JSON.stringify(poll.options),
+            category: poll.category,
+            display_order: poll.display_order,
+            is_active: true,
+          })
+          .select("id, question")
+          .single();
+
+        if (insertError) {
+          if (insertError.code === "23505") {
+            skippedCount++;
+            results.push({
+              question: poll.question,
+              status: "skipped",
+              reason: "duplicate detected during insert",
+            });
+          } else {
+            throw insertError;
+          }
+        } else {
+          successCount++;
+          results.push({
+            question: poll.question,
+            status: "inserted",
+            id: inserted.id,
+          });
+        }
+      } catch (error) {
+        results.push({
+          question: poll.question,
+          status: "error",
+          error: (error as Error).message,
+        });
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Seeding completed: ${successCount} inserted, ${skippedCount} skipped`,
+      details: results,
+    });
+  } catch (error) {
+    console.error("Error in seed route:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
     );
+  }
+}
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from("demo_polls")
+      .select("id, question, category, is_active, created_at")
+      .order("display_order");
 
     if (error) {
-      console.error("Error seeding demo polls:", error);
+      console.error("Error fetching demo polls:", error);
       return NextResponse.json(
-        { error: "Failed to seed demo polls" },
+        { error: "Failed to fetch demo polls" },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
-      success: true,
-      message: "Demo polls seeded successfully",
+      polls: data,
+      count: data.length,
     });
   } catch (error) {
-    console.error("Error in seed route:", error);
+    console.error("Error in demo polls list route:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

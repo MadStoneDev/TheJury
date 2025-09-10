@@ -2,65 +2,39 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+interface DemoPollOption {
+  id: string;
+  text: string;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ pollId: string }> },
 ) {
   try {
     const supabase = await createClient();
-    const { pollId } = await params; // Await the params Promise
+    const { pollId } = await params;
 
     console.log("Fetching results for poll:", pollId);
 
-    // First check if the poll exists
-    const { data: pollExists, error: pollError } = await supabase
+    // Get the poll and its options
+    const { data: poll, error: pollError } = await supabase
       .from("demo_polls")
       .select("id, question, options")
       .eq("id", pollId)
-      .limit(1);
+      .single();
 
-    if (pollError) {
-      console.error("Error checking poll existence:", pollError);
-      return NextResponse.json(
-        { error: "Failed to verify poll" },
-        { status: 500 },
-      );
-    }
-
-    if (!pollExists || pollExists.length === 0) {
+    if (pollError || !poll) {
+      console.error("Error fetching poll:", pollError);
       return NextResponse.json({ error: "Poll not found" }, { status: 404 });
     }
 
-    // Try to use the RPC function first
-    try {
-      const { data: rpcData, error: rpcError } = await supabase.rpc(
-        "get_demo_poll_results",
-        {
-          poll_uuid: pollId,
-        },
-      );
-
-      if (!rpcError && rpcData) {
-        console.log("RPC results:", rpcData);
-        return NextResponse.json(rpcData);
-      }
-
-      console.log("RPC failed or returned no data:", rpcError);
-    } catch (rpcError) {
-      console.log(
-        "RPC function failed, falling back to manual query:",
-        rpcError,
-      );
-    }
-
-    // Fallback: Manual aggregation if RPC fails
-    const poll = pollExists[0];
-    let options = [];
-
+    // Parse options
+    let options: DemoPollOption[] = [];
     try {
       options = Array.isArray(poll.options)
         ? poll.options
-        : JSON.parse((poll.options as string) || "[]");
+        : JSON.parse(poll.options as string);
     } catch (parseError) {
       console.error("Error parsing poll options:", parseError);
       return NextResponse.json(
@@ -83,20 +57,25 @@ export async function GET(
       );
     }
 
-    // Count votes for each option
+    // Initialize vote counts
     const voteCounts: Record<string, number> = {};
-
-    // Initialize all options with 0 votes
-    options.forEach((option: { id: string; text: string }) => {
+    options.forEach((option) => {
       voteCounts[option.id] = 0;
     });
 
-    // Count actual votes
+    // Count votes for each option
     votes?.forEach((vote) => {
       try {
-        const selectedOptions = Array.isArray(vote.selected_options)
-          ? vote.selected_options
-          : JSON.parse((vote.selected_options as string) || "[]");
+        let selectedOptions: string[] = [];
+
+        if (Array.isArray(vote.selected_options)) {
+          selectedOptions = vote.selected_options;
+        } else if (typeof vote.selected_options === "string") {
+          selectedOptions = JSON.parse(vote.selected_options);
+        } else {
+          // Handle JSONB data
+          selectedOptions = vote.selected_options;
+        }
 
         selectedOptions.forEach((optionId: string) => {
           if (voteCounts.hasOwnProperty(optionId)) {
@@ -104,18 +83,18 @@ export async function GET(
           }
         });
       } catch (parseError) {
-        console.error("Error parsing vote options:", parseError);
+        console.error("Error parsing vote options:", parseError, vote);
       }
     });
 
     // Format results
-    const results = options.map((option: { id: string; text: string }) => ({
+    const results = options.map((option) => ({
       option_id: option.id,
       option_text: option.text,
       vote_count: voteCounts[option.id] || 0,
     }));
 
-    console.log("Manual aggregation results:", results);
+    console.log("Results:", results);
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error in demo poll results route:", error);

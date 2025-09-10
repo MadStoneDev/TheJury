@@ -115,12 +115,14 @@ export const checkUsernameAvailable = async (
 
 export const checkPollCodeExists = async (code: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc("poll_code_exists", {
-      poll_code: code,
-    });
+    const { data, error } = await supabase
+      .from("polls")
+      .select("id")
+      .eq("code", code)
+      .limit(1);
 
     if (error) throw error;
-    return data;
+    return data.length > 0;
   } catch (error) {
     console.error("Error checking poll code:", error);
     return true; // Assume it exists to be safe
@@ -466,12 +468,56 @@ export const submitVote = async (
 
 export const getPollResults = async (pollId: string): Promise<PollResult[]> => {
   try {
-    const { data, error } = await supabase.rpc("get_poll_results", {
-      poll_uuid: pollId,
+    // Get poll options first
+    const { data: options, error: optionsError } = await supabase
+      .from("poll_options")
+      .select("id, text, option_order")
+      .eq("poll_id", pollId)
+      .order("option_order");
+
+    if (optionsError) throw optionsError;
+
+    // Get all votes for this poll
+    const { data: votes, error: votesError } = await supabase
+      .from("votes")
+      .select("options")
+      .eq("poll_id", pollId);
+
+    if (votesError) throw votesError;
+
+    // Initialize vote counts
+    const voteCounts: Record<string, number> = {};
+    options?.forEach((option) => {
+      voteCounts[option.id] = 0;
     });
 
-    if (error) throw error;
-    return data || [];
+    // Count votes for each option
+    votes?.forEach((vote) => {
+      try {
+        const selectedOptions = Array.isArray(vote.options)
+          ? vote.options
+          : JSON.parse((vote.options as string) || "[]");
+
+        selectedOptions.forEach((optionId: string) => {
+          if (voteCounts.hasOwnProperty(optionId)) {
+            voteCounts[optionId]++;
+          }
+        });
+      } catch (parseError) {
+        console.error("Error parsing vote options:", parseError);
+      }
+    });
+
+    // Format results
+    const results: PollResult[] =
+      options?.map((option) => ({
+        option_id: option.id,
+        option_text: option.text,
+        option_order: option.option_order,
+        vote_count: voteCounts[option.id] || 0,
+      })) || [];
+
+    return results;
   } catch (error) {
     console.error("Error fetching poll results:", error);
     return [];

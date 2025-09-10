@@ -8,7 +8,7 @@ export async function GET(
 ) {
   try {
     const supabase = await createClient();
-    const { pollId } = await params; // Await the params Promise
+    const { pollId } = await params;
     const { searchParams } = new URL(request.url);
     const fingerprint = searchParams.get("fingerprint");
 
