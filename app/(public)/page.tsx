@@ -31,60 +31,60 @@ const HomePage: React.FC = () => {
   const features: Feature[] = [
     {
       icon: <IconGavel className="w-6 h-6" />,
-      title: "Present Your Case",
+      title: "Ask Your Question",
       description:
-        "Build compelling polls in under 30 seconds. Present your question to the jury of public opinion.",
+        "Build compelling polls in under 30 seconds. Present your question to the community.",
     },
     {
       icon: <IconUsers className="w-6 h-6" />,
-      title: "Summon Your Jury",
+      title: "Get Responses",
       description:
-        "Gather responses from your audience. Track deliberations and manage all your cases from one dashboard.",
-    },
-    {
-      icon: <IconCode className="w-6 h-6" />,
-      title: "Deliver the Verdict",
-      description:
-        "Embed polls anywhere to reach your jury. Simple integration codes make deployment effortless.",
+        "Gather responses from your audience. Track changes and manage all your polls from one dashboard.",
     },
     {
       icon: <IconScale className="w-6 h-6" />,
-      title: "Scheduled Hearings",
+      title: "Schedule Polls",
       description:
-        "Set court dates with start and end times. Control exactly when the jury convenes and when verdicts are final.",
+        "Set start and end dates for each poll (optional). Control exactly when polls go live and when verdicts are final.",
+    },
+    {
+      icon: <IconCode className="w-6 h-6" />,
+      title: "See Results",
+      description:
+        "Embed polls anywhere to reach your jury. Simple integration codes make deployment effortless.",
     },
   ];
 
   const faqs: FAQ[] = [
     {
-      question: "How quickly can I present my case to the jury?",
+      question: "How quickly can I create a poll?",
       answer:
-        "You can present your case in under 30 seconds! Just state your question, present the options, and let the jury deliberate. Our streamlined process makes it incredibly fast to get verdicts.",
+        "You can create a poll in under 30 seconds! Just write your question, add the options, and share it with your audience. Our streamlined process makes it incredibly fast to get answers.",
     },
     {
-      question: "Can I schedule when the jury convenes?",
+      question: "Can I schedule when my poll opens and closes?",
       answer:
-        "Absolutely! Set custom court dates for when your poll opens and closes. Perfect for timed decisions, event planning, or deadline-driven verdicts.",
+        "Absolutely! Set custom start and end times for when your poll opens and closes. Perfect for timed decisions, event planning, or deadline-driven voting.",
     },
     {
-      question: "How do I summon my jury?",
+      question: "How do I share my poll?",
       answer:
-        "Summon jurors via direct links, QR codes, social media, or embed jury selection directly on your website. We make reaching your audience as easy as possible.",
+        "Share your poll via direct links, QR codes, social media, or embed it directly on your website. We make reaching your audience as easy as possible.",
     },
     {
-      question: "Can I watch the deliberation in real-time?",
+      question: "Can I watch responses come in real-time?",
       answer:
-        "Yes! Watch votes come in live as your jury deliberates. You can also choose whether jurors see the current tally or only the final verdict after deliberation closes.",
+        "Yes! Watch votes come in live as people respond. You can also choose whether voters see the current results or only the final tally after voting closes.",
     },
     {
-      question: "Is there a limit to jury size?",
+      question: "Is there a limit to how many people can vote?",
       answer:
-        "No limits on your jury pool! Whether you need 12 jurors or 12,000, TheJury scales to handle any case size you bring before the court of public opinion.",
+        "No limits on responses! Whether you need 12 votes or 12,000, TheJury scales to handle any poll size you can throw at it.",
     },
     {
-      question: "Can I embed jury selection on my website?",
+      question: "Can I embed polls on my website?",
       answer:
-        "Yes! Get an embed code for any case and add jury selection to your website, blog, or app. Fully customizable to match your courtroom style.",
+        "Yes! Get an embed code for any poll and add it to your website, blog, or app. Fully customizable to match your site's style.",
     },
   ];
 
@@ -169,7 +169,7 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            From case to verdict in three steps
+            From question to verdict in three steps
           </h2>
           <p className="text-xl text-gray-600">
             Present your case, summon the jury, and receive your verdict
@@ -295,9 +295,7 @@ const HomePage: React.FC = () => {
     <section className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Jury Instructions & FAQ
-          </h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">FAQ</h2>
           <p className="text-xl text-gray-600">
             Everything you need to know about presenting cases to TheJury
           </p>
@@ -336,7 +334,7 @@ const HomePage: React.FC = () => {
     <section className="py-20 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Ready for your day in court?
+          Ready to settle debates?
         </h2>
         <p className="text-xl text-gray-600 mb-8">
           Join thousands who trust TheJury to deliver fair verdicts on their
@@ -355,7 +353,7 @@ const HomePage: React.FC = () => {
             href="/auth/sign-up"
             className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center"
           >
-            Join the Jury Pool
+            Join the Community
           </a>
         </div>
       </div>

@@ -13,6 +13,7 @@ import {
   IconCheck,
   IconX,
   IconChartBar,
+  IconCode,
 } from "@tabler/icons-react";
 import {
   getUserPolls,
@@ -21,6 +22,7 @@ import {
   getCurrentUser,
 } from "@/lib/supabaseHelpers";
 import type { Poll } from "@/lib/supabaseHelpers";
+import EmbedCodeGenerator from "@/components/EmbedCodeGenerator";
 
 export default function PollDashboardPage() {
   // States
@@ -28,6 +30,7 @@ export default function PollDashboardPage() {
   const [polls, setPolls] = useState<Poll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string>("");
+  const [showEmbedCode, setShowEmbedCode] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<string>("");
   const [error, setError] = useState<string>("");
 
@@ -304,6 +307,19 @@ export default function PollDashboardPage() {
                         <IconEdit size={18} />
                       </Link>
 
+                      {/* Embed Code */}
+                      <button
+                        onClick={() =>
+                          setShowEmbedCode(
+                            showEmbedCode === poll.id ? "" : poll.id,
+                          )
+                        }
+                        className="p-2 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors"
+                        title="Get embed code"
+                      >
+                        <IconCode size={18} />
+                      </button>
+
                       {/* Toggle Active/Inactive */}
                       <button
                         onClick={() => handleTogglePollStatus(poll.id)}
@@ -352,6 +368,13 @@ export default function PollDashboardPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Embed Code Generator - Shows when toggled */}
+                  {showEmbedCode === poll.id && (
+                    <div className="border-t border-gray-200 p-6 bg-gray-50">
+                      <EmbedCodeGenerator pollCode={poll.code} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -362,7 +385,7 @@ export default function PollDashboardPage() {
             <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="flex flex-wrap gap-3">
               <Link
-                href="/create"
+                href={`/create`}
                 className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-md font-medium transition-colors"
               >
                 Create New Poll
