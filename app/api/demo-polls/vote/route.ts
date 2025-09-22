@@ -5,7 +5,18 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
-    const body = await request.json();
+
+    // Safe JSON parsing for request body
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 },
+      );
+    }
 
     const { demo_poll_id, selected_options, voter_fingerprint } = body;
 
@@ -68,7 +79,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert the vote
+    // Insert the vote with safe JSON stringification
     const { error: voteError } = await supabase.from("demo_votes").insert({
       demo_poll_id,
       selected_options: JSON.stringify(selected_options),

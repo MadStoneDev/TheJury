@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Check, Loader } from "lucide-react";
+import { generateFingerprint } from "@/lib/supabaseHelpers";
+import { safeJsonParse } from "@/lib/jsonUtils";
 
 // Types based on your Supabase schema
 interface DemoPoll {
@@ -27,7 +29,10 @@ interface ApiResponse<T> {
 // Demo poll API functions
 const demoPollAPI = {
   async getRandomDemoPoll(): Promise<DemoPoll> {
+    console.log("Fetching random demo poll");
     const response = await fetch("/api/demo-polls/random");
+    console.log("Response:", response);
+
     if (!response.ok) throw new Error("Failed to fetch demo poll");
     return response.json();
   },
@@ -81,39 +86,6 @@ const demoPollAPI = {
   },
 };
 
-// Generate simple browser fingerprint
-const generateFingerprint = (): string => {
-  try {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return Math.random().toString(36).substr(2, 9);
-
-    ctx.textBaseline = "top";
-    ctx.font = "14px Arial";
-    ctx.fillText("Demo fingerprint", 2, 2);
-
-    const fingerprint = [
-      navigator.userAgent,
-      navigator.language,
-      screen.width + "x" + screen.height,
-      new Date().getTimezoneOffset(),
-      canvas.toDataURL(),
-    ].join("|");
-
-    let hash = 0;
-    for (let i = 0; i < fingerprint.length; i++) {
-      const char = fingerprint.charCodeAt(i);
-      hash = (hash << 5) - hash + char;
-      hash = hash & hash;
-    }
-
-    return hash.toString();
-  } catch (error) {
-    console.error("Error generating fingerprint:", error);
-    return Math.random().toString(36).substr(2, 9);
-  }
-};
-
 const DemoPollWidget: React.FC = () => {
   const [demoPoll, setDemoPoll] = useState<DemoPoll | null>(null);
   const [results, setResults] = useState<DemoPollResult[]>([]);
@@ -122,7 +94,7 @@ const DemoPollWidget: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isVoting, setIsVoting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [voterFingerprint] = useState<string>(() => generateFingerprint());
+  const [voterFingerprint, setVoterFingerprint] = useState<string>("");
 
   useEffect(() => {
     const initializeDemoPoll = async () => {
@@ -130,7 +102,11 @@ const DemoPollWidget: React.FC = () => {
     };
 
     initializeDemoPoll();
-  }, []); // Empty dependency array is intentional - we only want this to run once on mount
+  }, []);
+
+  useEffect(() => {
+    setVoterFingerprint(generateFingerprint());
+  }, []);
 
   const loadDemoPoll = async (): Promise<void> => {
     try {
@@ -260,15 +236,10 @@ const DemoPollWidget: React.FC = () => {
     );
   }
 
-  let options: Array<{ id: string; text: string }> = [];
-  try {
-    options = Array.isArray(demoPoll.options)
-      ? demoPoll.options
-      : JSON.parse((demoPoll.options as string) || "[]");
-  } catch (parseError) {
-    console.error("Error parsing poll options:", parseError);
-    options = [];
-  }
+  const options: Array<{ id: string; text: string }> = safeJsonParse(
+    demoPoll.options,
+    [],
+  );
 
   if (!options.length) {
     return (

@@ -620,28 +620,56 @@ export const getClientIP = async (): Promise<string> => {
 };
 
 // Generate browser fingerprint (for anonymous voting)
+// Generate browser fingerprint (for anonymous voting)
 export const generateFingerprint = (): string => {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  ctx!.textBaseline = "top";
-  ctx!.font = "14px Arial";
-  ctx!.fillText("Browser fingerprint", 2, 2);
+  try {
+    // Check if we're in a browser environment
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      // Server-side fallback - generate a random string
+      return (
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15)
+      );
+    }
 
-  const fingerprint = [
-    navigator.userAgent,
-    navigator.language,
-    screen.width + "x" + screen.height,
-    new Date().getTimezoneOffset(),
-    canvas.toDataURL(),
-  ].join("|");
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  // Simple hash function
-  let hash = 0;
-  for (let i = 0; i < fingerprint.length; i++) {
-    const char = fingerprint.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
+    if (!ctx) {
+      // Canvas context not available, fallback to random
+      return (
+        Math.random().toString(36).substring(2, 15) +
+        Math.random().toString(36).substring(2, 15)
+      );
+    }
+
+    ctx.textBaseline = "top";
+    ctx.font = "14px Arial";
+    ctx.fillText("Browser fingerprint", 2, 2);
+
+    const fingerprint = [
+      navigator.userAgent || "unknown",
+      navigator.language || "unknown",
+      (screen.width || 0) + "x" + (screen.height || 0),
+      new Date().getTimezoneOffset(),
+      canvas.toDataURL(),
+    ].join("|");
+
+    // Simple hash function
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      const char = fingerprint.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash; // Convert to 32-bit integer
+    }
+
+    return hash.toString();
+  } catch (error) {
+    console.error("Error generating fingerprint:", error);
+    // Fallback to random string on any error
+    return (
+      Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15)
+    );
   }
-
-  return hash.toString();
 };

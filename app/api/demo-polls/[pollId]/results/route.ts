@@ -1,6 +1,7 @@
 ﻿// app/api/demo-polls/[pollId]/results/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { safeJsonParse } from "@/lib/jsonUtils";
 
 interface DemoPollOption {
   id: string;
@@ -29,14 +30,11 @@ export async function GET(
       return NextResponse.json({ error: "Poll not found" }, { status: 404 });
     }
 
-    // Parse options
-    let options: DemoPollOption[] = [];
-    try {
-      options = Array.isArray(poll.options)
-        ? poll.options
-        : JSON.parse(poll.options as string);
-    } catch (parseError) {
-      console.error("Error parsing poll options:", parseError);
+    // Parse options with safe parsing
+    const options: DemoPollOption[] = safeJsonParse(poll.options, []);
+
+    if (options.length === 0) {
+      console.error("No valid options found for poll:", pollId);
       return NextResponse.json(
         { error: "Invalid poll options format" },
         { status: 500 },
@@ -63,28 +61,18 @@ export async function GET(
       voteCounts[option.id] = 0;
     });
 
-    // Count votes for each option
+    // Count votes for each option with safe parsing
     votes?.forEach((vote) => {
-      try {
-        let selectedOptions: string[] = [];
+      const selectedOptions: string[] = safeJsonParse(
+        vote.selected_options,
+        [],
+      );
 
-        if (Array.isArray(vote.selected_options)) {
-          selectedOptions = vote.selected_options;
-        } else if (typeof vote.selected_options === "string") {
-          selectedOptions = JSON.parse(vote.selected_options);
-        } else {
-          // Handle JSONB data
-          selectedOptions = vote.selected_options;
+      selectedOptions.forEach((optionId: string) => {
+        if (voteCounts.hasOwnProperty(optionId)) {
+          voteCounts[optionId]++;
         }
-
-        selectedOptions.forEach((optionId: string) => {
-          if (voteCounts.hasOwnProperty(optionId)) {
-            voteCounts[optionId]++;
-          }
-        });
-      } catch (parseError) {
-        console.error("Error parsing vote options:", parseError, vote);
-      }
+      });
     });
 
     // Format results
