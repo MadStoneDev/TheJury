@@ -266,31 +266,6 @@ const HomePage: React.FC = () => {
     </section>
   );
 
-  const StatsSection: React.FC = () => (
-    <section className="py-16 bg-emerald-600">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center text-white">
-          <div>
-            <div className="text-4xl font-bold mb-2">Swift</div>
-            <div className="text-emerald-100">30-second case setup</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">Fair</div>
-            <div className="text-emerald-100">Unbiased jury selection</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">Just</div>
-            <div className="text-emerald-100">Transparent verdicts</div>
-          </div>
-          <div>
-            <div className="text-4xl font-bold mb-2">Free</div>
-            <div className="text-emerald-100">No court fees to start</div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
   const FAQSection: React.FC = () => (
     <section className="py-20 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -365,7 +340,6 @@ const HomePage: React.FC = () => {
       <HeroSection />
       <FeaturesSection />
       <HowItWorksSection />
-      <StatsSection />
       <FAQSection />
       <CTASection />
     </div>
