@@ -33,7 +33,7 @@ const HomePage: React.FC = () => {
       icon: <IconGavel className="w-6 h-6" />,
       title: "Ask Your Question",
       description:
-        "Create polls in under 30 seconds. Get your crew's opinion on anything, anytime.",
+        "Create polls in under 30 seconds. Get your crew&apos;s opinion on anything, anytime.",
     },
     {
       icon: <IconUsers className="w-6 h-6" />,
@@ -59,7 +59,7 @@ const HomePage: React.FC = () => {
     {
       question: "How quickly can I create a poll?",
       answer:
-        "Less than 30 seconds! Just type your question, add some options, and share the link. It's honestly faster than trying to decide in your group chat.",
+        "Less than 30 seconds! Just type your question, add some options, and share the link. It&apos;s honestly faster than trying to decide in your group chat.",
     },
     {
       question: "Can I schedule when my poll opens and closes?",
@@ -74,12 +74,12 @@ const HomePage: React.FC = () => {
     {
       question: "Can I watch responses come in real-time?",
       answer:
-        "Absolutely! See votes come in live as people respond. You can choose whether voters see current results or wait until everyone's voted.",
+        "Absolutely! See votes come in live as people respond. You can choose whether voters see current results or wait until everyone&apos;s voted.",
     },
     {
       question: "Is there a limit to how many people can vote?",
       answer:
-        "Nope! Whether it's your 5-person friend group or your 5,000-member gaming community, TheJury handles any crowd size you throw at it.",
+        "Nope! Whether it&apos;s your 5-person friend group or your 5,000-member gaming community, TheJury handles any crowd size you throw at it.",
     },
     {
       question: "Can I embed polls on my website or stream?",
@@ -243,8 +243,8 @@ const HomePage: React.FC = () => {
               Ask Your Question
             </h3>
             <p className="text-gray-600 mb-6">
-              Type your question and add the options. Whether it's "pizza or
-              tacos?" or "which marketing strategy should we use?", set it up
+              Type your question and add the options. Whether it&apos;s "pizza
+              or tacos?" or "which marketing strategy should we use?", set it up
               exactly how you want.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
