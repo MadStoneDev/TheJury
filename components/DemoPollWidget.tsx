@@ -29,9 +29,7 @@ interface ApiResponse<T> {
 // Demo poll API functions
 const demoPollAPI = {
   async getRandomDemoPoll(): Promise<DemoPoll> {
-    console.log("Fetching random demo poll");
     const response = await fetch("/api/demo-polls/random");
-    console.log("Response:", response);
 
     if (!response.ok) throw new Error("Failed to fetch demo poll");
     return response.json();
@@ -142,12 +140,6 @@ const DemoPollWidget: React.FC = () => {
       setError(null);
 
       // Submit vote
-      console.log(
-        "Submitting vote for poll:",
-        demoPoll.id,
-        "option:",
-        optionId,
-      );
       await demoPollAPI.submitDemoVote(
         demoPoll.id,
         [optionId],
@@ -159,11 +151,9 @@ const DemoPollWidget: React.FC = () => {
       setHasVoted(true);
 
       // Load updated results with retry logic
-      console.log("Fetching updated results...");
       try {
         const pollResults = await demoPollAPI.getDemoPollResults(demoPoll.id);
         setResults(pollResults || []);
-        console.log("Results loaded successfully:", pollResults);
       } catch (resultsError) {
         console.error("Error fetching results after vote:", resultsError);
         // Don't fail the whole vote process if results fail
