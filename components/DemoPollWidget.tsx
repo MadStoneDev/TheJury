@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Check, Loader } from "lucide-react";
 import { generateFingerprint } from "@/lib/supabaseHelpers";
 import { safeJsonParse } from "@/lib/jsonUtils";
@@ -95,18 +95,10 @@ const DemoPollWidget: React.FC = () => {
   const [voterFingerprint, setVoterFingerprint] = useState<string>("");
 
   useEffect(() => {
-    const initializeDemoPoll = async () => {
-      await loadDemoPoll();
-    };
-
-    initializeDemoPoll();
-  }, []);
-
-  useEffect(() => {
     setVoterFingerprint(generateFingerprint());
   }, []);
 
-  const loadDemoPoll = async (): Promise<void> => {
+  const loadDemoPoll = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -130,7 +122,12 @@ const DemoPollWidget: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [voterFingerprint]);
+
+  useEffect(() => {
+    if (!voterFingerprint) return;
+    loadDemoPoll();
+  }, [voterFingerprint, loadDemoPoll]);
 
   const handleVote = async (optionId: string): Promise<void> => {
     if (hasVoted || isVoting || !optionId || !demoPoll) return;
