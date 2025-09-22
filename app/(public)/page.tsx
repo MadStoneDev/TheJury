@@ -92,6 +92,64 @@ const HomePage: React.FC = () => {
     setOpenFaq(openFaq === index ? null : index);
   };
 
+  const AnimatedWord: React.FC = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [isTransitioning, setIsTransitioning] = useState(true);
+    const words = [
+      "friends",
+      "family",
+      "colleagues",
+      "team",
+      "community",
+      "audience",
+    ];
+    const doubledWords = [...words, words[0]]; // Add first word to the end for seamless loop
+
+    React.useEffect(() => {
+      const interval = setInterval(() => {
+        setCurrentIndex((prevIndex) => {
+          const nextIndex = prevIndex + 1;
+
+          if (nextIndex >= doubledWords.length) {
+            return 0;
+          }
+
+          if (nextIndex === doubledWords.length - 1) {
+            setTimeout(() => {
+              setIsTransitioning(false);
+              setCurrentIndex(0);
+              setTimeout(() => setIsTransitioning(true), 50);
+            }, 750);
+          }
+          return nextIndex;
+        });
+      }, 2000);
+
+      return () => clearInterval(interval);
+    }, [doubledWords.length]);
+
+    return (
+      <div className="inline-block overflow-hidden h-[1.2em] align-top">
+        <div
+          className={`flex flex-col ${
+            isTransitioning
+              ? "transition-transform duration-500 ease-in-out"
+              : ""
+          }`}
+          style={{
+            transform: `translateY(-${currentIndex * 1.2}em)`,
+          }}
+        >
+          {doubledWords.map((word, index) => (
+            <span key={index} className="h-[1.2em] flex items-center">
+              {word}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const HeroSection: React.FC = () => (
     <section className="relative bg-gradient-to-br from-emerald-50 to-blue-50 pt-20 pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -100,7 +158,7 @@ const HomePage: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Let your crew
+                Let your <AnimatedWord />
                 <span className="text-emerald-600 block">decide</span>
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed">
@@ -218,7 +276,7 @@ const HomePage: React.FC = () => {
                 <IconCode className="w-5 h-5 text-purple-600" />
               </div>
               <div className="text-sm text-gray-500 font-mono bg-gray-50 px-3 py-2 rounded">
-                thejury.app/answer/ABC123XYZ
+                thejury.app/poll/ABC123XYZ
               </div>
             </div>
           </div>

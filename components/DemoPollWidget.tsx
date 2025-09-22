@@ -6,7 +6,7 @@ import { generateFingerprint } from "@/lib/supabaseHelpers";
 import { safeJsonParse } from "@/lib/jsonUtils";
 
 // Types based on your Supabase schema
-interface DemoPoll {
+interface LivePoll {
   id: string;
   question: string;
   description: string | null;
@@ -15,7 +15,7 @@ interface DemoPoll {
   is_active: boolean | null;
 }
 
-interface DemoPollResult {
+interface LivePollResult {
   option_id: string;
   option_text: string;
   vote_count: number;
@@ -26,27 +26,27 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Demo poll API functions
-const demoPollAPI = {
-  async getRandomDemoPoll(): Promise<DemoPoll> {
-    const response = await fetch("/api/demo-polls/random");
+// Live poll API functions
+const livePollAPI = {
+  async getRandomLivePoll(): Promise<LivePoll> {
+    const response = await fetch("/api/live-polls/random");
 
-    if (!response.ok) throw new Error("Failed to fetch demo poll");
+    if (!response.ok) throw new Error("Failed to fetch live poll");
     return response.json();
   },
 
-  async getDemoPollResults(pollId: string): Promise<DemoPollResult[]> {
-    const response = await fetch(`/api/demo-polls/${pollId}/results`);
+  async getLivePollResults(pollId: string): Promise<LivePollResult[]> {
+    const response = await fetch(`/api/live-polls/${pollId}/results`);
     if (!response.ok) throw new Error("Failed to fetch results");
     return response.json();
   },
 
-  async submitDemoVote(
+  async submitLiveVote(
     pollId: string,
     selectedOptions: string[],
     voterFingerprint: string,
   ): Promise<ApiResponse<unknown>> {
-    const response = await fetch("/api/demo-polls/vote", {
+    const response = await fetch("/api/live-polls/vote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -66,7 +66,7 @@ const demoPollAPI = {
   async hasVoted(pollId: string, voterFingerprint: string): Promise<boolean> {
     try {
       const response = await fetch(
-        `/api/demo-polls/${pollId}/has-voted?fingerprint=${voterFingerprint}`,
+        `/api/live-polls/${pollId}/has-voted?fingerprint=${voterFingerprint}`,
       );
       if (!response.ok) return false;
 
@@ -85,8 +85,8 @@ const demoPollAPI = {
 };
 
 const DemoPollWidget: React.FC = () => {
-  const [demoPoll, setDemoPoll] = useState<DemoPoll | null>(null);
-  const [results, setResults] = useState<DemoPollResult[]>([]);
+  const [demoPoll, setDemoPoll] = useState<LivePoll | null>(null);
+  const [results, setResults] = useState<LivePollResult[]>([]);
   const [hasVoted, setHasVoted] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -103,22 +103,20 @@ const DemoPollWidget: React.FC = () => {
       setIsLoading(true);
       setError(null);
 
-      // Get random demo poll
-      const poll = await demoPollAPI.getRandomDemoPoll();
+      // Get random live poll
+      const poll = await livePollAPI.getRandomLivePoll();
       setDemoPoll(poll);
 
       // Check if user has already voted
-      const voted = await demoPollAPI.hasVoted(poll.id, voterFingerprint);
+      const voted = await livePollAPI.hasVoted(poll.id, voterFingerprint);
       setHasVoted(voted);
 
-      if (voted) {
-        // Load results if already voted
-        const pollResults = await demoPollAPI.getDemoPollResults(poll.id);
-        setResults(pollResults || []);
-      }
+      // Load results if already voted
+      const pollResults = await livePollAPI.getLivePollResults(poll.id);
+      setResults(pollResults || []);
     } catch (err) {
-      console.error("Error loading demo poll:", err);
-      setError(err instanceof Error ? err.message : "Failed to load demo poll");
+      console.error("Error loading live poll:", err);
+      setError(err instanceof Error ? err.message : "Failed to load live poll");
     } finally {
       setIsLoading(false);
     }
@@ -137,7 +135,7 @@ const DemoPollWidget: React.FC = () => {
       setError(null);
 
       // Submit vote
-      await demoPollAPI.submitDemoVote(
+      await livePollAPI.submitLiveVote(
         demoPoll.id,
         [optionId],
         voterFingerprint,
@@ -149,7 +147,7 @@ const DemoPollWidget: React.FC = () => {
 
       // Load updated results with retry logic
       try {
-        const pollResults = await demoPollAPI.getDemoPollResults(demoPoll.id);
+        const pollResults = await livePollAPI.getLivePollResults(demoPoll.id);
         setResults(pollResults || []);
       } catch (resultsError) {
         console.error("Error fetching results after vote:", resultsError);
@@ -178,7 +176,7 @@ const DemoPollWidget: React.FC = () => {
   };
 
   const totalVotes = results.reduce(
-    (sum: number, result: DemoPollResult) => sum + (result.vote_count || 0),
+    (sum: number, result: LivePollResult) => sum + (result.vote_count || 0),
     0,
   );
 
@@ -191,7 +189,7 @@ const DemoPollWidget: React.FC = () => {
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <Loader className="w-8 h-8 animate-spin text-emerald-600 mx-auto mb-4" />
-            <p className="text-gray-600">Loading demo poll...</p>
+            <p className="text-gray-600">Loading live poll...</p>
           </div>
         </div>
       </div>
@@ -218,7 +216,7 @@ const DemoPollWidget: React.FC = () => {
   if (!demoPoll) {
     return (
       <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-        <div className="text-center text-gray-500">No demo polls available</div>
+        <div className="text-center text-gray-500">No live polls available</div>
       </div>
     );
   }
@@ -242,7 +240,7 @@ const DemoPollWidget: React.FC = () => {
     <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
       <div className="text-center mb-6">
         <div className="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full mb-4">
-          Live Demo Poll
+          Live Poll
         </div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">
           {demoPoll.question}
@@ -335,7 +333,7 @@ const DemoPollWidget: React.FC = () => {
 
       <div className="text-center mt-6 pt-4 border-t border-gray-100">
         <p className="text-xs text-gray-500">
-          Total votes: {totalVotes} • This is a live demo using real data
+          Total votes: {totalVotes} • This is a live poll using real data
         </p>
       </div>
     </div>

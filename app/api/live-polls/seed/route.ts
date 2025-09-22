@@ -1,4 +1,4 @@
-﻿// app/api/demo-polls/seed/route.ts
+﻿// app/api/live-polls/seed/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 

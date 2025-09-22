@@ -1,4 +1,4 @@
-﻿// app/api/demo-polls/[pollId]/results/route.ts
+﻿// app/api/live-polls/[pollId]/results/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { safeJsonParse } from "@/lib/jsonUtils";
@@ -15,8 +15,6 @@ export async function GET(
   try {
     const supabase = await createClient();
     const { pollId } = await params;
-
-    console.log("Fetching results for poll:", pollId);
 
     // Get the poll and its options
     const { data: poll, error: pollError } = await supabase
