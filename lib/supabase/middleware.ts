@@ -54,8 +54,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth") &&
     !request.nextUrl.pathname.startsWith("/answer") &&
     !request.nextUrl.pathname.startsWith("/embed") &&
-    !request.nextUrl.pathname.startsWith("/api/demo-polls") &&
-    !request.nextUrl.pathname.startsWith("google731fe34a4a843607.html")
+    !request.nextUrl.pathname.startsWith("/api/demo-polls")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
