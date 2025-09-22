@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const defaultUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -76,6 +77,8 @@ export default function RootLayout({
           </footer>
         </ThemeProvider>
       </body>
+
+      <GoogleAnalytics gaId="G-6MLKG18LB1" />
     </html>
   );
 }
