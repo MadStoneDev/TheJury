@@ -1,5 +1,6 @@
 ﻿// app/(public)/layout.tsx
 import { Navbar } from "@/components/Navbar";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 export default function RootLayout({
   children,
@@ -12,6 +13,8 @@ export default function RootLayout({
       {/* Spacing */}
       <div className={`block h-16`} />
       {children}
+
+      <GoogleAnalytics gaId="G-6MLKG18LB1" />
     </main>
   );
 }
