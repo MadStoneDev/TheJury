@@ -276,7 +276,7 @@ const HomePage: React.FC = () => {
                 <IconCode className="w-5 h-5 text-purple-600" />
               </div>
               <div className="text-sm text-gray-500 font-mono bg-gray-50 px-3 py-2 rounded">
-                thejury.app/poll/ABC123XYZ
+                thejury.app/answer/ABC123XYZ
               </div>
             </div>
           </div>
