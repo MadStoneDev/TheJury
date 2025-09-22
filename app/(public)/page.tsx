@@ -33,25 +33,25 @@ const HomePage: React.FC = () => {
       icon: <IconGavel className="w-6 h-6" />,
       title: "Ask Your Question",
       description:
-        "Build compelling polls in under 30 seconds. Present your question to the community.",
+        "Create polls in under 30 seconds. Get your crew's opinion on anything, anytime.",
     },
     {
       icon: <IconUsers className="w-6 h-6" />,
-      title: "Get Responses",
+      title: "Gather Responses",
       description:
-        "Gather responses from your audience. Track changes and manage all your polls from one dashboard.",
+        "Watch votes roll in from your friends, team, or community. Track everything from one simple dashboard.",
     },
     {
       icon: <IconScale className="w-6 h-6" />,
       title: "Schedule Polls",
       description:
-        "Set start and end dates for each poll (optional). Control exactly when polls go live and when verdicts are final.",
+        "Set start and end times for each poll (optional). Perfect for event planning or time-sensitive decisions.",
     },
     {
       icon: <IconCode className="w-6 h-6" />,
-      title: "See Results",
+      title: "Share Everywhere",
       description:
-        "Embed polls anywhere to reach your jury. Simple integration codes make deployment effortless.",
+        "Drop your poll in Discord, Slack, social media, or embed it anywhere. Reach your people however they hang out.",
     },
   ];
 
@@ -59,32 +59,32 @@ const HomePage: React.FC = () => {
     {
       question: "How quickly can I create a poll?",
       answer:
-        "You can create a poll in under 30 seconds! Just write your question, add the options, and share it with your audience. Our streamlined process makes it incredibly fast to get answers.",
+        "Less than 30 seconds! Just type your question, add some options, and share the link. It's honestly faster than trying to decide in your group chat.",
     },
     {
       question: "Can I schedule when my poll opens and closes?",
       answer:
-        "Absolutely! Set custom start and end times for when your poll opens and closes. Perfect for timed decisions, event planning, or deadline-driven voting.",
+        "Yep! Set it up ahead of time and let it auto-close when you need it to. Great for planning hangouts, team meetings, or any time-sensitive group decision.",
     },
     {
-      question: "How do I share my poll?",
+      question: "How do I share my poll with my friends?",
       answer:
-        "Share your poll via direct links, QR codes, social media, or embed it directly on your website. We make reaching your audience as easy as possible.",
+        "However you want! Send the link directly, share it on social media, drop it in your Discord server, or embed it on your website. We made it work everywhere your people are.",
     },
     {
       question: "Can I watch responses come in real-time?",
       answer:
-        "Yes! Watch votes come in live as people respond. You can also choose whether voters see the current results or only the final tally after voting closes.",
+        "Absolutely! See votes come in live as people respond. You can choose whether voters see current results or wait until everyone's voted.",
     },
     {
       question: "Is there a limit to how many people can vote?",
       answer:
-        "No limits on responses! Whether you need 12 votes or 12,000, TheJury scales to handle any poll size you can throw at it.",
+        "Nope! Whether it's your 5-person friend group or your 5,000-member gaming community, TheJury handles any crowd size you throw at it.",
     },
     {
-      question: "Can I embed polls on my website?",
+      question: "Can I embed polls on my website or stream?",
       answer:
-        "Yes! Get an embed code for any poll and add it to your website, blog, or app. Fully customizable to match your site's style.",
+        "For sure! Get an embed code and drop it anywhere - your blog, Twitch overlay, team website, you name it. Fully customizable to match your vibe.",
     },
   ];
 
@@ -100,12 +100,12 @@ const HomePage: React.FC = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Let the jury
+                Let your crew
                 <span className="text-emerald-600 block">decide</span>
               </h1>
               <p className="text-xl text-gray-600 leading-relaxed">
-                Build polls in seconds, share with your chosen jury, and get the
-                verdict in a snap - the easiest way to get answers.
+                Create polls in seconds, share with your people, and get answers
+                fast - the easiest way to make group decisions.
               </p>
             </div>
 
@@ -114,14 +114,14 @@ const HomePage: React.FC = () => {
                 href={`/create`}
                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
               >
-                Present Your First Case
+                Create Your First Poll
                 <IconArrowRight className="w-5 h-5" />
               </a>
               <a
                 href={`/auth/sign-up`}
                 className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center"
               >
-                Join the Jury Pool
+                Join the Community
               </a>
             </div>
           </div>
@@ -140,10 +140,10 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Your complete poll creating toolkit
+            Everything you need to get group decisions done
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            From simple questions to complex cases
+            From quick friend polls to serious team decisions
           </p>
         </div>
 
@@ -169,10 +169,10 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            From question to verdict in three steps
+            From question to answer in three easy steps
           </h2>
           <p className="text-xl text-gray-600">
-            Present your case, summon the jury, and receive your verdict
+            Ask your question, share with your people, and get the results
           </p>
         </div>
 
@@ -182,12 +182,12 @@ const HomePage: React.FC = () => {
               1
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Present Your Case
+              Ask Your Question
             </h3>
             <p className="text-gray-600 mb-6">
-              State your question clearly and present the options. Set the rules
-              for deliberation - single choice, multiple choice, time limits,
-              and more.
+              Type your question and add the options. Whether it's "pizza or
+              tacos?" or "which marketing strategy should we use?", set it up
+              exactly how you want.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <div className="space-y-3">
@@ -204,12 +204,12 @@ const HomePage: React.FC = () => {
               2
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Summon Your Jury
+              Share With Your People
             </h3>
             <p className="text-gray-600 mb-6">
-              Call your jury to order via link, QR code, or embed on your
-              website. Watch as deliberation unfolds in real-time on your
-              dashboard.
+              Drop the link in your group chat, Discord server, social media, or
+              wherever your crew hangs out. Watch responses come in real-time on
+              your dashboard.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <div className="flex items-center justify-center space-x-2 mb-4">
@@ -218,7 +218,7 @@ const HomePage: React.FC = () => {
                 <IconCode className="w-5 h-5 text-purple-600" />
               </div>
               <div className="text-sm text-gray-500 font-mono bg-gray-50 px-3 py-2 rounded">
-                thejury.app/verdict/ABC123XYZ
+                thejury.app/answer/ABC123XYZ
               </div>
             </div>
           </div>
@@ -228,18 +228,18 @@ const HomePage: React.FC = () => {
               3
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Receive the Verdict
+              Get Your Answer
             </h3>
             <p className="text-gray-600 mb-6">
-              Analyze the jury&apos;s decision with detailed insights, export
-              the evidence, and share the final verdict. Get the clarity you
-              need for confident decisions.
+              See the results with clear visuals, export the data if you need
+              it, and share the final results. Make confident decisions backed
+              by real input.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <IconChartBar className="w-8 h-8 text-emerald-600 mx-auto mb-3" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span>Guilty</span>
+                  <span>Option A</span>
                   <span className="font-semibold">67%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -249,7 +249,7 @@ const HomePage: React.FC = () => {
                   ></div>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span>Not Guilty</span>
+                  <span>Option B</span>
                   <span className="font-semibold">33%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -272,7 +272,7 @@ const HomePage: React.FC = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">FAQ</h2>
           <p className="text-xl text-gray-600">
-            Everything you need to know about presenting cases to TheJury
+            Common questions about using TheJury for your polls
           </p>
         </div>
 
@@ -309,11 +309,11 @@ const HomePage: React.FC = () => {
     <section className="py-20 bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Ready to settle debates?
+          Ready to settle the debate?
         </h2>
         <p className="text-xl text-gray-600 mb-8">
-          Join thousands who trust TheJury to deliver fair verdicts on their
-          most important decisions
+          Join thousands who use TheJury to make group decisions without the
+          endless back-and-forth
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -321,7 +321,7 @@ const HomePage: React.FC = () => {
             href="/create"
             className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
           >
-            Present Your Case
+            Make Your First Poll
             <IconArrowRight className="w-5 h-5" />
           </a>
           <a
