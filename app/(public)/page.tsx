@@ -243,9 +243,9 @@ const HomePage: React.FC = () => {
               Ask Your Question
             </h3>
             <p className="text-gray-600 mb-6">
-              Type your question and add the options. Whether it&apos;s "pizza
-              or tacos?" or "which marketing strategy should we use?", set it up
-              exactly how you want.
+              Type your question and add the options. Whether it&apos;s
+              &quot;pizza or tacos?&quot; or &quot;which marketing strategy
+              should we use?&quot;, set it up exactly how you want.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <div className="space-y-3">
