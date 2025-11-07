@@ -213,7 +213,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [generatedPollCode, setGeneratedPollCode] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const [copiedPoll, setCopiedPoll] = useState(false);
+  // const [copiedPoll, setCopiedPoll] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState<string>("");
   const [pollId, setPollId] = useState<string>("");
@@ -459,11 +459,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  const copyPollCode = async () => {
-    await navigator.clipboard.writeText(generatedPollCode);
-    setCopiedPoll(true);
-    setTimeout(() => setCopiedPoll(false), 2000);
-  };
+  // const copyPollCode = async () => {
+  //   await navigator.clipboard.writeText(generatedPollCode);
+  //   setCopiedPoll(true);
+  //   setTimeout(() => setCopiedPoll(false), 2000);
+  // };
 
   if (isLoading) {
     return (
