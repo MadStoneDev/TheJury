@@ -32,26 +32,24 @@ const HomePage: React.FC = () => {
     {
       icon: <IconGavel className="w-6 h-6" />,
       title: "Ask Your Question",
-      description:
-        "Create polls in under 30 seconds. Get your crew&apos;s opinion on anything, anytime.",
+      description: "Create a poll in under 30 seconds. It's that easy!",
     },
     {
       icon: <IconUsers className="w-6 h-6" />,
-      title: "Gather Responses",
-      description:
-        "Watch votes roll in from your friends, team, or community. Track everything from one simple dashboard.",
+      title: "Get Responses",
+      description: "Track votes and responses from one simple dashboard.",
     },
     {
       icon: <IconScale className="w-6 h-6" />,
       title: "Schedule Polls",
       description:
-        "Set start and end times for each poll (optional). Perfect for event planning or time-sensitive decisions.",
+        "Is your poll time-sensitive? Set start and end times for your poll (optional).",
     },
     {
       icon: <IconCode className="w-6 h-6" />,
       title: "Share Everywhere",
       description:
-        "Drop your poll in Discord, Slack, social media, or embed it anywhere. Reach your people however they hang out.",
+        "Share a link in Discord, WhatsApp, social media, or embed it anywhere.",
     },
   ];
 
@@ -59,27 +57,32 @@ const HomePage: React.FC = () => {
     {
       question: "How quickly can I create a poll?",
       answer:
-        "Less than 30 seconds! Just type your question, add some options, and share the link. It&apos;s honestly faster than trying to decide in your group chat.",
+        "Less than 30 seconds! Just type your question, add some options, and share the link. TheJury has gone back" +
+        " to basics, focusing only on what's most important.",
     },
     {
       question: "Can I schedule when my poll opens and closes?",
       answer:
-        "Yep! Set it up ahead of time and let it auto-close when you need it to. Great for planning hangouts, team meetings, or any time-sensitive group decision.",
+        "You sure can! When creating your poll, just set a starting and end date. The poll will only be available" +
+        " within that time. You don't even need both dates. Just set the constraint you need.",
     },
     {
       question: "How do I share my poll with my friends?",
       answer:
-        "However you want! Send the link directly, share it on social media, drop it in your Discord server, or embed it on your website. We made it work everywhere your people are.",
+        "Send them the link, share it on social media, drop it in your Discord server, or embed it on your" +
+        " website. TheJury polls work everywhere.",
     },
     {
       question: "Can I watch responses come in real-time?",
       answer:
-        "Absolutely! See votes come in live as people respond. You can choose whether voters see current results or wait until everyone&apos;s voted.",
+        "Absolutely! Go to your dashboard and see votes come as people respond. You can also choose whether" +
+        " voters see current results or wait until everyone's voted.",
     },
     {
       question: "Is there a limit to how many people can vote?",
       answer:
-        "Nope! Whether it&apos;s your 5-person friend group or your 5,000-member gaming community, TheJury handles any crowd size you throw at it.",
+        "Nope! TheJury handles any crowd size you throw at it, or any crowd you throw the poll at. Either way, it" +
+        " works!",
     },
     {
       question: "Can I embed polls on my website or stream?",
@@ -129,7 +132,7 @@ const HomePage: React.FC = () => {
     }, [doubledWords.length]);
 
     return (
-      <div className="inline-block overflow-hidden h-[1.2em] align-top">
+      <div className="inline-block overflow-hidden h-[1.2em]">
         <div
           className={`flex flex-col ${
             isTransitioning
@@ -157,27 +160,32 @@ const HomePage: React.FC = () => {
           {/* Left side - Hero content */}
           <div className="space-y-8">
             <div className="space-y-4">
-              <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                Let your <AnimatedWord />
-                <span className="text-emerald-600 block">decide</span>
-              </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Create polls in seconds, share with your people, and get answers
-                fast - the easiest way to make group decisions.
-              </p>
+              <div className="space-y-2 text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+                <h1 className="flex items-center gap-2.5">
+                  Let your <AnimatedWord />
+                </h1>
+                <span className="text-emerald-700 block">decide</span>
+              </div>
+              <div>
+                <p className="text-xl text-gray-600 leading-relaxed">
+                  Finally, a poll creator that gets straight to the point.
+                  Create polls in seconds, share with your people, and get
+                  answers fast.
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <a
                 href={`/create`}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
+                className="bg-emerald-700 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
               >
                 Create Your First Poll
                 <IconArrowRight className="w-5 h-5" />
               </a>
               <a
                 href={`/auth/sign-up`}
-                className="border-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center"
+                className={`px-8 py-4 border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-700 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center`}
               >
                 Join the Community
               </a>
@@ -185,9 +193,9 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Right side - Database-driven demo poll */}
-          <div className="lg:pl-8">
-            <DemoPollWidget />
-          </div>
+          {/*<div className="lg:pl-8">*/}
+          {/*  <DemoPollWidget />*/}
+          {/*</div>*/}
         </div>
       </div>
     </section>
@@ -197,18 +205,18 @@ const HomePage: React.FC = () => {
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Everything you need to get group decisions done
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+            Everything you need to get consensus
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            From quick friend polls to serious team decisions
+            From casual polls to serious team decisions
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {features.map((feature, index) => (
             <div key={index} className="text-center group">
-              <div className="bg-emerald-100 text-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+              <div className="bg-emerald-50 text-emerald-700 w-16 h-16 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-emerald-700 group-hover:border-emerald-700 group-hover:text-white transition-all duration-300">
                 {feature.icon}
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -226,26 +234,26 @@ const HomePage: React.FC = () => {
     <section className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
             From question to answer in three easy steps
           </h2>
           <p className="text-xl text-gray-600">
-            Ask your question, share with your people, and get the results
+            Ask your question, share with people, and get results
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="text-center">
-            <div className="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
+            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
               1
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Ask Your Question
             </h3>
             <p className="text-gray-600 mb-6">
-              Type your question and add the options. Whether it&apos;s
-              &quot;pizza or tacos?&quot; or &quot;which marketing strategy
-              should we use?&quot;, set it up exactly how you want.
+              Type your question and add options. Which strategy to use?
+              Planning an event? Deciding between gard shell tacos or wraps? Por
+              qué no los dos!
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <div className="space-y-3">
@@ -258,20 +266,20 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <div className="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
+            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
               2
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Share With Your People
+              Share With People
             </h3>
             <p className="text-gray-600 mb-6">
-              Drop the link in your group chat, Discord server, social media, or
-              wherever your crew hangs out. Watch responses come in real-time on
-              your dashboard.
+              Drop the link in a group chat, in a Discord server, on social
+              media, or anywhere you like. You can even embed your poll on your
+              website!
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
               <div className="flex items-center justify-center space-x-2 mb-4">
-                <IconShare className="w-5 h-5 text-emerald-600" />
+                <IconShare className="w-5 h-5 text-emerald-700" />
                 <IconGlobe className="w-5 h-5 text-blue-600" />
                 <IconCode className="w-5 h-5 text-purple-600" />
               </div>
@@ -282,19 +290,18 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <div className="bg-emerald-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
+            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
               3
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Get Your Answer
             </h3>
             <p className="text-gray-600 mb-6">
-              See the results with clear visuals, export the data if you need
-              it, and share the final results. Make confident decisions backed
-              by real input.
+              See the results as the responses come in real-time straight from
+              the dashboard. Find out which response has the most votes.
             </p>
             <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-              <IconChartBar className="w-8 h-8 text-emerald-600 mx-auto mb-3" />
+              <IconChartBar className="w-8 h-8 text-emerald-700 mx-auto mb-3" />
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span>Option A</span>
@@ -302,7 +309,7 @@ const HomePage: React.FC = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-emerald-600 h-2 rounded-full transition-all duration-1000"
+                    className="bg-emerald-700 h-2 rounded-full transition-all duration-1000"
                     style={{ width: "67%" }}
                   ></div>
                 </div>
@@ -330,7 +337,7 @@ const HomePage: React.FC = () => {
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">FAQ</h2>
           <p className="text-xl text-gray-600">
-            Common questions about using TheJury for your polls
+            Common questions on using TheJury for your polls
           </p>
         </div>
 
@@ -370,14 +377,13 @@ const HomePage: React.FC = () => {
           Ready to settle the debate?
         </h2>
         <p className="text-xl text-gray-600 mb-8">
-          Join thousands who use TheJury to make group decisions without the
-          endless back-and-forth
+          Join TheJury for free and start making group decisions
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <a
             href="/create"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
+            className="bg-emerald-700 hover:bg-emerald-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
           >
             Make Your First Poll
             <IconArrowRight className="w-5 h-5" />
