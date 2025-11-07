@@ -69,16 +69,16 @@ export default function PollDashboardPage() {
     }
   };
 
-  const copyPollLink = async (code: string) => {
-    try {
-      const link = `${window.location.origin}/answer/${code}`;
-      await navigator.clipboard.writeText(link);
-      setCopiedCode(code);
-      setTimeout(() => setCopiedCode(""), 2000);
-    } catch (err) {
-      console.error("Failed to copy link:", err);
-    }
-  };
+  // const copyPollLink = async (code: string) => {
+  //   try {
+  //     const link = `${window.location.origin}/answer/${code}`;
+  //     await navigator.clipboard.writeText(link);
+  //     setCopiedCode(code);
+  //     setTimeout(() => setCopiedCode(""), 2000);
+  //   } catch (err) {
+  //     console.error("Failed to copy link:", err);
+  //   }
+  // };
 
   const handleTogglePollStatus = async (pollId: string) => {
     try {
@@ -214,7 +214,7 @@ export default function PollDashboardPage() {
                 Create your first poll to get started!
               </p>
               <Link
-                href="/create"
+                href={`/create`}
                 className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
               >
                 <IconPlus size={20} />
