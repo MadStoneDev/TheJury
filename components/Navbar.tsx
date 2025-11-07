@@ -210,7 +210,10 @@ export const Navbar = () => {
           </div>
 
           <div
-            className={`fixed top-0 right-0 bottom-0 left-0 bg-neutral-900/40 -z-10`}
+            className={`${
+              isMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"
+            } fixed top-0 right-0 bottom-0 left-0 bg-neutral-900/40 transition-all duration-200 -z-10`}
+            onClick={() => setIsMenuOpen(false)}
           ></div>
         </div>
       </div>
