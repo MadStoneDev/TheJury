@@ -484,7 +484,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
         <Container>
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 text-center">
-              <div className="text-emerald-600 text-6xl mb-4">🎉</div>
+              <div className="text-emerald-700 text-6xl mb-4">🎉</div>
               <h1 className="text-3xl font-bold text-neutral-900 mb-4">
                 {isEditing ? "Poll Updated!" : "Poll Created!"}
               </h1>
@@ -684,7 +684,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           allowMultiple: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
                     <span className="ml-2 text-sm text-neutral-700">
                       Allow multiple selections
@@ -701,7 +701,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           isActive: e.target.checked,
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
                     <span className="ml-2 text-sm text-neutral-700">
                       Poll is active (people can vote)
@@ -720,7 +720,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           endDate: e.target.checked ? prev.endDate : "",
                         }))
                       }
-                      className="w-4 h-4 text-emerald-600 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
                     />
                     <span className="ml-2 text-sm text-neutral-700">
                       Set time limit for voting

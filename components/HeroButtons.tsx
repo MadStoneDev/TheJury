@@ -34,7 +34,7 @@ export const HeroButtons = () => {
             value={pollCode}
             onChange={(e) => setPollCode(e.target.value)}
             placeholder="Enter poll code"
-            className="flex-1 w-full px-4 py-2 rounded-l-md outline-none focus:ring-2 ring-neutral-400 focus:ring-emerald-600 focus:border-transparent"
+            className="flex-1 w-full px-4 py-2 rounded-l-md outline-none focus:ring-2 ring-neutral-400 focus:ring-emerald-700 focus:border-transparent"
             maxLength={10}
           />
           <button

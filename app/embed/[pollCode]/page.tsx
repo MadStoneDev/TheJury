@@ -199,7 +199,7 @@ export default function PollEmbedPage() {
     return (
       <div className="p-4 bg-white min-h-[200px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600 mx-auto mb-2"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700 mx-auto mb-2"></div>
           <p className="text-gray-600 text-sm">Loading poll...</p>
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function PollEmbedPage() {
         /* Compact Results View */
         <div className="space-y-3">
           <div className="text-center mb-4">
-            <div className="text-emerald-600 text-2xl mb-1">
+            <div className="text-emerald-700 text-2xl mb-1">
               <IconCheck size={24} />
             </div>
             <p className="text-sm text-gray-600">Thanks for voting!</p>
@@ -257,7 +257,7 @@ export default function PollEmbedPage() {
                 >
                   <div className="flex items-center">
                     {isJustVotedFor && (
-                      <div className="mr-2 text-emerald-600">
+                      <div className="mr-2 text-emerald-700">
                         <IconCheck size={16} />
                       </div>
                     )}
@@ -273,7 +273,7 @@ export default function PollEmbedPage() {
                 </div>
                 <div className="mt-1 bg-gray-200 rounded-full h-1">
                   <div
-                    className="bg-emerald-600 h-1 rounded-full transition-all duration-500"
+                    className="bg-emerald-700 h-1 rounded-full transition-all duration-500"
                     style={{
                       width: `${getPercentage(result.vote_count)}%`,
                     }}
@@ -303,7 +303,7 @@ export default function PollEmbedPage() {
                 value={option.id}
                 checked={selectedOptions.includes(option.id)}
                 onChange={() => handleOptionToggle(option.id)}
-                className="w-3 h-3 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+                className="w-3 h-3 text-emerald-700 bg-gray-100 border-gray-300 focus:ring-emerald-500"
               />
               <span className="ml-2 text-sm font-medium text-gray-900">
                 {option.text}
@@ -315,7 +315,7 @@ export default function PollEmbedPage() {
             <button
               onClick={handleVote}
               disabled={selectedOptions.length === 0 || isSubmitting}
-              className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+              className="bg-emerald-700 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded text-sm font-medium transition-colors"
             >
               {isSubmitting ? "Voting..." : "Vote"}
             </button>
@@ -329,7 +329,7 @@ export default function PollEmbedPage() {
           href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-xs text-gray-500 hover:text-emerald-600 transition-colors"
+          className="text-xs text-gray-500 hover:text-emerald-700 transition-colors"
         >
           Powered by TheJury
         </a>

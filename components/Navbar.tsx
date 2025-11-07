@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, signOut } from "@/lib/supabaseHelpers";
 import type { User } from "@supabase/supabase-js";
+import { IconDashboard, IconPlus, IconPower } from "@tabler/icons-react";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -41,13 +42,13 @@ export const Navbar = () => {
 
   return (
     <nav className="bg-white border-b border-neutral-200 fixed top-0 left-0 right-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link
               href="/"
-              className="text-2xl font-bold text-neutral-900 hover:text-emerald-600 transition-colors"
+              className="text-2xl font-bold text-neutral-900 hover:text-emerald-700 transition-colors"
             >
               TheJury
             </Link>
@@ -79,7 +80,7 @@ export const Navbar = () => {
               <div className="w-8 h-8 animate-pulse bg-gray-200 rounded"></div>
             ) : user ? (
               <>
-                <span className="text-sm text-neutral-600">Welcome back!</span>
+                <span className="text-sm text-emerald-700">Welcome back!</span>
                 <button
                   onClick={handleSignOut}
                   className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
@@ -97,7 +98,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   href="/auth/sign-up"
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                  className="bg-emerald-700 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 >
                   Create Account
                 </Link>
@@ -138,70 +139,80 @@ export const Navbar = () => {
         </div>
 
         {/* Mobile Navigation Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-neutral-200">
-              {user && (
+
+        <div className="md:hidden">
+          <div
+            className={`space-y-1 bg-white border-t border-neutral-200 ${
+              isMenuOpen ? "max-h-[999px] pt-2 pb-3" : "max-h-0"
+            } overflow-hidden z-50 transition-all duration-200`}
+          >
+            {user && (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <IconDashboard size={20} />
+                  Dashboard
+                </Link>
+                <Link
+                  href="/create"
+                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <IconPlus size={20} />
+                  Create Poll
+                </Link>
+              </>
+            )}
+
+            <div className="border-t border-neutral-200 pt-4 mt-4">
+              {isLoading ? (
+                <div className="px-3 py-2">
+                  <div className="w-20 h-4 animate-pulse bg-gray-200 rounded"></div>
+                </div>
+              ) : user ? (
+                <>
+                  <span className="block px-3 py-2 text-emerald-700 font-bold">
+                    Welcome back!
+                  </span>
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      setIsMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-all w-full text-left"
+                  >
+                    <IconPower size={20} />
+                    Sign Out
+                  </button>
+                </>
+              ) : (
                 <>
                   <Link
-                    href="/dashboard"
+                    href="/auth/login"
                     className="block px-3 py-2 text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Dashboard
+                    Sign In
                   </Link>
                   <Link
-                    href="/create"
-                    className="block px-3 py-2 text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+                    href="/auth/sign-up"
+                    className="block px-3 py-2 bg-emerald-700 hover:bg-emerald-700 text-white rounded-md font-medium mt-2 text-center transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Create Poll
+                    Create Account
                   </Link>
                 </>
               )}
-
-              <div className="border-t border-neutral-200 pt-4 mt-4">
-                {isLoading ? (
-                  <div className="px-3 py-2">
-                    <div className="w-20 h-4 animate-pulse bg-gray-200 rounded"></div>
-                  </div>
-                ) : user ? (
-                  <>
-                    <span className="block px-3 py-2 text-sm text-neutral-600">
-                      Welcome back!
-                    </span>
-                    <button
-                      onClick={() => {
-                        handleSignOut();
-                        setIsMenuOpen(false);
-                      }}
-                      className="block px-3 py-2 text-neutral-600 hover:text-neutral-900 font-medium transition-colors w-full text-left"
-                    >
-                      Sign Out
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/auth/login"
-                      className="block px-3 py-2 text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/auth/sign-up"
-                      className="block px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium mt-2 text-center transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Create Account
-                    </Link>
-                  </>
-                )}
-              </div>
             </div>
           </div>
-        )}
+
+          <div
+            className={`fixed top-0 right-0 bottom-0 left-0 bg-neutral-900/40 -z-10`}
+          ></div>
+        </div>
       </div>
     </nav>
   );

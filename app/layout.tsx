@@ -69,7 +69,7 @@ export default function RootLayout({
               <Link
                 target="_blank"
                 href={`https://ravenci.solutions`}
-                className={`hover:p-1 hover:bg-emerald-600 hover:text-white transition-all duration-300 ease-in-out`}
+                className={`hover:p-1 hover:bg-emerald-700 hover:text-white transition-all duration-300 ease-in-out`}
               >
                 RAVENCI
               </Link>

@@ -188,7 +188,7 @@ const DemoPollWidget: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Loader className="w-8 h-8 animate-spin text-emerald-600 mx-auto mb-4" />
+            <Loader className="w-8 h-8 animate-spin text-emerald-700 mx-auto mb-4" />
             <p className="text-gray-600">Loading live poll...</p>
           </div>
         </div>
@@ -204,7 +204,7 @@ const DemoPollWidget: React.FC = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={loadDemoPoll}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-emerald-700 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Try Again
           </button>
@@ -267,7 +267,7 @@ const DemoPollWidget: React.FC = () => {
           ))}
 
           {isVoting && (
-            <div className="text-center text-emerald-600 font-medium">
+            <div className="text-center text-emerald-700 font-medium">
               <Loader className="w-4 h-4 animate-spin inline mr-2" />
               Submitting vote...
             </div>
@@ -275,7 +275,7 @@ const DemoPollWidget: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center justify-center gap-2 text-emerald-600 font-semibold mb-8">
+          <div className="flex items-center justify-center gap-2 text-emerald-700 font-semibold mb-8">
             <Check className="w-6 h-6" />
             Thanks for voting!
           </div>
@@ -296,7 +296,7 @@ const DemoPollWidget: React.FC = () => {
                 <div className="flex justify-between items-center mb-2">
                   <div className="flex items-center text-neutral-900">
                     {isSelected && (
-                      <Check className="w-4 h-4 text-emerald-600 mr-2" />
+                      <Check className="w-4 h-4 text-emerald-700 mr-2" />
                     )}
                     <span className="font-medium">{result.option_text}</span>
                   </div>
@@ -311,7 +311,7 @@ const DemoPollWidget: React.FC = () => {
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className={`h-2 rounded-full transition-all duration-1000 ${
-                      isSelected ? "bg-emerald-600" : "bg-emerald-400"
+                      isSelected ? "bg-emerald-700" : "bg-emerald-400"
                     }`}
                     style={{ width: `${percentage}%` }}
                   />
@@ -323,7 +323,7 @@ const DemoPollWidget: React.FC = () => {
           <div className="text-center pt-4">
             <button
               onClick={tryNewPoll}
-              className="text-emerald-600 hover:text-emerald-700 font-medium text-sm transition-colors"
+              className="text-emerald-700 hover:text-emerald-700 font-medium text-sm transition-colors"
             >
               Try another poll →
             </button>

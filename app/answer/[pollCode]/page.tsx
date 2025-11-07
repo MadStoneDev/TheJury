@@ -258,7 +258,7 @@ export default function PollAnswerPage() {
               /* Results View */
               <div className="space-y-4">
                 <div className="flex flex-col items-center text-center mb-6">
-                  <div className="text-emerald-600 text-5xl mb-2">
+                  <div className="text-emerald-700 text-5xl mb-2">
                     <IconCheck size={48} />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900">
@@ -282,7 +282,7 @@ export default function PollAnswerPage() {
                       >
                         <div className="flex items-center">
                           {isJustVotedFor && (
-                            <div className="mr-3 text-emerald-600">
+                            <div className="mr-3 text-emerald-700">
                               <IconCheck size={20} />
                             </div>
                           )}
@@ -295,7 +295,7 @@ export default function PollAnswerPage() {
                           >
                             {result.option_text}
                             {isJustVotedFor && (
-                              <span className="ml-2 text-sm text-emerald-600 font-semibold">
+                              <span className="ml-2 text-sm text-emerald-700 font-semibold">
                                 Your vote!
                               </span>
                             )}
@@ -320,7 +320,7 @@ export default function PollAnswerPage() {
                       <div className="mt-2 bg-gray-200 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all duration-500 ${
-                            isJustVotedFor ? "bg-emerald-600" : "bg-emerald-600"
+                            isJustVotedFor ? "bg-emerald-700" : "bg-emerald-700"
                           }`}
                           style={{
                             width: `${getPercentage(result.vote_count)}%`,
@@ -353,7 +353,7 @@ export default function PollAnswerPage() {
                       value={option.id}
                       checked={selectedOptions.includes(option.id)}
                       onChange={() => handleOptionToggle(option.id)}
-                      className="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 focus:ring-emerald-500"
+                      className="w-4 h-4 text-emerald-700 bg-gray-100 border-gray-300 focus:ring-emerald-500"
                     />
                     <span className="ml-3 text-lg font-medium text-gray-900">
                       {option.text}

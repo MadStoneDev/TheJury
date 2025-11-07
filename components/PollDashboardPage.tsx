@@ -135,11 +135,11 @@ export default function PollDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 sm:py-8">
       <Container>
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row justify-between xs:items-center gap-4 mb-8 transition-all duration-200 ease-in-out">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Your Polls
@@ -149,7 +149,7 @@ export default function PollDashboardPage() {
               </p>
             </div>
             <Link
-              href="/create"
+              href={`/create`}
               className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center space-x-2"
             >
               <IconPlus size={20} />
@@ -171,7 +171,7 @@ export default function PollDashboardPage() {
           )}
 
           {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 mb-6">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="text-2xl font-bold text-gray-900">
                 {polls.length}
@@ -226,15 +226,21 @@ export default function PollDashboardPage() {
               {polls.map((poll) => (
                 <div
                   key={poll.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                  className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6"
                 >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                  <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                     <div className="flex-1 mb-4 lg:mb-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between lg:justify-start gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 max-w-[300px]">
                           {poll.question}
                         </h3>
+
                         <div className="flex items-center space-x-2">
+                          {poll.allow_multiple && (
+                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                              Multiple Choice
+                            </span>
+                          )}
                           {poll.is_active ? (
                             <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
                               Active
@@ -244,11 +250,6 @@ export default function PollDashboardPage() {
                               Inactive
                             </span>
                           )}
-                          {poll.allow_multiple && (
-                            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                              Multiple Choice
-                            </span>
-                          )}
                         </div>
                       </div>
 
@@ -256,7 +257,7 @@ export default function PollDashboardPage() {
                         <p className="text-gray-600 mb-2">{poll.description}</p>
                       )}
 
-                      <div className="flex items-center space-x-4 text-sm font-light text-gray-400">
+                      <div className="py-4 md:py-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 border-t border-b md:border-0 border-neutral-200 text-xs font-light text-gray-400">
                         <span>
                           Code:{" "}
                           <span className="font-mono font-semibold">
@@ -268,7 +269,7 @@ export default function PollDashboardPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2 lg:max-w-[400px]">
                       {/* Copy Code */}
                       <button
                         onClick={() => copyPollCode(poll.code)}
@@ -276,9 +277,15 @@ export default function PollDashboardPage() {
                         title="Copy poll code"
                       >
                         {copiedCode === poll.code ? (
-                          <IconCheck size={18} />
+                          <span className={`flex items-center gap-1 text-sm`}>
+                            <IconCheck size={18} />
+                            Copied
+                          </span>
                         ) : (
-                          <IconCopy size={18} />
+                          <span className={`flex items-center gap-1 text-sm`}>
+                            <IconCopy size={18} />
+                            Copy Link
+                          </span>
                         )}
                       </button>
 
@@ -288,7 +295,10 @@ export default function PollDashboardPage() {
                         className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
                         title="View poll"
                       >
-                        <IconEye size={18} />
+                        <span className={`flex items-center gap-1 text-sm`}>
+                          <IconEye size={18} />
+                          Go to Poll
+                        </span>
                       </Link>
 
                       {/* View Results - NEW */}
@@ -297,7 +307,10 @@ export default function PollDashboardPage() {
                         className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
                         title="View detailed results"
                       >
-                        <IconChartBar size={18} />
+                        <span className={`flex items-center gap-1 text-sm`}>
+                          <IconChartBar size={18} />
+                          See Analytics
+                        </span>
                       </Link>
 
                       {/* Edit */}
@@ -306,7 +319,10 @@ export default function PollDashboardPage() {
                         className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
                         title="Edit poll"
                       >
-                        <IconEdit size={18} />
+                        <span className={`flex items-center gap-1 text-sm`}>
+                          <IconEdit size={18} />
+                          Edit Poll
+                        </span>
                       </Link>
 
                       {/* Embed Code */}
@@ -319,7 +335,10 @@ export default function PollDashboardPage() {
                         className="p-2 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors"
                         title="Get embed code"
                       >
-                        <IconCode size={18} />
+                        <span className={`flex items-center gap-1 text-sm`}>
+                          <IconCode size={18} />
+                          Embed Code
+                        </span>
                       </button>
 
                       {/* Toggle Active/Inactive */}
@@ -327,7 +346,7 @@ export default function PollDashboardPage() {
                         onClick={() => handleTogglePollStatus(poll.id)}
                         className={`p-2 rounded transition-colors ${
                           poll.is_active
-                            ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                            ? "text-emerald-700 hover:text-emerald-700 hover:bg-emerald-50"
                             : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
                         }`}
                         title={
@@ -335,29 +354,41 @@ export default function PollDashboardPage() {
                         }
                       >
                         {poll.is_active ? (
-                          <IconCheck size={18} />
+                          <span className={`flex items-center gap-1 text-sm`}>
+                            <IconCheck size={18} /> Poll is active
+                          </span>
                         ) : (
-                          <IconX size={18} />
+                          <span className={`flex items-center gap-1 text-sm`}>
+                            <IconX size={18} />
+                            Poll is inactive
+                          </span>
                         )}
                       </button>
 
                       {/* Delete */}
                       {deleteConfirm === poll.id ? (
-                        <div className="flex items-center space-x-1">
-                          <button
-                            onClick={() => handleDeletePoll(poll.id)}
-                            className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors text-xs"
-                            title="Confirm delete"
+                        <div className="absolute top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center space-y-2 bg-white/90">
+                          <span className={`text-neutral-900 text-sm`}>
+                            Are you sure you want to delete this poll?
+                          </span>
+                          <div
+                            className={`flex justify-center items-center space-x-1 `}
                           >
-                            Delete
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm("")}
-                            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors text-xs"
-                            title="Cancel"
-                          >
-                            Cancel
-                          </button>
+                            <button
+                              onClick={() => handleDeletePoll(poll.id)}
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors text-sm"
+                              title="Confirm delete"
+                            >
+                              Yes, chop it
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm("")}
+                              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
+                              title="Cancel"
+                            >
+                              Wait, no. Scratch that
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <button
@@ -365,7 +396,10 @@ export default function PollDashboardPage() {
                           className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
                           title="Delete poll"
                         >
-                          <IconTrash size={18} />
+                          <span className={`flex items-center gap-1 text-sm`}>
+                            <IconTrash size={18} />
+                            Delete Poll
+                          </span>
                         </button>
                       )}
                     </div>
@@ -392,15 +426,6 @@ export default function PollDashboardPage() {
               >
                 Create New Poll
               </Link>
-              <button
-                onClick={() =>
-                  copyPollLink(polls.find((p) => p.is_active)?.code || "")
-                }
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors"
-                disabled={!polls.find((p) => p.is_active)}
-              >
-                Share Latest Poll
-              </button>
             </div>
           </div>
         </div>

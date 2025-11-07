@@ -175,7 +175,7 @@ export default function PollResultsPage() {
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
               <div className="flex-1 mb-4 lg:mb-0">
                 <div className="flex items-center space-x-3 mb-4">
-                  <IconChartBar size={24} className="text-emerald-600" />
+                  <IconChartBar size={24} className="text-emerald-700" />
                   <h1 className="text-3xl font-bold text-gray-900">
                     Poll Results
                   </h1>
@@ -304,7 +304,7 @@ export default function PollResultsPage() {
                               {result.option_text}
                             </span>
                             {isTopChoice && (
-                              <span className="bg-emerald-600 text-white px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="bg-emerald-700 text-white px-2 py-1 rounded-full text-xs font-medium">
                                 Leading
                               </span>
                             )}
@@ -332,7 +332,7 @@ export default function PollResultsPage() {
                       <div className="w-full bg-gray-200 rounded-full h-3">
                         <div
                           className={`h-3 rounded-full transition-all duration-1000 ${
-                            isTopChoice ? "bg-emerald-600" : "bg-emerald-400"
+                            isTopChoice ? "bg-emerald-700" : "bg-emerald-400"
                           }`}
                           style={{ width: `${percentage}%` }}
                         ></div>
