@@ -59,7 +59,9 @@ export default function PollDashboardPage() {
 
   const copyPollCode = async (code: string) => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(
+        `${process.env.NEXT_PUBLIC_SITE_URL}/answer/${code}`,
+      );
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(""), 2000);
     } catch (err) {
@@ -254,7 +256,7 @@ export default function PollDashboardPage() {
                         <p className="text-gray-600 mb-2">{poll.description}</p>
                       )}
 
-                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-4 text-sm font-light text-gray-400">
                         <span>
                           Code:{" "}
                           <span className="font-mono font-semibold">

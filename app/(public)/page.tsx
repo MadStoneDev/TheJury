@@ -193,9 +193,9 @@ const HomePage: React.FC = () => {
           </div>
 
           {/* Right side - Database-driven demo poll */}
-          {/*<div className="lg:pl-8">*/}
-          {/*  <DemoPollWidget />*/}
-          {/*</div>*/}
+          <div className="lg:pl-8">
+            <DemoPollWidget />
+          </div>
         </div>
       </div>
     </section>

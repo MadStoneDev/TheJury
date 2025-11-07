@@ -499,26 +499,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between bg-white rounded border p-3">
-                    <div className="flex-1">
-                      <div className="text-sm text-neutral-500">Poll Code</div>
-                      <div className="font-mono font-bold text-lg text-neutral-900">
-                        {generatedPollCode}
-                      </div>
-                    </div>
-                    <button
-                      onClick={copyPollCode}
-                      className="flex items-center space-x-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded transition-colors"
-                    >
-                      {copiedPoll ? (
-                        <IconCheck size={16} />
-                      ) : (
-                        <IconCopy size={16} />
-                      )}
-                      <span>{copiedPoll ? "Copied!" : "Copy"}</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between bg-white rounded border p-3">
                     <div className="flex-1 truncate">
                       <div className="text-sm text-neutral-500">
                         Direct Link
@@ -548,10 +528,18 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
               <div className="space-x-4">
                 <button
+                  onClick={() =>
+                    router.push(`/dashboard/results/${generatedPollCode}`)
+                  }
+                  className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                >
+                  View Poll
+                </button>
+                <button
                   onClick={() => router.push("/dashboard")}
                   className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
-                  View All Polls
+                  Dashboard
                 </button>
                 <button
                   onClick={() => setShowSuccess(false)}
