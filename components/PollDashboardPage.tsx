@@ -21,6 +21,7 @@ import {
   togglePollStatus,
   getCurrentUser,
 } from "@/lib/supabaseHelpers";
+import { toast } from "sonner";
 import type { Poll } from "@/lib/supabaseHelpers";
 import EmbedCodeGenerator from "@/components/EmbedCodeGenerator";
 
@@ -63,9 +64,11 @@ export default function PollDashboardPage() {
         `${process.env.NEXT_PUBLIC_SITE_URL}/answer/${code}`,
       );
       setCopiedCode(code);
+      toast.success("Poll link copied to clipboard!");
       setTimeout(() => setCopiedCode(""), 2000);
     } catch (err) {
       console.error("Failed to copy code:", err);
+      toast.error("Failed to copy link");
     }
   };
 
@@ -89,12 +92,18 @@ export default function PollDashboardPage() {
             poll.id === pollId ? { ...poll, is_active: !poll.is_active } : poll,
           ),
         );
+        const poll = polls.find((p) => p.id === pollId);
+        toast.success(
+          poll?.is_active ? "Poll deactivated" : "Poll activated",
+        );
       } else {
         setError("Failed to update poll status");
+        toast.error("Failed to update poll status");
       }
     } catch (err) {
       console.error("Error toggling poll status:", err);
       setError("Failed to update poll status");
+      toast.error("Failed to update poll status");
     }
   };
 
@@ -104,12 +113,15 @@ export default function PollDashboardPage() {
       if (success) {
         setPolls((prev) => prev.filter((poll) => poll.id !== pollId));
         setDeleteConfirm("");
+        toast.success("Poll deleted");
       } else {
         setError("Failed to delete poll");
+        toast.error("Failed to delete poll");
       }
     } catch (err) {
       console.error("Error deleting poll:", err);
       setError("Failed to delete poll");
+      toast.error("Failed to delete poll");
     }
   };
 

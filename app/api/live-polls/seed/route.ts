@@ -1,8 +1,27 @@
-﻿// app/api/live-polls/seed/route.ts
+// app/api/live-polls/seed/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
-export async function POST() {
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.SEED_SECRET;
+  if (!secret) return false;
+
+  // Check Authorization header
+  const authHeader = request.headers.get("authorization");
+  if (authHeader === `Bearer ${secret}`) return true;
+
+  // Check query param
+  const { searchParams } = new URL(request.url);
+  if (searchParams.get("secret") === secret) return true;
+
+  return false;
+}
+
+export async function POST(request: Request) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const supabase = await createClient();
 
@@ -125,7 +144,11 @@ export async function POST() {
   }
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const supabase = await createClient();
 

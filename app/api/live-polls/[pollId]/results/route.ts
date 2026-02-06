@@ -1,7 +1,9 @@
-﻿// app/api/live-polls/[pollId]/results/route.ts
+// app/api/live-polls/[pollId]/results/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { safeJsonParse } from "@/lib/jsonUtils";
+import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
+import { uuidSchema } from "@/lib/validations";
 
 interface DemoPollOption {
   id: string;
@@ -12,9 +14,31 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ pollId: string }> },
 ) {
+  // Rate limit: 30 req/min per IP
+  const ip = getIPFromRequest(request);
+  const { success: allowed, remaining } = rateLimit(`results:${ip}`, {
+    maxTokens: 30,
+    interval: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } },
+    );
+  }
+
   try {
     const supabase = await createClient();
     const { pollId } = await params;
+
+    // Validate pollId is UUID
+    const pollIdParsed = uuidSchema.safeParse(pollId);
+    if (!pollIdParsed.success) {
+      return NextResponse.json(
+        { error: "Invalid poll ID format" },
+        { status: 400 },
+      );
+    }
 
     // Get the poll and its options
     const { data: poll, error: pollError } = await supabase
@@ -80,7 +104,6 @@ export async function GET(
       vote_count: voteCounts[option.id] || 0,
     }));
 
-    console.log("Results:", results);
     return NextResponse.json(results);
   } catch (error) {
     console.error("Error in demo poll results route:", error);

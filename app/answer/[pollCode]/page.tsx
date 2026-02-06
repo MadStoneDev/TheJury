@@ -12,9 +12,9 @@ import {
   getUserVotes,
   getPollResults,
   getCurrentUser,
-  getClientIP,
   generateFingerprint,
 } from "@/lib/supabaseHelpers";
+import { toast } from "sonner";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -90,16 +90,14 @@ export default function PollAnswerPage() {
             userVotes = await getUserVotes(pollData.id, user.id);
           }
         } else {
-          // Anonymous user - check database, not localStorage
+          // Anonymous user - check database with fingerprint only
           try {
-            const ip = await getClientIP();
             const fingerprint = generateFingerprint();
-            voted = await hasUserVoted(pollData.id, undefined, ip, fingerprint);
+            voted = await hasUserVoted(pollData.id, undefined, fingerprint);
             if (voted) {
               userVotes = await getUserVotes(
                 pollData.id,
                 undefined,
-                ip,
                 fingerprint,
               );
             }
@@ -153,9 +151,14 @@ export default function PollAnswerPage() {
         success = true;
       } else {
         // Anonymous user
-        const ip = await getClientIP();
         const fingerprint = generateFingerprint();
-        await submitVote(poll.id, selectedOptions, undefined, ip, fingerprint);
+        await submitVote(
+          poll.id,
+          selectedOptions,
+          undefined,
+          undefined,
+          fingerprint,
+        );
         success = true;
       }
 
@@ -174,13 +177,16 @@ export default function PollAnswerPage() {
 
         setJustVotedFor([...selectedOptions]);
         setHasVotedFlag(true);
+        toast.success("Vote submitted!");
       }
     } catch (err) {
       console.error("Error submitting vote:", err);
       if (err instanceof Error) {
-        setError(err.message); // This will show "You have already voted in this poll" or other specific errors
+        setError(err.message);
+        toast.error(err.message);
       } else {
         setError("Failed to submit vote. Please try again.");
+        toast.error("Failed to submit vote. Please try again.");
       }
     } finally {
       setIsSubmitting(false);

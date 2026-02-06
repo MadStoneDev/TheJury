@@ -11,7 +11,6 @@ import {
   getUserVotes,
   getPollResults,
   getCurrentUser,
-  getClientIP,
   generateFingerprint,
 } from "@/lib/supabaseHelpers";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
@@ -30,13 +29,44 @@ export default function PollEmbedPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
+  const [targetOrigin, setTargetOrigin] = useState("*");
+
+  // Determine target origin for postMessage
+  useEffect(() => {
+    // Try ?origin= query param first
+    const searchParams = new URLSearchParams(window.location.search);
+    const originParam = searchParams.get("origin");
+    if (originParam) {
+      try {
+        const url = new URL(originParam);
+        setTargetOrigin(url.origin);
+        return;
+      } catch {
+        // invalid URL, fall through
+      }
+    }
+    // Fall back to document.referrer
+    if (document.referrer) {
+      try {
+        const url = new URL(document.referrer);
+        setTargetOrigin(url.origin);
+        return;
+      } catch {
+        // invalid referrer, fall through
+      }
+    }
+    // Default remains "*"
+  }, []);
 
   // Auto-resize iframe function
   useEffect(() => {
     const resizeIframe = () => {
       const height = document.documentElement.scrollHeight;
       if (window.parent !== window) {
-        window.parent.postMessage({ type: "resize", height: height }, "*");
+        window.parent.postMessage(
+          { type: "resize", height: height },
+          targetOrigin,
+        );
       }
     };
 
@@ -46,7 +76,7 @@ export default function PollEmbedPage() {
     observer.observe(document.body);
 
     return () => observer.disconnect();
-  }, [poll, hasVotedFlag, results]);
+  }, [targetOrigin]);
 
   // [Include all your existing poll loading logic here - same as the original file]
   useEffect(() => {
@@ -101,14 +131,12 @@ export default function PollEmbedPage() {
           }
         } else {
           try {
-            const ip = await getClientIP();
             const fingerprint = generateFingerprint();
-            voted = await hasUserVoted(pollData.id, undefined, ip, fingerprint);
+            voted = await hasUserVoted(pollData.id, undefined, fingerprint);
             if (voted) {
               userVotes = await getUserVotes(
                 pollData.id,
                 undefined,
-                ip,
                 fingerprint,
               );
             }
@@ -159,9 +187,14 @@ export default function PollEmbedPage() {
         await submitVote(poll.id, selectedOptions, user.id);
         success = true;
       } else {
-        const ip = await getClientIP();
         const fingerprint = generateFingerprint();
-        await submitVote(poll.id, selectedOptions, undefined, ip, fingerprint);
+        await submitVote(
+          poll.id,
+          selectedOptions,
+          undefined,
+          undefined,
+          fingerprint,
+        );
         success = true;
       }
 
@@ -315,7 +348,7 @@ export default function PollEmbedPage() {
             <button
               onClick={handleVote}
               disabled={selectedOptions.length === 0 || isSubmitting}
-              className="bg-emerald-700 hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+              className="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded text-sm font-medium transition-colors"
             >
               {isSubmitting ? "Voting..." : "Vote"}
             </button>

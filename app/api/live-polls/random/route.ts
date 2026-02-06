@@ -1,8 +1,22 @@
-﻿// app/api/live-polls/random/route.ts
+// app/api/live-polls/random/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Rate limit: 20 req/min per IP
+  const ip = getIPFromRequest(request);
+  const { success: allowed, remaining } = rateLimit(`random:${ip}`, {
+    maxTokens: 20,
+    interval: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } },
+    );
+  }
+
   try {
     const supabase = await createClient();
 

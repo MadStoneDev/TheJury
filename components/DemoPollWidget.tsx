@@ -204,7 +204,7 @@ const DemoPollWidget: React.FC = () => {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={loadDemoPoll}
-            className="bg-emerald-700 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg transition-colors"
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg transition-colors"
           >
             Try Again
           </button>
@@ -323,7 +323,7 @@ const DemoPollWidget: React.FC = () => {
           <div className="text-center pt-4">
             <button
               onClick={tryNewPoll}
-              className="text-emerald-700 hover:text-emerald-700 font-medium text-sm transition-colors"
+              className="text-emerald-700 hover:text-emerald-800 font-medium text-sm transition-colors"
             >
               Try another poll →
             </button>

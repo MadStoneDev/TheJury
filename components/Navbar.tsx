@@ -98,7 +98,7 @@ export const Navbar = () => {
                 </Link>
                 <Link
                   href="/auth/sign-up"
-                  className="bg-emerald-700 hover:bg-emerald-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-md font-medium transition-colors"
                 >
                   Create Account
                 </Link>
@@ -199,7 +199,7 @@ export const Navbar = () => {
                   </Link>
                   <Link
                     href="/auth/sign-up"
-                    className="block px-3 py-2 bg-emerald-700 hover:bg-emerald-700 text-white rounded-md font-medium mt-2 text-center transition-colors"
+                    className="block px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-md font-medium mt-2 text-center transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Create Account

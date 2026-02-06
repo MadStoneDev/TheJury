@@ -15,9 +15,10 @@ export default function EmbedCodeGenerator({
   const [width, setWidth] = useState("100%");
   const [height, setHeight] = useState("400");
 
-  const embedUrl = `${
+  const baseUrl = `${
     process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"
   }/embed/${pollCode}`;
+  const embedUrl = `${baseUrl}?origin=${encodeURIComponent(typeof window !== "undefined" ? window.location.origin : "")}`;
 
   const embedCode = `<iframe
   src="${embedUrl}"

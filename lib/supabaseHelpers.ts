@@ -323,7 +323,8 @@ export const getUserPolls = async (userId: string): Promise<Poll[]> => {
           id,
           text,
           option_order
-        )
+        ),
+        votes(count)
       `,
       )
       .eq("user_id", userId)
@@ -331,28 +332,24 @@ export const getUserPolls = async (userId: string): Promise<Poll[]> => {
 
     if (error) throw error;
 
-    // Sort options and add vote counts
-    return await Promise.all(
-      data.map(async (poll) => {
-        if (poll.options) {
-          poll.options.sort(
-            (a: { option_order: number }, b: { option_order: number }) =>
-              a.option_order - b.option_order,
-          );
-        }
+    return data.map((poll) => {
+      if (poll.options) {
+        poll.options.sort(
+          (a: { option_order: number }, b: { option_order: number }) =>
+            a.option_order - b.option_order,
+        );
+      }
 
-        // Get total votes for this poll
-        const { count } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", poll.id);
+      const totalVotes =
+        (poll.votes as unknown as { count: number }[])?.[0]?.count ?? 0;
 
-        return {
-          ...poll,
-          total_votes: count || 0,
-        };
-      }),
-    );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { votes: _votes, ...rest } = poll;
+      return {
+        ...rest,
+        total_votes: totalVotes,
+      };
+    });
   } catch (error) {
     console.error("Error fetching user polls:", error);
     return [];
@@ -527,7 +524,6 @@ export const getPollResults = async (pollId: string): Promise<PollResult[]> => {
 export const hasUserVoted = async (
   pollId: string,
   userId?: string,
-  voterIP?: string,
   voterFingerprint?: string,
 ): Promise<boolean> => {
   try {
@@ -535,10 +531,8 @@ export const hasUserVoted = async (
 
     if (userId) {
       query = query.eq("user_id", userId);
-    } else if (voterIP && voterFingerprint) {
-      query = query
-        .eq("voter_ip", voterIP)
-        .eq("voter_fingerprint", voterFingerprint);
+    } else if (voterFingerprint) {
+      query = query.eq("voter_fingerprint", voterFingerprint);
     } else {
       return false;
     }
@@ -556,7 +550,6 @@ export const hasUserVoted = async (
 export const getUserVotes = async (
   pollId: string,
   userId?: string,
-  voterIP?: string,
   voterFingerprint?: string,
 ): Promise<string[]> => {
   try {
@@ -564,10 +557,8 @@ export const getUserVotes = async (
 
     if (userId) {
       query = query.eq("user_id", userId);
-    } else if (voterIP && voterFingerprint) {
-      query = query
-        .eq("voter_ip", voterIP)
-        .eq("voter_fingerprint", voterFingerprint);
+    } else if (voterFingerprint) {
+      query = query.eq("voter_fingerprint", voterFingerprint);
     } else {
       return [];
     }
@@ -607,17 +598,6 @@ export const signOut = async () => {
   return !error;
 };
 
-// Get client IP (for anonymous voting)
-export const getClientIP = async (): Promise<string> => {
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-    const data = await response.json();
-    return data.ip;
-  } catch (error) {
-    console.error("Error getting client IP:", error);
-    return "unknown";
-  }
-};
 
 // Generate browser fingerprint (for anonymous voting)
 // Generate browser fingerprint (for anonymous voting)

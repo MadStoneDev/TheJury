@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "sonner";
 import Link from "next/link";
 import { GoogleAnalytics } from "@next/third-parties/google";
 
@@ -52,7 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfitSans.className} antialiased pb-8`}>
+      <body className={`${outfitSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -61,8 +62,10 @@ export default function RootLayout({
         >
           {children}
 
+          <Toaster richColors position="bottom-right" />
+
           <footer
-            className={`fixed bottom-0 left-0 right-0 p-2 bg-white text-center text-xs text-neutral-600`}
+            className={`w-full border-t border-neutral-100 p-2 bg-white text-center text-xs text-neutral-600`}
           >
             <p>
               Made with ❤️ by{" "}

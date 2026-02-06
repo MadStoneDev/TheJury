@@ -1,8 +1,23 @@
-﻿// app/api/live-polls/vote/route.ts
+// app/api/live-polls/vote/route.ts
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
+import { voteSchema } from "@/lib/validations";
 
 export async function POST(request: Request) {
+  // Rate limit: 10 req/min per IP
+  const ip = getIPFromRequest(request);
+  const { success: allowed, remaining } = rateLimit(`vote:${ip}`, {
+    maxTokens: 10,
+    interval: 60,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again later." },
+      { status: 429, headers: { "X-RateLimit-Remaining": String(remaining) } },
+    );
+  }
+
   try {
     const supabase = await createClient();
 
@@ -18,22 +33,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const { demo_poll_id, selected_options, voter_fingerprint } = body;
-
-    // Validate input
-    if (!demo_poll_id || !selected_options || !voter_fingerprint) {
+    // Validate input with Zod
+    const parsed = voteSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        {
+          error: "Validation failed",
+          details: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 },
       );
     }
 
-    if (!Array.isArray(selected_options) || selected_options.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid selected options" },
-        { status: 400 },
-      );
-    }
+    const { demo_poll_id, selected_options, voter_fingerprint } = parsed.data;
 
     // Check if already voted
     const { data: existingVote, error: checkError } = await supabase
