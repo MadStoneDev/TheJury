@@ -5,7 +5,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, signOut } from "@/lib/supabaseHelpers";
 import type { User } from "@supabase/supabase-js";
-import { IconDashboard, IconPlus, IconPower } from "@tabler/icons-react";
+import {
+  IconDashboard,
+  IconPlus,
+  IconPower,
+  IconUser,
+} from "@tabler/icons-react";
 
 export const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -80,7 +85,12 @@ export const Navbar = () => {
               <div className="w-8 h-8 animate-pulse bg-gray-200 rounded"></div>
             ) : user ? (
               <>
-                <span className="text-sm text-emerald-700">Welcome back!</span>
+                <Link
+                  href="/profile"
+                  className="text-sm text-emerald-700 hover:text-emerald-900 font-medium transition-colors"
+                >
+                  Profile
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
@@ -164,6 +174,14 @@ export const Navbar = () => {
                   <IconPlus size={20} />
                   Create Poll
                 </Link>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <IconUser size={20} />
+                  Profile
+                </Link>
               </>
             )}
 
@@ -174,9 +192,6 @@ export const Navbar = () => {
                 </div>
               ) : user ? (
                 <>
-                  <span className="block px-3 py-2 text-emerald-700 font-bold">
-                    Welcome back!
-                  </span>
                   <button
                     onClick={() => {
                       handleSignOut();

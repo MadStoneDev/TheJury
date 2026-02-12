@@ -25,6 +25,7 @@ export interface Poll {
   allow_multiple: boolean;
   is_active: boolean;
   has_time_limit: boolean;
+  show_results_to_voters?: boolean;
   start_date?: string;
   end_date?: string;
   created_at: string;
@@ -390,6 +391,44 @@ export const togglePollStatus = async (pollId: string): Promise<boolean> => {
   } catch (error) {
     console.error("Error toggling poll status:", error);
     return false;
+  }
+};
+
+export const duplicatePoll = async (
+  pollId: string,
+  userId: string,
+): Promise<string | null> => {
+  try {
+    const original = await getPollById(pollId);
+    if (!original) return null;
+
+    // Generate new code (dynamic import to avoid circular deps)
+    const { generateUniquePollCode } = await import(
+      "@/utils/pollCodeGenerator"
+    );
+    const newCode = await generateUniquePollCode();
+
+    const pollData = {
+      code: newCode,
+      user_id: userId,
+      question: original.question + " (Copy)",
+      description: original.description || null,
+      allow_multiple: original.allow_multiple,
+      is_active: false,
+      has_time_limit: false,
+      start_date: null,
+      end_date: null,
+    };
+
+    const options = (original.options || []).map((opt) => ({ text: opt.text }));
+
+    const newPollId = await createPoll(pollData, options);
+    if (!newPollId) return null;
+
+    return newCode;
+  } catch (error) {
+    console.error("Error duplicating poll:", error);
+    return null;
   }
 };
 

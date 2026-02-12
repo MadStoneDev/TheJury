@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
@@ -10,6 +10,8 @@ import {
   IconShare,
   IconUsers,
   IconChartBar,
+  IconDownload,
+  IconLink,
 } from "@tabler/icons-react";
 import {
   getPollByCode,
@@ -19,6 +21,10 @@ import {
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import ResultsSkeleton from "@/components/skeletons/ResultsSkeleton";
+import { exportResultsToCSV } from "@/lib/exportUtils";
+import ShareModal from "@/components/ShareModal";
 
 export default function PollResultsPage() {
   const params = useParams();
@@ -30,6 +36,7 @@ export default function PollResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
   const [copiedText, setCopiedText] = useState<string>("");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     const loadPollResults = async () => {
@@ -37,33 +44,25 @@ export default function PollResultsPage() {
 
       setIsLoading(true);
       try {
-        // Get current user to check ownership
         const user = await getCurrentUser();
-
-        // Fetch poll data
         const pollData = await getPollByCode(pollCode);
         if (!pollData) {
           setError("Poll not found");
           return;
         }
 
-        // Check if current user owns this poll
         if (user && pollData.user_id === user.id) {
-          // setIsOwner(true);
+          // Owner - allowed
         } else {
-          // If not the owner and poll is not public, restrict access
-          // You can modify this logic based on your privacy requirements
           setError("You don't have permission to view these results");
           return;
         }
 
         setPoll(pollData);
 
-        // Load results and total voter count
         const pollResults = await getPollResults(pollData.id);
         setResults(pollResults);
 
-        // Get total number of unique voters
         const { count: voterCount } = await supabase
           .from("votes")
           .select("*", { count: "exact", head: true })
@@ -91,15 +90,22 @@ export default function PollResultsPage() {
     }
   };
 
-  const handleCopyLink = async () => {
+  const handleCopyResultsLink = async () => {
     try {
-      const link = `${window.location.origin}/answer/${pollCode}`;
+      const link = `${window.location.origin}/results/${pollCode}`;
       await navigator.clipboard.writeText(link);
-      setCopiedText("link");
+      setCopiedText("results");
+      toast.success("Results link copied!");
       setTimeout(() => setCopiedText(""), 2000);
     } catch (err) {
-      console.error("Failed to copy link:", err);
+      console.error("Failed to copy results link:", err);
     }
+  };
+
+  const handleExportCSV = () => {
+    if (!poll) return;
+    exportResultsToCSV(poll.question, pollCode, results, totalVoters);
+    toast.success("CSV exported!");
   };
 
   const getPercentage = (votes: number) => {
@@ -118,16 +124,7 @@ export default function PollResultsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading poll results...</p>
-          </div>
-        </Container>
-      </div>
-    );
+    return <ResultsSkeleton />;
   }
 
   if (error) {
@@ -135,7 +132,7 @@ export default function PollResultsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <Container>
           <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-4 sm:p-8">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
+            <div className="text-red-500 text-6xl mb-4">&#x26A0;&#xFE0F;</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
             <p className="text-gray-600 mb-6">{error}</p>
             <Link
@@ -154,6 +151,7 @@ export default function PollResultsPage() {
   if (!poll) return null;
 
   const maxVotes = Math.max(...results.map((r) => r.vote_count));
+  const showResultsToVoters = (poll as Poll & { show_results_to_voters?: boolean }).show_results_to_voters;
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -236,16 +234,12 @@ export default function PollResultsPage() {
                 </button>
 
                 <button
-                  onClick={handleCopyLink}
+                  onClick={() => setShareModalOpen(true)}
                   className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                  title="Copy poll link"
+                  title="Share poll"
                 >
-                  {copiedText === "link" ? (
-                    <IconCheck size={18} className="text-green-600" />
-                  ) : (
-                    <IconShare size={18} />
-                  )}
-                  <span className="text-sm">Copy Link</span>
+                  <IconShare size={18} />
+                  <span className="text-sm">Share Poll</span>
                 </button>
 
                 <Link
@@ -274,11 +268,11 @@ export default function PollResultsPage() {
                   Share your poll to start collecting votes!
                 </p>
                 <button
-                  onClick={handleCopyLink}
+                  onClick={() => setShareModalOpen(true)}
                   className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
                 >
                   <IconShare size={20} />
-                  <span>Copy Poll Link</span>
+                  <span>Share Poll</span>
                 </button>
               </div>
             ) : (
@@ -402,15 +396,42 @@ export default function PollResultsPage() {
                 View Voting Page
               </Link>
               <button
-                onClick={handleCopyLink}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors"
+                onClick={() => setShareModalOpen(true)}
+                className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
               >
-                {copiedText === "link" ? "Copied!" : "Share Poll"}
+                <IconShare size={16} />
+                Share Poll
               </button>
+              {totalVoters > 0 && (
+                <button
+                  onClick={handleExportCSV}
+                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
+                >
+                  <IconDownload size={16} />
+                  Export CSV
+                </button>
+              )}
+              {showResultsToVoters && (
+                <button
+                  onClick={handleCopyResultsLink}
+                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
+                >
+                  <IconLink size={16} />
+                  {copiedText === "results" ? "Copied!" : "Share Results"}
+                </button>
+              )}
             </div>
           </div>
         </div>
       </Container>
+
+      {/* Share Modal */}
+      <ShareModal
+        open={shareModalOpen}
+        onOpenChange={setShareModalOpen}
+        pollCode={pollCode}
+        pollUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/answer/${pollCode}`}
+      />
     </div>
   );
 }
