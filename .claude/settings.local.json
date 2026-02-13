@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx supabase:*)",
+      "Bash(where:*)",
+      "Bash(ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nsecurity, performance & UX foundation \\(Phase 1\\)\n\nAdd rate limiting \\(token bucket\\) to all API routes, protect seed endpoint\nwith SEED_SECRET, remove client-side IP detection \\(ipify\\) in favor of\nfingerprint-only anonymous voting, fix unsafe postMessage in embed with\norigin validation, add Zod input validation, fix N+1 dashboard query\n\\(single query with votes count\\), fix broken hover states, fix footer\noverlap, add Sonner toast system, and clean up console.log.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(xargs:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}
