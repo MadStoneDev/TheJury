@@ -30,6 +30,7 @@ export default function PollEmbedPage() {
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
   const [targetOrigin, setTargetOrigin] = useState("*");
+  const [ownerTier, setOwnerTier] = useState<string>("free");
 
   // Determine target origin for postMessage
   useEffect(() => {
@@ -109,6 +110,16 @@ export default function PollEmbedPage() {
         }
 
         setPoll(pollData);
+
+        // Fetch poll owner's subscription tier for branding
+        const { data: ownerProfile } = await supabase
+          .from("profiles")
+          .select("subscription_tier")
+          .eq("id", pollData.user_id)
+          .single();
+        if (ownerProfile?.subscription_tier) {
+          setOwnerTier(ownerProfile.subscription_tier);
+        }
 
         const pollResults = await getPollResults(pollData.id);
         setResults(pollResults);
@@ -356,17 +367,19 @@ export default function PollEmbedPage() {
         </div>
       )}
 
-      {/* Compact footer */}
-      <div className="text-center mt-4 pt-3 border-t border-gray-100">
-        <a
-          href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-gray-500 hover:text-emerald-700 transition-colors"
-        >
-          Powered by TheJury
-        </a>
-      </div>
+      {/* Compact footer — only shown for free tier */}
+      {ownerTier === "free" && (
+        <div className="text-center mt-4 pt-3 border-t border-gray-100">
+          <a
+            href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-gray-500 hover:text-emerald-700 transition-colors"
+          >
+            Powered by TheJury
+          </a>
+        </div>
+      )}
     </div>
   );
 }

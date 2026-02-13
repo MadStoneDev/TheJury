@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Container } from "@/components/Container";
 import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import {
@@ -11,12 +12,16 @@ import {
 import { profileUpdateSchema } from "@/lib/validations";
 import { toast } from "sonner";
 import type { Profile } from "@/lib/supabaseHelpers";
+import type { TierName } from "@/lib/stripe";
 
 interface ProfilePageProps {
   profile: Profile;
   email: string;
   memberSince: string;
   pollCount: number;
+  subscriptionTier: TierName;
+  subscriptionStatus: string | null;
+  currentPeriodEnd: string | null;
 }
 
 export default function ProfilePage({
@@ -24,6 +29,9 @@ export default function ProfilePage({
   email,
   memberSince,
   pollCount,
+  subscriptionTier,
+  subscriptionStatus,
+  currentPeriodEnd,
 }: ProfilePageProps) {
   const [username, setUsername] = useState(profile.username);
   const [usernameStatus, setUsernameStatus] = useState<
@@ -31,6 +39,7 @@ export default function ProfilePage({
   >("idle");
   const [usernameError, setUsernameError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
 
   const checkUsername = useCallback(
     async (value: string) => {
@@ -94,6 +103,23 @@ export default function ProfilePage({
       toast.error("An error occurred");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    setIsPortalLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Failed to open billing portal");
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setIsPortalLoading(false);
     }
   };
 
@@ -192,6 +218,61 @@ export default function ProfilePage({
                   Username is available
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Subscription */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-6">
+              Subscription
+            </h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-500 mb-1">
+                  Current Plan
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-900 font-medium capitalize">
+                    {subscriptionTier}
+                  </span>
+                  {subscriptionStatus && subscriptionStatus !== "active" && (
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                      {subscriptionStatus}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {currentPeriodEnd && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-500 mb-1">
+                    Current Period Ends
+                  </label>
+                  <p className="text-gray-900">
+                    {formatDate(currentPeriodEnd)}
+                  </p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                {subscriptionTier === "free" ? (
+                  <Link
+                    href="/pricing"
+                    className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-md font-medium transition-colors"
+                  >
+                    Upgrade
+                  </Link>
+                ) : (
+                  <button
+                    onClick={handleManageBilling}
+                    disabled={isPortalLoading}
+                    className="bg-emerald-800 hover:bg-emerald-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-medium transition-colors"
+                  >
+                    {isPortalLoading ? "Loading..." : "Manage Billing"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

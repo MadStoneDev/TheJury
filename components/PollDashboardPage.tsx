@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Container } from "@/components/Container";
 import {
   IconPlus,
@@ -37,6 +37,7 @@ const POLLS_PER_PAGE = 10;
 export default function PollDashboardPage() {
   // States
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmbedCode, setShowEmbedCode] = useState<string>("");
@@ -53,6 +54,14 @@ export default function PollDashboardPage() {
   const [shareModalPollCode, setShareModalPollCode] = useState<string | null>(
     null,
   );
+
+  // Show checkout success toast
+  useEffect(() => {
+    if (searchParams.get("checkout") === "success") {
+      toast.success("Welcome to your new plan! Your subscription is active.");
+      router.replace("/dashboard");
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const loadPolls = async () => {

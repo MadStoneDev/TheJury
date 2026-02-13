@@ -14,6 +14,10 @@ export const profileUpdateSchema = z.object({
     ),
 });
 
+export const checkoutSchema = z.object({
+  priceId: z.string().startsWith("price_", "Invalid price ID"),
+});
+
 export const voteSchema = z.object({
   demo_poll_id: uuidSchema,
   selected_options: z

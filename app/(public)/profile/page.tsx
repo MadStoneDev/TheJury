@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserHasProfileAndReturn } from "@/utils/profileChecker";
 import ProfilePage from "@/components/ProfilePage";
+import type { TierName } from "@/lib/stripe";
 
 export default async function ProfileRoute() {
   const supabase = await createClient();
@@ -30,12 +31,22 @@ export default async function ProfileRoute() {
     .select("*", { count: "exact", head: true })
     .eq("user_id", user.id);
 
+  // Fetch subscription info
+  const { data: subData } = await supabase
+    .from("profiles")
+    .select("subscription_tier, subscription_status, current_period_end")
+    .eq("id", user.id)
+    .single();
+
   return (
     <ProfilePage
       profile={profile}
       email={user.email || ""}
       memberSince={user.created_at}
       pollCount={pollCount || 0}
+      subscriptionTier={(subData?.subscription_tier as TierName) || "free"}
+      subscriptionStatus={subData?.subscription_status || null}
+      currentPeriodEnd={subData?.current_period_end || null}
     />
   );
 }

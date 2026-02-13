@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentUser, signOut } from "@/lib/supabaseHelpers";
 import type { User } from "@supabase/supabase-js";
 import {
+  IconCurrencyDollar,
   IconDashboard,
   IconPlus,
   IconPower,
@@ -61,6 +62,12 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/pricing"
+              className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+            >
+              Pricing
+            </Link>
             {user && (
               <>
                 <Link
@@ -156,6 +163,14 @@ export const Navbar = () => {
               isMenuOpen ? "max-h-[999px] pt-2 pb-3" : "max-h-0"
             } overflow-hidden z-50 transition-all duration-200`}
           >
+            <Link
+              href="/pricing"
+              className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <IconCurrencyDollar size={20} />
+              Pricing
+            </Link>
             {user && (
               <>
                 <Link

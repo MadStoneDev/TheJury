@@ -6,6 +6,11 @@ export interface Profile {
   id: string;
   username: string;
   avatar_url?: string;
+  stripe_customer_id?: string;
+  subscription_tier?: string;
+  subscription_status?: string;
+  subscription_id?: string;
+  current_period_end?: string;
   created_at: string;
   updated_at: string;
 }
@@ -471,6 +476,35 @@ export const submitVote = async (
     // If single choice poll, only allow one option
     if (!poll.allow_multiple && optionIds.length > 1) {
       throw new Error("This poll only allows single selection");
+    }
+
+    // Check vote limit for free tier users
+    const { data: pollFull } = await supabase
+      .from("polls")
+      .select("user_id")
+      .eq("id", pollId)
+      .single();
+
+    if (pollFull?.user_id) {
+      const { data: ownerProfile } = await supabase
+        .from("profiles")
+        .select("subscription_tier")
+        .eq("id", pollFull.user_id)
+        .single();
+
+      const tier = ownerProfile?.subscription_tier || "free";
+      if (tier === "free") {
+        const { count } = await supabase
+          .from("votes")
+          .select("*", { count: "exact", head: true })
+          .eq("poll_id", pollId);
+
+        if ((count || 0) >= 100) {
+          throw new Error(
+            "This poll has reached its vote limit. The poll owner can upgrade to Pro for unlimited votes.",
+          );
+        }
+      }
     }
 
     // Submit new vote (let database handle duplicate detection)
