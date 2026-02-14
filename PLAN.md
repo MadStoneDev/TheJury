@@ -34,10 +34,10 @@
 
 ## Phase 4: Templates, AI Generation, Scheduling UI, Password Protection
 
-- [ ] 4.1 Poll Templates (`lib/templates.ts`, `/templates` page)
-- [ ] 4.2 AI Poll Generation (API route + modal)
-- [ ] 4.3 Scheduling UI — gate checkbox, badges on dashboard
-- [ ] 4.4 Password-Protected Polls — password hash, PasswordGate component
+- [x] 4.1 Poll Templates (`lib/templates.ts`, `/templates` page)
+- [x] 4.2 AI Poll Generation (API route + modal)
+- [x] 4.3 Scheduling UI — gate checkbox, badges on dashboard
+- [x] 4.4 Password-Protected Polls — password hash, PasswordGate component
 
 ---
 

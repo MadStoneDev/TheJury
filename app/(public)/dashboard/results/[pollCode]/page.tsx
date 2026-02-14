@@ -12,7 +12,6 @@ import {
   IconChartBar,
   IconDownload,
   IconLink,
-  IconTrophy,
   IconLock,
 } from "@tabler/icons-react";
 import {
@@ -31,7 +30,12 @@ import UpgradeModal from "@/components/UpgradeModal";
 import { QuestionTypeResults } from "@/components/question-types";
 import { Button } from "@/components/ui/button";
 import { canUseFeature } from "@/lib/featureGate";
+import type { Feature } from "@/lib/featureGate";
 import type { TierName } from "@/lib/stripe";
+import { BarChart, PieChart, ChartSelector } from "@/components/charts";
+import type { ChartType, ChartDataItem } from "@/components/charts";
+import AnalyticsDashboard from "@/components/analytics/AnalyticsDashboard";
+import { ABTestResults } from "@/components/ab-testing";
 
 export default function PollResultsPage() {
   const params = useParams();
@@ -46,7 +50,8 @@ export default function PollResultsPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [userTier, setUserTier] = useState<TierName>("free");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [upgradeFeature, setUpgradeFeature] = useState<"csvExport" | "qrCodes">("csvExport");
+  const [upgradeFeature, setUpgradeFeature] = useState<Feature>("csvExport");
+  const [chartType, setChartType] = useState<ChartType>("bar");
 
   const isMultiQuestion = questionResults.length > 1;
 
@@ -142,10 +147,6 @@ export default function PollResultsPage() {
     toast.success("CSV exported!");
   };
 
-  const getPercentage = (votes: number) => {
-    return totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0;
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       weekday: "long",
@@ -191,66 +192,19 @@ export default function PollResultsPage() {
     poll as Poll & { show_results_to_voters?: boolean }
   ).show_results_to_voters;
 
-  const renderResultBar = (
-    result: PollResult,
-    index: number,
-    maxVotes: number,
-  ) => {
-    const percentage = getPercentage(result.vote_count);
-    const isTopChoice = result.vote_count === maxVotes && maxVotes > 0;
+  const toChartData = (results: PollResult[]): ChartDataItem[] =>
+    results.map((r) => ({ label: r.option_text, value: r.vote_count, id: r.option_id }));
 
-    return (
-      <motion.div
-        key={result.option_id}
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.08 }}
-        className={`relative p-4 rounded-xl border overflow-hidden ${
-          isTopChoice
-            ? "border-emerald-500/50 bg-emerald-500/5"
-            : "border-border"
-        }`}
-      >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{
-            duration: 0.8,
-            delay: index * 0.08,
-            ease: "easeOut",
-          }}
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
-        />
-
-        <div className="relative flex justify-between items-start">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-medium text-foreground">
-                {result.option_text}
-              </span>
-              {isTopChoice && (
-                <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                  <IconTrophy size={10} />
-                  Leading
-                </span>
-              )}
-            </div>
-            <span className="text-xs text-muted-foreground">
-              Option #{result.option_order}
-            </span>
-          </div>
-          <div className="text-right">
-            <div className="font-bold text-lg text-foreground">
-              {percentage}%
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {result.vote_count}{" "}
-              {result.vote_count === 1 ? "vote" : "votes"}
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
+  const renderChart = (results: PollResult[]) => {
+    const chartData = toChartData(results);
+    switch (chartType) {
+      case "pie":
+        return <PieChart data={chartData} total={totalVoters} />;
+      case "donut":
+        return <PieChart data={chartData} total={totalVoters} donut />;
+      default:
+        return <BarChart data={chartData} total={totalVoters} />;
+    }
   };
 
   return (
@@ -353,9 +307,20 @@ export default function PollResultsPage() {
         transition={{ delay: 0.1 }}
         className="rounded-2xl border bg-card p-6"
       >
-        <h3 className="text-lg font-semibold text-foreground mb-6">
-          Detailed Results
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <h3 className="text-lg font-semibold text-foreground">
+            Detailed Results
+          </h3>
+          <ChartSelector
+            selected={chartType}
+            onChange={setChartType}
+            userTier={userTier}
+            onUpgradeRequest={() => {
+              setUpgradeFeature("chartTypes");
+              setUpgradeModalOpen(true);
+            }}
+          />
+        </div>
 
         {totalVoters === 0 ? (
           <div className="text-center py-12">
@@ -380,12 +345,8 @@ export default function PollResultsPage() {
         ) : isMultiQuestion ? (
           /* Multi-question results: per-question sections */
           <div className="space-y-8">
-            {questionResults.map((qr, qIndex) => {
+            {questionResults.map((qr) => {
               const qType = qr.question_type || "multiple_choice";
-              const qMaxVotes = Math.max(
-                ...qr.results.map((r) => r.vote_count),
-                0,
-              );
 
               return (
                 <div key={qr.question_id}>
@@ -404,11 +365,7 @@ export default function PollResultsPage() {
                       totalVoters={totalVoters}
                     />
                   ) : (
-                    <div className="space-y-3">
-                      {qr.results.map((result, i) =>
-                        renderResultBar(result, qIndex * 4 + i, qMaxVotes),
-                      )}
-                    </div>
+                    renderChart(qr.results)
                   )}
                 </div>
               );
@@ -456,15 +413,7 @@ export default function PollResultsPage() {
                 totalVoters={totalVoters}
               />
             ) : (
-              (() => {
-                const maxVotes = Math.max(
-                  ...flatResults.map((r) => r.vote_count),
-                  0,
-                );
-                return flatResults.map((result, i) =>
-                  renderResultBar(result, i, maxVotes),
-                );
-              })()
+              renderChart(flatResults)
             )}
 
             {/* Summary Stats */}
@@ -518,6 +467,33 @@ export default function PollResultsPage() {
           </div>
         )}
       </motion.div>
+
+      {/* A/B Test Results (Team tier) */}
+      {canUseFeature(userTier, "abTesting") && totalVoters > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+          className="mt-6"
+        >
+          <ABTestResults pollId={poll.id} />
+        </motion.div>
+      )}
+
+      {/* Advanced Analytics (Team tier) */}
+      {canUseFeature(userTier, "advancedAnalytics") && totalVoters > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mt-6 rounded-2xl border bg-card p-6"
+        >
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Analytics
+          </h3>
+          <AnalyticsDashboard pollId={poll.id} totalVoters={totalVoters} />
+        </motion.div>
+      )}
 
       {/* Management Actions */}
       <motion.div

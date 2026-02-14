@@ -66,6 +66,9 @@ import ImageUploader from "@/components/question-types/ImageUploader";
 import { getTemplateById } from "@/lib/templates";
 import AIGenerateModal from "@/components/AIGenerateModal";
 import { hashPassword } from "@/lib/passwordUtils";
+import { ABTestSetup } from "@/components/ab-testing";
+import type { ABVariant } from "@/components/ab-testing";
+import { createABExperiment } from "@/lib/supabaseHelpers";
 
 interface PollOption {
   id: string;
@@ -488,6 +491,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [endDate, setEndDate] = useState("");
   const [hasPassword, setHasPassword] = useState(false);
   const [pollPassword, setPollPassword] = useState("");
+  const [abVariants, setAbVariants] = useState<ABVariant[]>([]);
 
   // Questions
   const [questions, setQuestions] = useState<QuestionFormData[]>([
@@ -809,6 +813,19 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
         if (!createdPollId) {
           throw new Error("Failed to create poll");
+        }
+
+        // Create A/B experiment if variants were configured
+        if (abVariants.length >= 2) {
+          await createABExperiment(
+            createdPollId,
+            `${pollTitle} - A/B Test`,
+            abVariants.map((v) => ({
+              name: v.name,
+              questionText: v.questionText,
+              weight: v.weight,
+            })),
+          );
         }
       } else {
         const pollData = {
@@ -1154,6 +1171,15 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   </p>
                 )}
               </div>
+
+              {/* A/B Testing (Team tier, new polls only, single question) */}
+              {!isEditing && questions.length === 1 && canUseFeature(userTier, "abTesting") && (
+                <ABTestSetup
+                  variants={abVariants}
+                  onChange={setAbVariants}
+                  baseQuestionText={questions[0]?.questionText || ""}
+                />
+              )}
 
               {/* Settings */}
               <div className="rounded-xl border bg-muted/50 p-4">

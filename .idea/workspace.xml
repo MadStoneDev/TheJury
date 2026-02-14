@@ -3,12 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="078c4042-f9a0-4b86-885c-e4e24e89ec06" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/PLAN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(public)/dashboard/results/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(public)/dashboard/results/[pollCode]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/answer/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/answer/[pollCode]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/embed/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/embed/[pollCode]/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/Navbar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/Navbar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/PollDashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/PollDashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/results/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/results/[pollCode]/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/components/PollForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/PollForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/supabase/middleware.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabase/middleware.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/lib/supabaseHelpers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabaseHelpers.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -70,7 +69,7 @@
       <updated>1770384216561</updated>
       <workItem from="1770384218803" duration="3631000" />
       <workItem from="1770989499081" duration="1638000" />
-      <workItem from="1771063845977" duration="6625000" />
+      <workItem from="1771063845977" duration="7507000" />
     </task>
     <servers />
   </component>

@@ -1202,3 +1202,141 @@ export const generateFingerprint = (): string => {
     );
   }
 };
+
+// ─── A/B Testing ─────────────────────────────────────────────
+
+export interface ABExperiment {
+  id: string;
+  poll_id: string;
+  name: string;
+  is_active: boolean;
+}
+
+export interface ABVariantData {
+  id: string;
+  experiment_id: string;
+  name: string;
+  question_text: string;
+  weight: number;
+}
+
+/**
+ * Create an A/B experiment for a poll with variants.
+ */
+export async function createABExperiment(
+  pollId: string,
+  name: string,
+  variants: { name: string; questionText: string; weight: number }[],
+): Promise<string | null> {
+  const { data: experiment, error: expError } = await supabase
+    .from("ab_experiments")
+    .insert({ poll_id: pollId, name })
+    .select("id")
+    .single();
+
+  if (expError || !experiment) {
+    console.error("Error creating AB experiment:", expError);
+    return null;
+  }
+
+  const variantRows = variants.map((v) => ({
+    experiment_id: experiment.id,
+    name: v.name,
+    question_text: v.questionText,
+    weight: v.weight,
+  }));
+
+  const { error: varError } = await supabase
+    .from("poll_variants")
+    .insert(variantRows);
+
+  if (varError) {
+    console.error("Error creating variants:", varError);
+    return null;
+  }
+
+  return experiment.id;
+}
+
+/**
+ * Get the A/B experiment and its variants for a poll.
+ */
+export async function getABExperiment(
+  pollId: string,
+): Promise<{ experiment: ABExperiment; variants: ABVariantData[] } | null> {
+  const { data: experiment } = await supabase
+    .from("ab_experiments")
+    .select("*")
+    .eq("poll_id", pollId)
+    .eq("is_active", true)
+    .single();
+
+  if (!experiment) return null;
+
+  const { data: variants } = await supabase
+    .from("poll_variants")
+    .select("*")
+    .eq("experiment_id", experiment.id)
+    .order("created_at", { ascending: true });
+
+  return {
+    experiment,
+    variants: variants || [],
+  };
+}
+
+/**
+ * Assign a variant to a user/fingerprint using weighted random selection.
+ * Returns the assigned variant, or existing assignment if already assigned.
+ */
+export async function assignVariant(
+  experimentId: string,
+  variants: ABVariantData[],
+  userId?: string,
+  fingerprint?: string,
+): Promise<ABVariantData | null> {
+  if (variants.length === 0) return null;
+
+  // Check existing assignment
+  let query = supabase
+    .from("user_variant_assignments")
+    .select("variant_id")
+    .eq("experiment_id", experimentId);
+
+  if (userId) {
+    query = query.eq("user_id", userId);
+  } else if (fingerprint) {
+    query = query.eq("voter_fingerprint", fingerprint);
+  } else {
+    return null;
+  }
+
+  const { data: existing } = await query.single();
+
+  if (existing) {
+    return variants.find((v) => v.id === existing.variant_id) || variants[0];
+  }
+
+  // Weighted random assignment
+  const totalWeight = variants.reduce((sum, v) => sum + v.weight, 0);
+  let random = Math.random() * totalWeight;
+  let selected = variants[0];
+
+  for (const v of variants) {
+    random -= v.weight;
+    if (random <= 0) {
+      selected = v;
+      break;
+    }
+  }
+
+  // Record assignment
+  await supabase.from("user_variant_assignments").insert({
+    experiment_id: experimentId,
+    variant_id: selected.id,
+    user_id: userId || null,
+    voter_fingerprint: fingerprint || null,
+  });
+
+  return selected;
+}

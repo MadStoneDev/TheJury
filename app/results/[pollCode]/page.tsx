@@ -6,15 +6,16 @@ import { motion } from "motion/react";
 import {
   IconUsers,
   IconChartBar,
-  IconTrophy,
   IconLoader2,
 } from "@tabler/icons-react";
 import { getPollByCode, getPollResultsByQuestion } from "@/lib/supabaseHelpers";
-import type { Poll, PollResult, QuestionResult } from "@/lib/supabaseHelpers";
+import type { Poll, QuestionResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { QuestionTypeResults } from "@/components/question-types";
+import { BarChart } from "@/components/charts";
+import type { ChartDataItem } from "@/components/charts";
 
 export default function PublicResultsPage() {
   const params = useParams();
@@ -70,10 +71,6 @@ export default function PublicResultsPage() {
     loadResults();
   }, [pollCode]);
 
-  const getPercentage = (votes: number) => {
-    return totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0;
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -110,62 +107,8 @@ export default function PublicResultsPage() {
 
   if (!poll) return null;
 
-  const renderResultBar = (
-    result: PollResult,
-    index: number,
-    maxVotes: number,
-  ) => {
-    const percentage = getPercentage(result.vote_count);
-    const isTopChoice = result.vote_count === maxVotes && maxVotes > 0;
-
-    return (
-      <motion.div
-        key={result.option_id}
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: index * 0.08 }}
-        className={`relative p-4 rounded-xl border overflow-hidden ${
-          isTopChoice
-            ? "border-emerald-500/50 bg-emerald-500/5"
-            : "border-border"
-        }`}
-      >
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{
-            duration: 0.8,
-            delay: index * 0.08,
-            ease: "easeOut",
-          }}
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
-        />
-
-        <div className="relative flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">
-              {result.option_text}
-            </span>
-            {isTopChoice && (
-              <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                <IconTrophy size={10} />
-                Leading
-              </span>
-            )}
-          </div>
-          <div className="text-right">
-            <span className="font-bold text-foreground">
-              {percentage}%
-            </span>
-            <span className="text-xs text-muted-foreground ml-2">
-              {result.vote_count}{" "}
-              {result.vote_count === 1 ? "vote" : "votes"}
-            </span>
-          </div>
-        </div>
-      </motion.div>
-    );
-  };
+  const toChartData = (results: { option_id: string; option_text: string; vote_count: number }[]): ChartDataItem[] =>
+    results.map((r) => ({ label: r.option_text, value: r.vote_count, id: r.option_id }));
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -222,12 +165,8 @@ export default function PublicResultsPage() {
                 </div>
               ) : isMultiQuestion ? (
                 <div className="space-y-6">
-                  {questionResults.map((qr, qIndex) => {
+                  {questionResults.map((qr) => {
                     const qType = qr.question_type || "multiple_choice";
-                    const qMaxVotes = Math.max(
-                      ...qr.results.map((r) => r.vote_count),
-                      0,
-                    );
                     return (
                       <div key={qr.question_id}>
                         <div className="flex items-center gap-2 mb-3">
@@ -244,15 +183,7 @@ export default function PublicResultsPage() {
                             totalVoters={totalVoters}
                           />
                         ) : (
-                          <div className="space-y-3">
-                            {qr.results.map((result, i) =>
-                              renderResultBar(
-                                result,
-                                qIndex * 4 + i,
-                                qMaxVotes,
-                              ),
-                            )}
-                          </div>
+                          <BarChart data={toChartData(qr.results)} total={totalVoters} />
                         )}
                       </div>
                     );
@@ -268,16 +199,10 @@ export default function PublicResultsPage() {
                       totalVoters={totalVoters}
                     />
                   ) : (
-                    (() => {
-                      const results = questionResults[0]?.results || [];
-                      const maxVotes = Math.max(
-                        ...results.map((r) => r.vote_count),
-                        0,
-                      );
-                      return results.map((result, i) =>
-                        renderResultBar(result, i, maxVotes),
-                      );
-                    })()
+                    <BarChart
+                      data={toChartData(questionResults[0]?.results || [])}
+                      total={totalVoters}
+                    />
                   )}
                 </div>
               )}

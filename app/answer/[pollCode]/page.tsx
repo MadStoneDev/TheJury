@@ -19,7 +19,10 @@ import {
   getPollResultsByQuestion,
   getCurrentUser,
   generateFingerprint,
+  getABExperiment,
+  assignVariant,
 } from "@/lib/supabaseHelpers";
+import type { ABVariantData } from "@/lib/supabaseHelpers";
 import { toast } from "sonner";
 import type {
   Poll,
@@ -54,6 +57,7 @@ export default function PollAnswerPage() {
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
+  const [abVariant, setAbVariant] = useState<ABVariantData | null>(null);
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -111,6 +115,22 @@ export default function PollAnswerPage() {
         }
 
         setPoll(pollData);
+
+        // Check for A/B experiment
+        const abExp = await getABExperiment(pollData.id);
+        if (abExp && abExp.variants.length >= 2) {
+          const user = await getCurrentUser();
+          const fp = !user ? generateFingerprint() : undefined;
+          const assigned = await assignVariant(
+            abExp.experiment.id,
+            abExp.variants,
+            user?.id,
+            fp,
+          );
+          if (assigned) {
+            setAbVariant(assigned);
+          }
+        }
 
         const qResults = await getPollResultsByQuestion(pollData.id);
         setQuestionResults(qResults);
@@ -525,7 +545,7 @@ export default function PollAnswerPage() {
                 {pollCode}
               </span>
               <h1 className="text-2xl sm:text-3xl font-display text-foreground mb-2">
-                {poll.question}
+                {abVariant ? abVariant.question_text : poll.question}
               </h1>
               {poll.description && (
                 <p className="text-muted-foreground">{poll.description}</p>
