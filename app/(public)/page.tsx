@@ -145,8 +145,13 @@ function AnimatedWord() {
     return () => clearInterval(interval);
   }, [words.length]);
 
+  // Find the longest word to set a stable width
+  const longestWord = words.reduce((a, b) => (a.length > b.length ? a : b), "");
+
   return (
-    <span className="inline-block relative h-[1.15em] overflow-hidden align-bottom min-w-[4ch]">
+    <span className="inline-block relative h-[1.2em] overflow-hidden align-bottom">
+      {/* Invisible longest word to reserve width */}
+      <span className="invisible whitespace-nowrap">{longestWord}</span>
       <AnimatePresence mode="wait">
         <motion.span
           key={words[index]}
@@ -154,7 +159,7 @@ function AnimatedWord() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -30, opacity: 0 }}
           transition={{ duration: 0.4, ease: "easeInOut" }}
-          className="absolute left-0 gradient-text"
+          className="absolute left-0 top-0 gradient-text whitespace-nowrap"
         >
           {words[index]}
         </motion.span>
