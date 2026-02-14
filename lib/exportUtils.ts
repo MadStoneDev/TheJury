@@ -1,4 +1,4 @@
-import type { PollResult } from "@/lib/supabaseHelpers";
+import type { PollResult, QuestionResult } from "@/lib/supabaseHelpers";
 
 function escapeCsvField(field: string): string {
   if (field.includes(",") || field.includes('"') || field.includes("\n")) {
@@ -39,7 +39,49 @@ export function exportResultsToCSV(
   // Total row
   lines.push(`Total,${totalVotes},`);
 
-  const csvContent = lines.join("\n");
+  downloadCsv(lines.join("\n"), pollCode);
+}
+
+export function exportQuestionResultsToCSV(
+  pollTitle: string,
+  pollCode: string,
+  questionResults: QuestionResult[],
+  totalVoters: number,
+) {
+  const lines: string[] = [];
+
+  // Metadata comment row
+  lines.push(
+    `# Poll: ${escapeCsvField(pollTitle)} | Code: ${pollCode} | Total Voters: ${totalVoters} | Questions: ${questionResults.length} | Exported: ${new Date().toISOString()}`,
+  );
+
+  for (const qr of questionResults) {
+    // Question section header
+    lines.push("");
+    lines.push(
+      `# Question ${qr.question_order}: ${escapeCsvField(qr.question_text)}`,
+    );
+    lines.push("Option,Votes,Percentage");
+
+    let questionTotal = 0;
+    for (const result of qr.results) {
+      const percentage =
+        totalVoters > 0
+          ? ((result.vote_count / totalVoters) * 100).toFixed(1)
+          : "0.0";
+      lines.push(
+        `${escapeCsvField(result.option_text)},${result.vote_count},${percentage}%`,
+      );
+      questionTotal += result.vote_count;
+    }
+
+    lines.push(`Subtotal,${questionTotal},`);
+  }
+
+  downloadCsv(lines.join("\n"), pollCode);
+}
+
+function downloadCsv(csvContent: string, pollCode: string) {
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 

@@ -9,21 +9,24 @@ import {
   IconTrophy,
   IconLoader2,
 } from "@tabler/icons-react";
-import { getPollByCode, getPollResults } from "@/lib/supabaseHelpers";
-import type { Poll, PollResult } from "@/lib/supabaseHelpers";
+import { getPollByCode, getPollResultsByQuestion } from "@/lib/supabaseHelpers";
+import type { Poll, PollResult, QuestionResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
+import { QuestionTypeResults } from "@/components/question-types";
 
 export default function PublicResultsPage() {
   const params = useParams();
   const pollCode = params.pollCode as string;
 
   const [poll, setPoll] = useState<Poll | null>(null);
-  const [results, setResults] = useState<PollResult[]>([]);
+  const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
+
+  const isMultiQuestion = questionResults.length > 1;
 
   useEffect(() => {
     const loadResults = async () => {
@@ -47,8 +50,8 @@ export default function PublicResultsPage() {
 
         setPoll(pollData);
 
-        const pollResults = await getPollResults(pollData.id);
-        setResults(pollResults);
+        const qResults = await getPollResultsByQuestion(pollData.id);
+        setQuestionResults(qResults);
 
         const { count: voterCount } = await supabase
           .from("votes")
@@ -107,7 +110,62 @@ export default function PublicResultsPage() {
 
   if (!poll) return null;
 
-  const maxVotes = Math.max(...results.map((r) => r.vote_count));
+  const renderResultBar = (
+    result: PollResult,
+    index: number,
+    maxVotes: number,
+  ) => {
+    const percentage = getPercentage(result.vote_count);
+    const isTopChoice = result.vote_count === maxVotes && maxVotes > 0;
+
+    return (
+      <motion.div
+        key={result.option_id}
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: index * 0.08 }}
+        className={`relative p-4 rounded-xl border overflow-hidden ${
+          isTopChoice
+            ? "border-emerald-500/50 bg-emerald-500/5"
+            : "border-border"
+        }`}
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{
+            duration: 0.8,
+            delay: index * 0.08,
+            ease: "easeOut",
+          }}
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+        />
+
+        <div className="relative flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-foreground">
+              {result.option_text}
+            </span>
+            {isTopChoice && (
+              <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                <IconTrophy size={10} />
+                Leading
+              </span>
+            )}
+          </div>
+          <div className="text-right">
+            <span className="font-bold text-foreground">
+              {percentage}%
+            </span>
+            <span className="text-xs text-muted-foreground ml-2">
+              {result.vote_count}{" "}
+              {result.vote_count === 1 ? "vote" : "votes"}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -139,11 +197,16 @@ export default function PublicResultsPage() {
                     {poll.description}
                   </p>
                 )}
-                <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-muted-foreground">
-                  <IconUsers size={14} />
-                  <span>
+                <div className="flex items-center justify-center gap-3 mt-4 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1.5">
+                    <IconUsers size={14} />
                     {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
                   </span>
+                  {isMultiQuestion && (
+                    <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
+                      {questionResults.length} questions
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -157,61 +220,65 @@ export default function PublicResultsPage() {
                     No votes yet.
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {results.map((result, i) => {
-                    const percentage = getPercentage(result.vote_count);
-                    const isTopChoice =
-                      result.vote_count === maxVotes && maxVotes > 0;
-
+              ) : isMultiQuestion ? (
+                <div className="space-y-6">
+                  {questionResults.map((qr, qIndex) => {
+                    const qType = qr.question_type || "multiple_choice";
+                    const qMaxVotes = Math.max(
+                      ...qr.results.map((r) => r.vote_count),
+                      0,
+                    );
                     return (
-                      <motion.div
-                        key={result.option_id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        className={`relative p-4 rounded-xl border overflow-hidden ${
-                          isTopChoice
-                            ? "border-emerald-500/50 bg-emerald-500/5"
-                            : "border-border"
-                        }`}
-                      >
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${percentage}%` }}
-                          transition={{
-                            duration: 0.8,
-                            delay: i * 0.08,
-                            ease: "easeOut",
-                          }}
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
-                        />
-
-                        <div className="relative flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-foreground">
-                              {result.option_text}
-                            </span>
-                            {isTopChoice && (
-                              <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                                <IconTrophy size={10} />
-                                Leading
-                              </span>
+                      <div key={qr.question_id}>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                            Q{qr.question_order}
+                          </span>
+                          <h3 className="font-semibold text-foreground text-sm">
+                            {qr.question_text}
+                          </h3>
+                        </div>
+                        {qType !== "multiple_choice" && qType !== "image_choice" ? (
+                          <QuestionTypeResults
+                            questionResult={qr}
+                            totalVoters={totalVoters}
+                          />
+                        ) : (
+                          <div className="space-y-3">
+                            {qr.results.map((result, i) =>
+                              renderResultBar(
+                                result,
+                                qIndex * 4 + i,
+                                qMaxVotes,
+                              ),
                             )}
                           </div>
-                          <div className="text-right">
-                            <span className="font-bold text-foreground">
-                              {percentage}%
-                            </span>
-                            <span className="text-xs text-muted-foreground ml-2">
-                              {result.vote_count}{" "}
-                              {result.vote_count === 1 ? "vote" : "votes"}
-                            </span>
-                          </div>
-                        </div>
-                      </motion.div>
+                        )}
+                      </div>
                     );
                   })}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {questionResults[0] &&
+                  questionResults[0].question_type !== "multiple_choice" &&
+                  questionResults[0].question_type !== "image_choice" ? (
+                    <QuestionTypeResults
+                      questionResult={questionResults[0]}
+                      totalVoters={totalVoters}
+                    />
+                  ) : (
+                    (() => {
+                      const results = questionResults[0]?.results || [];
+                      const maxVotes = Math.max(
+                        ...results.map((r) => r.vote_count),
+                        0,
+                      );
+                      return results.map((result, i) =>
+                        renderResultBar(result, i, maxVotes),
+                      );
+                    })()
+                  )}
                 </div>
               )}
             </div>

@@ -1,5 +1,12 @@
 import { createClient } from "@/lib/supabase/server";
-import { TIERS, getProPriceId, getTeamPriceId, type TierName } from "@/lib/stripe";
+import {
+  TIERS,
+  getProPriceId,
+  getTeamPriceId,
+  getProAnnualPriceId,
+  getTeamAnnualPriceId,
+  type TierName,
+} from "@/lib/stripe";
 import PricingCards from "@/components/PricingCards";
 import { ScrollReveal } from "@/components/motion";
 
@@ -37,8 +44,8 @@ export default async function PricingPage() {
               pricing
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start free with up to 100 votes per poll. Upgrade when you need
-              unlimited votes, custom branding, and more.
+              Start free with up to 5 active polls. Upgrade for unlimited
+              polls, advanced question types, and more.
             </p>
           </div>
         </ScrollReveal>
@@ -46,12 +53,24 @@ export default async function PricingPage() {
         <PricingCards
           tiers={{
             ...TIERS,
-            pro: { ...TIERS.pro, priceId: getProPriceId() },
-            team: { ...TIERS.team, priceId: getTeamPriceId() },
+            pro: {
+              ...TIERS.pro,
+              priceId: getProPriceId(),
+              priceIdAnnual: getProAnnualPriceId(),
+            },
+            team: {
+              ...TIERS.team,
+              priceId: getTeamPriceId(),
+              priceIdAnnual: getTeamAnnualPriceId(),
+            },
           }}
           currentTier={currentTier}
           isLoggedIn={isLoggedIn}
         />
+
+        <p className="text-center text-xs text-muted-foreground mt-8">
+          All prices shown in your selected currency. Billed in AUD.
+        </p>
       </div>
     </div>
   );

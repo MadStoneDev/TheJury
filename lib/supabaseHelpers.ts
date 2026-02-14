@@ -19,6 +19,20 @@ export interface PollOption {
   id: string;
   text: string;
   option_order: number;
+  question_id?: string;
+  image_url?: string;
+}
+
+export interface PollQuestion {
+  id: string;
+  poll_id: string;
+  question_text: string;
+  question_type: string;
+  question_order: number;
+  allow_multiple: boolean;
+  settings: Record<string, unknown>;
+  created_at?: string;
+  options: PollOption[];
 }
 
 export interface Poll {
@@ -36,7 +50,9 @@ export interface Poll {
   created_at: string;
   updated_at: string;
   options?: PollOption[];
+  questions?: PollQuestion[];
   total_votes?: number;
+  question_count?: number;
 }
 
 export interface Vote {
@@ -54,6 +70,40 @@ export interface PollResult {
   option_text: string;
   option_order: number;
   vote_count: number;
+}
+
+export interface RatingDistribution {
+  average: number;
+  distribution: Record<number, number>;
+  totalRatings: number;
+  min: number;
+  max: number;
+}
+
+export interface RankedOptionResult {
+  option_id: string;
+  option_text: string;
+  avg_position: number;
+  first_place_count: number;
+}
+
+export interface QuestionResult {
+  question_id: string;
+  question_text: string;
+  question_type: string;
+  question_order: number;
+  results: PollResult[];
+  ratingData?: RatingDistribution;
+  rankedData?: RankedOptionResult[];
+  openEndedData?: { responses: string[]; totalResponses: number };
+}
+
+export interface QuestionInput {
+  question_text: string;
+  question_type?: string;
+  allow_multiple?: boolean;
+  settings?: Record<string, unknown>;
+  options: { text: string; image_url?: string }[];
 }
 
 // =====================================================
@@ -148,9 +198,9 @@ export const createPoll = async (
     start_date: string | null;
   },
   options: { text: string }[],
+  questions?: QuestionInput[],
 ): Promise<string | null> => {
   try {
-    // Start a transaction
     const { data: poll, error: pollError } = await supabase
       .from("polls")
       .insert([pollData])
@@ -159,18 +209,70 @@ export const createPoll = async (
 
     if (pollError) throw pollError;
 
-    // Insert options
-    const optionsData = options.map((option, index) => ({
-      poll_id: poll.id,
-      text: option.text,
-      option_order: index + 1,
-    }));
+    if (questions && questions.length > 0) {
+      // Multi-question mode: create poll_questions with nested options
+      for (let qi = 0; qi < questions.length; qi++) {
+        const q = questions[qi];
+        const { data: question, error: qError } = await supabase
+          .from("poll_questions")
+          .insert({
+            poll_id: poll.id,
+            question_text: q.question_text,
+            question_type: q.question_type || "multiple_choice",
+            question_order: qi + 1,
+            allow_multiple: q.allow_multiple ?? false,
+            settings: q.settings || {},
+          })
+          .select("id")
+          .single();
 
-    const { error: optionsError } = await supabase
-      .from("poll_options")
-      .insert(optionsData);
+        if (qError) throw qError;
 
-    if (optionsError) throw optionsError;
+        if (q.options.length > 0) {
+          const optionsData = q.options.map((opt, oi) => ({
+            poll_id: poll.id,
+            question_id: question.id,
+            text: opt.text,
+            option_order: oi + 1,
+            ...(opt.image_url ? { image_url: opt.image_url } : {}),
+          }));
+
+          const { error: optError } = await supabase
+            .from("poll_options")
+            .insert(optionsData);
+
+          if (optError) throw optError;
+        }
+      }
+    } else {
+      // Legacy single-question mode: create one poll_question + flat options
+      const { data: question, error: qError } = await supabase
+        .from("poll_questions")
+        .insert({
+          poll_id: poll.id,
+          question_text: pollData.question,
+          question_type: "multiple_choice",
+          question_order: 1,
+          allow_multiple: pollData.allow_multiple,
+        })
+        .select("id")
+        .single();
+
+      if (qError) throw qError;
+
+      const optionsData = options.map((option, index) => ({
+        poll_id: poll.id,
+        question_id: question.id,
+        text: option.text,
+        option_order: index + 1,
+      }));
+
+      const { error: optionsError } = await supabase
+        .from("poll_options")
+        .insert(optionsData);
+
+      if (optionsError) throw optionsError;
+    }
 
     return poll.id;
   } catch (error) {
@@ -191,6 +293,7 @@ export const updatePoll = async (
     start_date: string | null;
   },
   options?: { text: string; id?: string }[],
+  questions?: (QuestionInput & { id?: string })[],
 ): Promise<boolean> => {
   try {
     // Update poll data
@@ -201,45 +304,118 @@ export const updatePoll = async (
 
     if (pollError) throw pollError;
 
-    // Update options if provided
-    if (options) {
-      // Get existing options
-      const { data: existingOptions } = await supabase
-        .from("poll_options")
-        .select("*")
-        .eq("poll_id", pollId);
+    if (questions && questions.length > 0) {
+      // Multi-question update: handle question-level CRUD
+      const { data: existingQuestions } = await supabase
+        .from("poll_questions")
+        .select("id")
+        .eq("poll_id", pollId)
+        .order("question_order");
 
-      // Update/insert options while preserving IDs where possible
-      for (let i = 0; i < options.length; i++) {
-        const option = options[i];
-        const existingOption = existingOptions?.[i];
+      const existingIds = new Set((existingQuestions || []).map((q) => q.id));
+      const updatedIds = new Set<string>();
 
-        if (existingOption) {
-          // Update existing option (preserves ID)
+      for (let qi = 0; qi < questions.length; qi++) {
+        const q = questions[qi];
+
+        if (q.id && existingIds.has(q.id)) {
+          // Update existing question
+          updatedIds.add(q.id);
           await supabase
-            .from("poll_options")
+            .from("poll_questions")
             .update({
-              text: option.text,
-              option_order: i + 1,
+              question_text: q.question_text,
+              question_type: q.question_type || "multiple_choice",
+              question_order: qi + 1,
+              allow_multiple: q.allow_multiple ?? false,
+              settings: q.settings || {},
             })
-            .eq("id", existingOption.id);
+            .eq("id", q.id);
+
+          // Update options for this question
+          await updateQuestionOptions(pollId, q.id, q.options);
         } else {
-          // Insert new option
-          await supabase.from("poll_options").insert({
-            poll_id: pollId,
-            text: option.text,
-            option_order: i + 1,
-          });
+          // Insert new question
+          const { data: newQ, error: qErr } = await supabase
+            .from("poll_questions")
+            .insert({
+              poll_id: pollId,
+              question_text: q.question_text,
+              question_type: q.question_type || "multiple_choice",
+              question_order: qi + 1,
+              allow_multiple: q.allow_multiple ?? false,
+              settings: q.settings || {},
+            })
+            .select("id")
+            .single();
+
+          if (qErr) throw qErr;
+
+          if (q.options.length > 0) {
+            const optionsData = q.options.map((opt, oi) => ({
+              poll_id: pollId,
+              question_id: newQ.id,
+              text: opt.text,
+              option_order: oi + 1,
+              ...(opt.image_url ? { image_url: opt.image_url } : {}),
+            }));
+
+            await supabase.from("poll_options").insert(optionsData);
+          }
         }
       }
 
-      // Delete any extra options if the new list is shorter
-      if (existingOptions && existingOptions.length > options.length) {
-        const idsToDelete = existingOptions
-          .slice(options.length)
-          .map((opt) => opt.id);
+      // Delete removed questions (cascade deletes their options)
+      const toDelete = [...existingIds].filter((id) => !updatedIds.has(id));
+      if (toDelete.length > 0) {
+        await supabase.from("poll_questions").delete().in("id", toDelete);
+      }
+    } else if (options) {
+      // Legacy single-question update
+      // Get the first question for this poll
+      const { data: existingQ } = await supabase
+        .from("poll_questions")
+        .select("id")
+        .eq("poll_id", pollId)
+        .order("question_order")
+        .limit(1)
+        .single();
 
-        await supabase.from("poll_options").delete().in("id", idsToDelete);
+      if (existingQ) {
+        // Update question text and allow_multiple
+        await supabase
+          .from("poll_questions")
+          .update({
+            question_text: pollData.question,
+            allow_multiple: pollData.allow_multiple,
+          })
+          .eq("id", existingQ.id);
+
+        await updateQuestionOptions(pollId, existingQ.id, options);
+      } else {
+        // No question exists yet (shouldn't happen after migration, but be safe)
+        const { data: newQ, error: qErr } = await supabase
+          .from("poll_questions")
+          .insert({
+            poll_id: pollId,
+            question_text: pollData.question,
+            question_type: "multiple_choice",
+            question_order: 1,
+            allow_multiple: pollData.allow_multiple,
+          })
+          .select("id")
+          .single();
+
+        if (qErr) throw qErr;
+
+        const optionsData = options.map((opt, i) => ({
+          poll_id: pollId,
+          question_id: newQ.id,
+          text: opt.text,
+          option_order: i + 1,
+        }));
+
+        await supabase.from("poll_options").insert(optionsData);
       }
     }
 
@@ -249,6 +425,49 @@ export const updatePoll = async (
     return false;
   }
 };
+
+async function updateQuestionOptions(
+  pollId: string,
+  questionId: string,
+  options: { text: string; image_url?: string }[],
+) {
+  const { data: existingOptions } = await supabase
+    .from("poll_options")
+    .select("*")
+    .eq("question_id", questionId)
+    .order("option_order");
+
+  for (let i = 0; i < options.length; i++) {
+    const option = options[i];
+    const existing = existingOptions?.[i];
+
+    if (existing) {
+      await supabase
+        .from("poll_options")
+        .update({
+          text: option.text,
+          option_order: i + 1,
+          ...(option.image_url !== undefined ? { image_url: option.image_url } : {}),
+        })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("poll_options").insert({
+        poll_id: pollId,
+        question_id: questionId,
+        text: option.text,
+        option_order: i + 1,
+        ...(option.image_url ? { image_url: option.image_url } : {}),
+      });
+    }
+  }
+
+  if (existingOptions && existingOptions.length > options.length) {
+    const idsToDelete = existingOptions
+      .slice(options.length)
+      .map((opt) => opt.id);
+    await supabase.from("poll_options").delete().in("id", idsToDelete);
+  }
+}
 
 export const getPollByCode = async (code: string): Promise<Poll | null> => {
   try {
@@ -260,7 +479,8 @@ export const getPollByCode = async (code: string): Promise<Poll | null> => {
         options:poll_options(
           id,
           text,
-          option_order
+          option_order,
+          question_id
         )
       `,
       )
@@ -276,6 +496,10 @@ export const getPollByCode = async (code: string): Promise<Poll | null> => {
           a.option_order - b.option_order,
       );
     }
+
+    // Fetch questions with nested options
+    const questions = await getPollQuestions(data.id);
+    data.questions = questions;
 
     return data;
   } catch (error) {
@@ -294,7 +518,8 @@ export const getPollById = async (id: string): Promise<Poll | null> => {
         options:poll_options(
           id,
           text,
-          option_order
+          option_order,
+          question_id
         )
       `,
       )
@@ -311,10 +536,67 @@ export const getPollById = async (id: string): Promise<Poll | null> => {
       );
     }
 
+    // Fetch questions with nested options
+    const questions = await getPollQuestions(data.id);
+    data.questions = questions;
+
     return data;
   } catch (error) {
     console.error("Error fetching poll by ID:", error);
     return null;
+  }
+};
+
+export const getPollQuestions = async (
+  pollId: string,
+): Promise<PollQuestion[]> => {
+  try {
+    const { data: questions, error } = await supabase
+      .from("poll_questions")
+      .select(
+        `
+        id,
+        poll_id,
+        question_text,
+        question_type,
+        question_order,
+        allow_multiple,
+        settings,
+        created_at
+      `,
+      )
+      .eq("poll_id", pollId)
+      .order("question_order");
+
+    if (error) throw error;
+    if (!questions || questions.length === 0) return [];
+
+    // Fetch all options for this poll's questions in one query
+    const questionIds = questions.map((q) => q.id);
+    const { data: allOptions, error: optError } = await supabase
+      .from("poll_options")
+      .select("id, text, option_order, question_id")
+      .in("question_id", questionIds)
+      .order("option_order");
+
+    if (optError) throw optError;
+
+    // Group options by question_id
+    const optionsByQuestion: Record<string, PollOption[]> = {};
+    (allOptions || []).forEach((opt) => {
+      const qid = opt.question_id as string;
+      if (!optionsByQuestion[qid]) optionsByQuestion[qid] = [];
+      optionsByQuestion[qid].push(opt);
+    });
+
+    return questions.map((q) => ({
+      ...q,
+      settings: (q.settings as Record<string, unknown>) || {},
+      options: optionsByQuestion[q.id] || [],
+    }));
+  } catch (error) {
+    console.error("Error fetching poll questions:", error);
+    return [];
   }
 };
 
@@ -330,7 +612,8 @@ export const getUserPolls = async (userId: string): Promise<Poll[]> => {
           text,
           option_order
         ),
-        votes(count)
+        votes(count),
+        poll_questions(count)
       `,
       )
       .eq("user_id", userId)
@@ -348,12 +631,15 @@ export const getUserPolls = async (userId: string): Promise<Poll[]> => {
 
       const totalVotes =
         (poll.votes as unknown as { count: number }[])?.[0]?.count ?? 0;
+      const questionCount =
+        (poll.poll_questions as unknown as { count: number }[])?.[0]?.count ?? 1;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { votes: _votes, ...rest } = poll;
+      const { votes: _votes, poll_questions: _pq, ...rest } = poll;
       return {
         ...rest,
         total_votes: totalVotes,
+        question_count: questionCount,
       };
     });
   } catch (error) {
@@ -374,16 +660,43 @@ export const deletePoll = async (pollId: string): Promise<boolean> => {
   }
 };
 
-export const togglePollStatus = async (pollId: string): Promise<boolean> => {
+export const togglePollStatus = async (
+  pollId: string,
+): Promise<{ success: boolean; error?: string }> => {
   try {
-    // First get current status
+    // First get current status and owner
     const { data: poll, error: fetchError } = await supabase
       .from("polls")
-      .select("is_active")
+      .select("is_active, user_id")
       .eq("id", pollId)
       .single();
 
     if (fetchError) throw fetchError;
+
+    // If activating, check the active poll limit
+    if (!poll.is_active) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_tier")
+        .eq("id", poll.user_id)
+        .single();
+
+      const tier = profile?.subscription_tier || "free";
+
+      // Import dynamically to avoid circular deps at module level
+      const { getFeatureLimit } = await import("@/lib/featureGate");
+      const limit = getFeatureLimit(tier as "free" | "pro" | "team", "maxActivePolls");
+
+      if (limit !== -1) {
+        const activeCount = await getActivePollCount(poll.user_id);
+        if (activeCount >= limit) {
+          return {
+            success: false,
+            error: `You've reached your limit of ${limit} active polls. Upgrade to Pro for unlimited active polls.`,
+          };
+        }
+      }
+    }
 
     // Toggle the status
     const { error: updateError } = await supabase
@@ -392,10 +705,26 @@ export const togglePollStatus = async (pollId: string): Promise<boolean> => {
       .eq("id", pollId);
 
     if (updateError) throw updateError;
-    return true;
+    return { success: true };
   } catch (error) {
     console.error("Error toggling poll status:", error);
-    return false;
+    return { success: false, error: "Failed to update poll status" };
+  }
+};
+
+export const getActivePollCount = async (userId: string): Promise<number> => {
+  try {
+    const { count, error } = await supabase
+      .from("polls")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_active", true);
+
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    console.error("Error counting active polls:", error);
+    return 0;
   }
 };
 
@@ -425,9 +754,27 @@ export const duplicatePoll = async (
       end_date: null,
     };
 
-    const options = (original.options || []).map((opt) => ({ text: opt.text }));
+    // Build questions array from the original's questions
+    const questionsInput: QuestionInput[] =
+      original.questions && original.questions.length > 0
+        ? original.questions.map((q) => ({
+            question_text: q.question_text,
+            question_type: q.question_type,
+            allow_multiple: q.allow_multiple,
+            settings: q.settings,
+            options: q.options.map((opt) => ({ text: opt.text })),
+          }))
+        : [];
 
-    const newPollId = await createPoll(pollData, options);
+    const fallbackOptions = (original.options || []).map((opt) => ({
+      text: opt.text,
+    }));
+
+    const newPollId = await createPoll(
+      pollData,
+      fallbackOptions,
+      questionsInput.length > 0 ? questionsInput : undefined,
+    );
     if (!newPollId) return null;
 
     return newCode;
@@ -447,6 +794,7 @@ export const submitVote = async (
   userId?: string,
   voterIP?: string,
   voterFingerprint?: string,
+  answers?: Record<string, unknown>,
 ): Promise<boolean> => {
   try {
     // Check if poll allows multiple votes
@@ -473,38 +821,15 @@ export const submitVote = async (
       }
     }
 
-    // If single choice poll, only allow one option
-    if (!poll.allow_multiple && optionIds.length > 1) {
+    // For single-question polls, enforce single-choice if not allow_multiple
+    // Multi-question polls have per-question allow_multiple (validated client-side)
+    const { count: questionCount } = await supabase
+      .from("poll_questions")
+      .select("*", { count: "exact", head: true })
+      .eq("poll_id", pollId);
+
+    if ((questionCount || 1) <= 1 && !poll.allow_multiple && optionIds.length > 1) {
       throw new Error("This poll only allows single selection");
-    }
-
-    // Check vote limit for free tier users
-    const { data: pollFull } = await supabase
-      .from("polls")
-      .select("user_id")
-      .eq("id", pollId)
-      .single();
-
-    if (pollFull?.user_id) {
-      const { data: ownerProfile } = await supabase
-        .from("profiles")
-        .select("subscription_tier")
-        .eq("id", pollFull.user_id)
-        .single();
-
-      const tier = ownerProfile?.subscription_tier || "free";
-      if (tier === "free") {
-        const { count } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", pollId);
-
-        if ((count || 0) >= 100) {
-          throw new Error(
-            "This poll has reached its vote limit. The poll owner can upgrade to Pro for unlimited votes.",
-          );
-        }
-      }
     }
 
     // Submit new vote (let database handle duplicate detection)
@@ -514,6 +839,7 @@ export const submitVote = async (
       user_id: userId || null,
       voter_ip: voterIP || null,
       voter_fingerprint: voterFingerprint || null,
+      answers: answers || {},
     };
 
     const { error: voteError } = await supabase.from("votes").insert(votes);
@@ -533,6 +859,155 @@ export const submitVote = async (
   } catch (error) {
     console.error("Error submitting vote:", error);
     throw error; // Re-throw so the component can handle the specific error message
+  }
+};
+
+export const getPollResultsByQuestion = async (
+  pollId: string,
+): Promise<QuestionResult[]> => {
+  try {
+    const questions = await getPollQuestions(pollId);
+    if (questions.length === 0) {
+      // Fallback: return flat results as a single question
+      const flatResults = await getPollResults(pollId);
+      return [
+        {
+          question_id: "",
+          question_text: "",
+          question_type: "multiple_choice",
+          question_order: 1,
+          results: flatResults,
+        },
+      ];
+    }
+
+    // Get all votes (including answers for rating_scale, ranked_choice)
+    const { data: votes, error: votesError } = await supabase
+      .from("votes")
+      .select("options, answers")
+      .eq("poll_id", pollId);
+
+    if (votesError) throw votesError;
+
+    // Build a set of all voted option IDs
+    const voteCounts: Record<string, number> = {};
+    (votes || []).forEach((vote) => {
+      try {
+        const selected = Array.isArray(vote.options)
+          ? vote.options
+          : JSON.parse((vote.options as string) || "[]");
+        selected.forEach((optionId: string) => {
+          voteCounts[optionId] = (voteCounts[optionId] || 0) + 1;
+        });
+      } catch {
+        // skip malformed vote
+      }
+    });
+
+    // Build per-question results based on question type
+    const questionResults: QuestionResult[] = [];
+
+    for (const q of questions) {
+      const base: QuestionResult = {
+        question_id: q.id,
+        question_text: q.question_text,
+        question_type: q.question_type,
+        question_order: q.question_order,
+        results: q.options.map((opt) => ({
+          option_id: opt.id,
+          option_text: opt.text,
+          option_order: opt.option_order,
+          vote_count: voteCounts[opt.id] || 0,
+        })),
+      };
+
+      if (q.question_type === "rating_scale") {
+        // Compute rating distribution from votes.answers
+        const settings = (q.settings || {}) as { min?: number; max?: number };
+        const min = settings.min ?? 1;
+        const max = settings.max ?? 5;
+        const distribution: Record<number, number> = {};
+        for (let i = min; i <= max; i++) distribution[i] = 0;
+
+        let totalRatings = 0;
+        let sum = 0;
+
+        (votes || []).forEach((vote) => {
+          try {
+            const ans = vote.answers as Record<string, { type?: string; value?: number }> | null;
+            if (ans && ans[q.id] && typeof ans[q.id].value === "number") {
+              const val = ans[q.id].value!;
+              if (val >= min && val <= max) {
+                distribution[val] = (distribution[val] || 0) + 1;
+                totalRatings++;
+                sum += val;
+              }
+            }
+          } catch { /* skip */ }
+        });
+
+        base.ratingData = {
+          average: totalRatings > 0 ? sum / totalRatings : 0,
+          distribution,
+          totalRatings,
+          min,
+          max,
+        };
+      } else if (q.question_type === "ranked_choice") {
+        // Compute average position and first-place counts
+        const positionSums: Record<string, { total: number; count: number; firstPlace: number }> = {};
+        q.options.forEach((opt) => {
+          positionSums[opt.id] = { total: 0, count: 0, firstPlace: 0 };
+        });
+
+        (votes || []).forEach((vote) => {
+          try {
+            const ans = vote.answers as Record<string, { type?: string; rankings?: string[] }> | null;
+            if (ans && ans[q.id] && Array.isArray(ans[q.id].rankings)) {
+              const rankings = ans[q.id].rankings!;
+              rankings.forEach((optId, idx) => {
+                if (positionSums[optId]) {
+                  positionSums[optId].total += idx + 1;
+                  positionSums[optId].count++;
+                  if (idx === 0) positionSums[optId].firstPlace++;
+                }
+              });
+            }
+          } catch { /* skip */ }
+        });
+
+        base.rankedData = q.options
+          .map((opt) => ({
+            option_id: opt.id,
+            option_text: opt.text,
+            avg_position: positionSums[opt.id]?.count > 0
+              ? positionSums[opt.id].total / positionSums[opt.id].count
+              : q.options.length,
+            first_place_count: positionSums[opt.id]?.firstPlace || 0,
+          }))
+          .sort((a, b) => a.avg_position - b.avg_position);
+      } else if (q.question_type === "open_ended") {
+        // Fetch text responses from poll_responses table
+        const { data: responses } = await supabase
+          .from("poll_responses")
+          .select("response_text")
+          .eq("question_id", q.id)
+          .order("created_at", { ascending: false })
+          .limit(100);
+
+        base.openEndedData = {
+          responses: (responses || []).map((r) => r.response_text),
+          totalResponses: (responses || []).length,
+        };
+      }
+
+      questionResults.push(base);
+    }
+
+    return questionResults;
+  } catch (error) {
+    console.error("Error fetching poll results by question:", error);
+    return [];
   }
 };
 

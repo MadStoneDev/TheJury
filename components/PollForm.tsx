@@ -14,6 +14,8 @@ import {
   IconLoader2,
   IconChartBar,
   IconArrowLeft,
+  IconLock,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { generateUniquePollCode } from "@/utils/pollCodeGenerator";
 import {
@@ -21,7 +23,10 @@ import {
   updatePoll,
   getPollByCode,
   getCurrentUser,
+  getProfile,
+  getActivePollCount,
 } from "@/lib/supabaseHelpers";
+import type { QuestionInput } from "@/lib/supabaseHelpers";
 import {
   DndContext,
   closestCenter,
@@ -45,26 +50,37 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import UpgradeModal from "@/components/UpgradeModal";
+import { getFeatureLimit, canUseFeature } from "@/lib/featureGate";
+import type { Feature } from "@/lib/featureGate";
+import type { TierName } from "@/lib/stripe";
+import {
+  QUESTION_TYPES,
+  questionTypeHasOptions,
+  getDefaultSettings,
+  type QuestionType,
+} from "@/lib/questionTypes";
+import { QuestionTypeConfig } from "@/components/question-types";
+import ImageUploader from "@/components/question-types/ImageUploader";
 
 interface PollOption {
   id: string;
   text: string;
   optionOrder?: number;
+  image_url?: string;
 }
 
-interface PollFormData {
-  question: string;
-  description: string;
-  options: PollOption[];
+interface QuestionFormData {
+  id?: string; // DB id when editing
+  questionText: string;
+  questionType: string;
   allowMultiple: boolean;
-  isActive: boolean;
-  hasTimeLimit: boolean;
-  startDate: string;
-  endDate: string;
+  settings: Record<string, unknown>;
+  options: PollOption[];
 }
 
 interface PollFormProps {
-  pollCode?: string; // Optional pollCode for editing
+  pollCode?: string;
 }
 
 // SortableOption component
@@ -83,7 +99,6 @@ function SortableOption({
   removeOption,
   canRemove,
 }: SortableOptionProps) {
-  // States
   const [isDeleting, setIsDeleting] = useState(false);
 
   const {
@@ -109,7 +124,6 @@ function SortableOption({
         isDragging ? "shadow-lg border-emerald-500/50" : "border-border"
       } overflow-hidden`}
     >
-      {/* Confirm delete */}
       <AnimatePresence>
         {isDeleting && (
           <motion.div
@@ -143,7 +157,6 @@ function SortableOption({
         )}
       </AnimatePresence>
 
-      {/* Drag handle */}
       <div
         {...attributes}
         {...listeners}
@@ -153,12 +166,10 @@ function SortableOption({
         <IconGripVertical size={20} />
       </div>
 
-      {/* Option number */}
       <div className="hidden sm:flex flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-400 text-white text-xs font-semibold rounded-full items-center justify-center">
         {index + 1}
       </div>
 
-      {/* Option input */}
       <Input
         type="text"
         value={option.text}
@@ -168,7 +179,6 @@ function SortableOption({
         required
       />
 
-      {/* Remove button */}
       {canRemove && (
         <button
           type="button"
@@ -183,40 +193,310 @@ function SortableOption({
   );
 }
 
+// QuestionCard component
+interface QuestionCardProps {
+  question: QuestionFormData;
+  questionIndex: number;
+  totalQuestions: number;
+  sensors: ReturnType<typeof useSensors>;
+  onUpdate: (updated: QuestionFormData) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+  userTier: TierName;
+  onUpgradeRequest: (feature: Feature) => void;
+}
+
+function QuestionCard({
+  question,
+  questionIndex,
+  totalQuestions,
+  sensors,
+  onUpdate,
+  onRemove,
+  canRemove,
+  userTier,
+  onUpgradeRequest,
+}: QuestionCardProps) {
+  const addOption = () => {
+    const newId = `q${questionIndex}-${question.options.length + 1}-${Date.now()}`;
+    const newOrder =
+      Math.max(...question.options.map((o) => o.optionOrder || 0), 0) + 1;
+    onUpdate({
+      ...question,
+      options: [
+        ...question.options,
+        { id: newId, text: "", optionOrder: newOrder },
+      ],
+    });
+  };
+
+  const removeOption = (id: string) => {
+    if (question.options.length <= 2) return;
+    const filtered = question.options
+      .filter((o) => o.id !== id)
+      .map((o, i) => ({ ...o, optionOrder: i }));
+    onUpdate({ ...question, options: filtered });
+  };
+
+  const updateOption = (id: string, text: string) => {
+    onUpdate({
+      ...question,
+      options: question.options.map((o) => (o.id === id ? { ...o, text } : o)),
+    });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active.id !== over?.id) {
+      const oldIdx = question.options.findIndex((i) => i.id === active.id);
+      const newIdx = question.options.findIndex((i) => i.id === over!.id);
+      const newOpts = [...question.options];
+      const [moved] = newOpts.splice(oldIdx, 1);
+      newOpts.splice(newIdx, 0, moved);
+      onUpdate({
+        ...question,
+        options: newOpts.map((o, i) => ({ ...o, optionOrder: i })),
+      });
+    }
+  };
+
+  const hasOptions = questionTypeHasOptions(question.questionType);
+  const isImageChoice = question.questionType === "image_choice";
+
+  const handleTypeChange = (newType: string) => {
+    const typeDef = QUESTION_TYPES.find((t) => t.value === newType);
+    if (!typeDef) return;
+
+    // Check tier gating
+    if (typeDef.featureKey && !canUseFeature(userTier, typeDef.featureKey)) {
+      onUpgradeRequest(typeDef.featureKey);
+      return;
+    }
+
+    const defaults = getDefaultSettings(newType as QuestionType);
+    onUpdate({
+      ...question,
+      questionType: newType,
+      settings: defaults,
+      // Reset options if switching to a type that doesn't use options
+      options: typeDef.hasOptions
+        ? question.options.length >= 2
+          ? question.options
+          : [
+              { id: `q${questionIndex}-0-${Date.now()}`, text: "", optionOrder: 0 },
+              { id: `q${questionIndex}-1-${Date.now()}`, text: "", optionOrder: 1 },
+            ]
+        : [],
+    });
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-foreground">
+          {totalQuestions > 1 ? `Question ${questionIndex + 1}` : "Question"}
+        </h3>
+        {canRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+          >
+            <IconTrash size={14} />
+            Remove
+          </button>
+        )}
+      </div>
+
+      {/* Question Type Selector */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Question Type
+        </label>
+        <div className="relative">
+          <select
+            value={question.questionType}
+            onChange={(e) => handleTypeChange(e.target.value)}
+            className="w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 pr-10 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-colors"
+          >
+            {QUESTION_TYPES.map((qt) => {
+              const locked =
+                qt.featureKey !== null && !canUseFeature(userTier, qt.featureKey);
+              return (
+                <option key={qt.value} value={qt.value}>
+                  {qt.label}
+                  {locked ? " 🔒" : ""}
+                </option>
+              );
+            })}
+          </select>
+          <IconChevronDown
+            size={16}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          {QUESTION_TYPES.find((t) => t.value === question.questionType)
+            ?.description || ""}
+        </p>
+      </div>
+
+      {/* Question Text */}
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-foreground mb-2">
+          Question *
+        </label>
+        <Input
+          type="text"
+          value={question.questionText}
+          onChange={(e) =>
+            onUpdate({ ...question, questionText: e.target.value })
+          }
+          placeholder="What's your question?"
+          className="text-lg h-12"
+          required
+        />
+      </div>
+
+      {/* Type-specific config (rating_scale, reaction) */}
+      <QuestionTypeConfig
+        type={question.questionType as QuestionType}
+        settings={question.settings}
+        onChange={(settings) => onUpdate({ ...question, settings })}
+      />
+
+      {/* Options — only shown for types that have options */}
+      {hasOptions && (
+        <div className="mb-4 mt-4">
+          <label className="block text-sm font-medium text-foreground mb-2">
+            {isImageChoice ? "Image Options *" : "Answer Options *"}
+          </label>
+          <div className="text-xs text-muted-foreground mb-3">
+            Drag the grip handle to reorder options
+          </div>
+
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          >
+            <SortableContext
+              items={question.options.map((o) => o.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-3">
+                {question.options.map((option, index) => (
+                  <div key={option.id}>
+                    <SortableOption
+                      option={option}
+                      index={index}
+                      updateOption={updateOption}
+                      removeOption={removeOption}
+                      canRemove={question.options.length > 2}
+                    />
+                    {isImageChoice && (
+                      <div className="ml-8 mt-1">
+                        <ImageUploader
+                          imageUrl={option.image_url || ""}
+                          onChange={(url) =>
+                            onUpdate({
+                              ...question,
+                              options: question.options.map((o) =>
+                                o.id === option.id
+                                  ? { ...o, image_url: url }
+                                  : o,
+                              ),
+                            })
+                          }
+                          label="Image URL"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          <motion.button
+            type="button"
+            onClick={addOption}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
+            className="mt-3 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm font-medium"
+          >
+            <IconPlus size={16} />
+            Add Another Option
+          </motion.button>
+        </div>
+      )}
+
+      {/* Question Settings — allow_multiple only for types with options */}
+      {hasOptions && question.questionType !== "reaction" && (
+        <label className="flex items-center cursor-pointer group mt-3">
+          <div className="relative">
+            <input
+              type="checkbox"
+              checked={question.allowMultiple}
+              onChange={(e) =>
+                onUpdate({ ...question, allowMultiple: e.target.checked })
+              }
+              className="sr-only peer"
+            />
+            <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+              <IconCheck
+                size={12}
+                className="text-white opacity-0 peer-checked:opacity-100"
+              />
+            </div>
+          </div>
+          <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
+            Allow multiple selections
+          </span>
+        </label>
+      )}
+    </div>
+  );
+}
+
 export default function PollForm({ pollCode }: PollFormProps) {
   const router = useRouter();
   const isEditing = !!pollCode;
 
-  // Configure sensors for both mouse/touch interaction
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200,
-        tolerance: 8,
-      },
+      activationConstraint: { delay: 200, tolerance: 8 },
     }),
     useSensor(KeyboardSensor),
   );
 
-  const [formData, setFormData] = useState<PollFormData>({
-    question: "",
-    description: "",
-    options: [
-      { id: "1", text: "", optionOrder: 0 },
-      { id: "2", text: "", optionOrder: 1 },
-    ],
-    allowMultiple: false,
-    isActive: true,
-    hasTimeLimit: false,
-    startDate: "",
-    endDate: "",
-  });
+  // Poll metadata
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isActive, setIsActive] = useState(true);
+  const [hasTimeLimit, setHasTimeLimit] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
+  // Questions
+  const [questions, setQuestions] = useState<QuestionFormData[]>([
+    {
+      questionText: "",
+      questionType: "multiple_choice",
+      allowMultiple: false,
+      settings: {},
+      options: [
+        { id: "1", text: "", optionOrder: 0 },
+        { id: "2", text: "", optionOrder: 1 },
+      ],
+    },
+  ]);
+
+  // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [generatedPollCode, setGeneratedPollCode] = useState<string>("");
@@ -225,8 +505,23 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [error, setError] = useState<string>("");
   const [pollId, setPollId] = useState<string>("");
 
+  // Tier & upgrade
+  const [userTier, setUserTier] = useState<TierName>("free");
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<Feature>("maxQuestionsPerPoll");
+
   useEffect(() => {
-    const loadPoll = async () => {
+    const init = async () => {
+      // Load user tier
+      const user = await getCurrentUser();
+      if (user) {
+        const profile = await getProfile(user.id);
+        if (profile?.subscription_tier) {
+          setUserTier(profile.subscription_tier as TierName);
+        }
+      }
+
+      // Load poll data if editing
       if (isEditing && pollCode) {
         setIsLoading(true);
         try {
@@ -236,46 +531,78 @@ export default function PollForm({ pollCode }: PollFormProps) {
             return;
           }
 
-          // Check if current user owns this poll
-          const user = await getCurrentUser();
           if (!user || poll.user_id !== user.id) {
             setError("You don't have permission to edit this poll");
             return;
           }
 
-          // Convert poll data to form format, sort by option_order
-          const sortedOptions =
-            poll.options?.sort(
-              (a, b) => (a.option_order || 0) - (b.option_order || 0),
-            ) || [];
-
-          setFormData({
-            question: poll.question,
-            description: poll.description || "",
-            options:
-              sortedOptions.length > 0
-                ? sortedOptions.map((opt, index) => ({
-                    id: (index + 1).toString(),
-                    text: opt.text,
-                    optionOrder: opt.option_order || index,
-                  }))
-                : [
-                    { id: "1", text: "", optionOrder: 0 },
-                    { id: "2", text: "", optionOrder: 1 },
-                  ],
-            allowMultiple: poll.allow_multiple,
-            isActive: poll.is_active,
-            hasTimeLimit: poll.has_time_limit,
-            startDate: poll.start_date
+          setTitle(poll.question);
+          setDescription(poll.description || "");
+          setIsActive(poll.is_active);
+          setHasTimeLimit(poll.has_time_limit);
+          setStartDate(
+            poll.start_date
               ? new Date(poll.start_date).toISOString().slice(0, 16)
               : "",
-            endDate: poll.end_date
+          );
+          setEndDate(
+            poll.end_date
               ? new Date(poll.end_date).toISOString().slice(0, 16)
               : "",
-          });
-
+          );
           setGeneratedPollCode(poll.code);
           setPollId(poll.id);
+
+          // Load questions
+          if (poll.questions && poll.questions.length > 0) {
+            setQuestions(
+              poll.questions.map((q, qi) => ({
+                id: q.id,
+                questionText: q.question_text,
+                questionType: q.question_type,
+                allowMultiple: q.allow_multiple,
+                settings: q.settings || {},
+                options:
+                  q.options.length > 0
+                    ? q.options.map((opt, oi) => ({
+                        id: `q${qi}-${oi}-${opt.id}`,
+                        text: opt.text,
+                        optionOrder: opt.option_order,
+                        image_url: opt.image_url,
+                      }))
+                    : [
+                        { id: `q${qi}-0`, text: "", optionOrder: 0 },
+                        { id: `q${qi}-1`, text: "", optionOrder: 1 },
+                      ],
+              })),
+            );
+          } else {
+            // Legacy: single question from poll data
+            const sortedOptions =
+              poll.options?.sort(
+                (a, b) => (a.option_order || 0) - (b.option_order || 0),
+              ) || [];
+
+            setQuestions([
+              {
+                questionText: poll.question,
+                questionType: "multiple_choice",
+                allowMultiple: poll.allow_multiple,
+                settings: {},
+                options:
+                  sortedOptions.length > 0
+                    ? sortedOptions.map((opt, i) => ({
+                        id: `q0-${i}`,
+                        text: opt.text,
+                        optionOrder: opt.option_order || i,
+                      }))
+                    : [
+                        { id: "q0-0", text: "", optionOrder: 0 },
+                        { id: "q0-1", text: "", optionOrder: 1 },
+                      ],
+              },
+            ]);
+          }
         } catch (err) {
           console.error("Error loading poll:", err);
           setError("Failed to load poll");
@@ -285,71 +612,42 @@ export default function PollForm({ pollCode }: PollFormProps) {
       }
     };
 
-    loadPoll();
+    init();
   }, [isEditing, pollCode]);
 
-  const addOption = () => {
-    const newId = (formData.options.length + 1).toString();
-    const newOrder =
-      Math.max(...formData.options.map((opt) => opt.optionOrder || 0)) + 1;
-    setFormData((prev) => ({
-      ...prev,
-      options: [
-        ...prev.options,
-        { id: newId, text: "", optionOrder: newOrder },
-      ],
-    }));
-  };
+  const questionLimit = getFeatureLimit(userTier, "maxQuestionsPerPoll");
+  const canAddQuestion =
+    questionLimit === -1 || questions.length < questionLimit;
 
-  const removeOption = (id: string) => {
-    if (formData.options.length <= 2) return;
-    setFormData((prev) => {
-      const filteredOptions = prev.options.filter((option) => option.id !== id);
-      const reorderedOptions = filteredOptions.map((option, index) => ({
-        ...option,
-        optionOrder: index,
-      }));
-      return {
-        ...prev,
-        options: reorderedOptions,
-      };
-    });
-  };
-
-  const updateOption = (id: string, text: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      options: prev.options.map((option) =>
-        option.id === id ? { ...option, text } : option,
-      ),
-    }));
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (active.id !== over?.id) {
-      setFormData((prev) => {
-        const oldIndex = prev.options.findIndex(
-          (item) => item.id === active.id,
-        );
-        const newIndex = prev.options.findIndex((item) => item.id === over!.id);
-
-        const newOptions = [...prev.options];
-        const [reorderedItem] = newOptions.splice(oldIndex, 1);
-        newOptions.splice(newIndex, 0, reorderedItem);
-
-        const updatedOptions = newOptions.map((option, index) => ({
-          ...option,
-          optionOrder: index,
-        }));
-
-        return {
-          ...prev,
-          options: updatedOptions,
-        };
-      });
+  const addQuestion = () => {
+    if (!canAddQuestion) {
+      setUpgradeFeature("maxQuestionsPerPoll");
+      setUpgradeModalOpen(true);
+      return;
     }
+    const qi = questions.length;
+    setQuestions((prev) => [
+      ...prev,
+      {
+        questionText: "",
+        questionType: "multiple_choice",
+        allowMultiple: false,
+        settings: {},
+        options: [
+          { id: `q${qi}-0-${Date.now()}`, text: "", optionOrder: 0 },
+          { id: `q${qi}-1-${Date.now()}`, text: "", optionOrder: 1 },
+        ],
+      },
+    ]);
+  };
+
+  const removeQuestion = (index: number) => {
+    if (questions.length <= 1) return;
+    setQuestions((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const updateQuestion = (index: number, updated: QuestionFormData) => {
+    setQuestions((prev) => prev.map((q, i) => (i === index ? updated : q)));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -363,80 +661,144 @@ export default function PollForm({ pollCode }: PollFormProps) {
         throw new Error("You must be logged in to create or edit polls");
       }
 
-      if (!formData.question.trim()) {
-        throw new Error("Please enter a question");
+      // For single-question polls, use the question text as the poll title
+      const pollTitle =
+        questions.length === 1
+          ? questions[0].questionText.trim()
+          : title.trim();
+
+      if (!pollTitle) {
+        throw new Error(
+          questions.length === 1
+            ? "Please enter a question"
+            : "Please enter a poll title",
+        );
       }
 
-      const validOptions = formData.options.filter((opt) => opt.text.trim());
-      if (validOptions.length < 2) {
-        throw new Error("Please provide at least 2 options");
-      }
-
-      if (formData.hasTimeLimit) {
-        if (formData.startDate && formData.endDate) {
-          const startDate = new Date(formData.startDate);
-          const endDate = new Date(formData.endDate);
-          if (startDate >= endDate) {
-            throw new Error("End date must be after start date");
+      // Validate each question
+      for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        if (!q.questionText.trim()) {
+          throw new Error(`Please enter text for Question ${i + 1}`);
+        }
+        // Only validate options for types that use them
+        if (questionTypeHasOptions(q.questionType)) {
+          const validOpts = q.options.filter((o) => o.text.trim());
+          if (validOpts.length < 2) {
+            throw new Error(
+              `Please provide at least 2 options for Question ${i + 1}`,
+            );
           }
         }
       }
 
-      let pollCode = generatedPollCode;
-      let createdPollId: string | null = pollId;
+      if (hasTimeLimit && startDate && endDate) {
+        if (new Date(startDate) >= new Date(endDate)) {
+          throw new Error("End date must be after start date");
+        }
+      }
+
+      // Check active poll limit when creating a new active poll
+      if (!isEditing && isActive) {
+        const limit = getFeatureLimit(userTier, "maxActivePolls");
+        if (limit !== -1) {
+          const activeCount = await getActivePollCount(user.id);
+          if (activeCount >= limit) {
+            setUpgradeModalOpen(true);
+            throw new Error(
+              `You've reached your limit of ${limit} active polls.`,
+            );
+          }
+        }
+      }
+
+      let code = generatedPollCode;
 
       if (!isEditing) {
-        try {
-          pollCode = await generateUniquePollCode();
-          setGeneratedPollCode(pollCode);
-        } catch (codeError) {
-          console.error("Error generating poll code:", codeError);
-          throw new Error(
-            "Unable to generate unique poll code. Please try again.",
-          );
-        }
+        code = await generateUniquePollCode();
+        setGeneratedPollCode(code);
 
         const pollData = {
-          code: pollCode,
+          code,
           user_id: user.id,
-          question: formData.question.trim(),
-          description: formData.description.trim() || null,
-          allow_multiple: formData.allowMultiple,
-          is_active: formData.isActive,
-          has_time_limit: formData.hasTimeLimit,
+          question: pollTitle,
+          description: description.trim() || null,
+          allow_multiple: questions[0].allowMultiple,
+          is_active: isActive,
+          has_time_limit: hasTimeLimit,
           start_date:
-            formData.hasTimeLimit && formData.startDate
-              ? new Date(formData.startDate).toISOString()
+            hasTimeLimit && startDate
+              ? new Date(startDate).toISOString()
               : null,
           end_date:
-            formData.hasTimeLimit && formData.endDate
-              ? new Date(formData.endDate).toISOString()
-              : null,
+            hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
         };
 
-        createdPollId = await createPoll(pollData, validOptions);
+        const questionsInput: QuestionInput[] = questions.map((q) => ({
+          question_text: q.questionText.trim(),
+          question_type: q.questionType,
+          allow_multiple: q.allowMultiple,
+          settings: q.settings,
+          options: questionTypeHasOptions(q.questionType)
+            ? q.options
+                .filter((o) => o.text.trim())
+                .map((o) => ({
+                  text: o.text.trim(),
+                  ...(o.image_url ? { image_url: o.image_url } : {}),
+                }))
+            : [],
+        }));
+
+        const fallbackOptions = questions[0].options
+          .filter((o) => o.text.trim())
+          .map((o) => ({ text: o.text.trim() }));
+
+        const createdPollId = await createPoll(
+          pollData,
+          fallbackOptions,
+          questionsInput,
+        );
 
         if (!createdPollId) {
           throw new Error("Failed to create poll");
         }
       } else {
         const pollData = {
-          question: formData.question.trim(),
-          description: formData.description.trim() || null,
-          allow_multiple: formData.allowMultiple,
-          is_active: formData.isActive,
-          has_time_limit: formData.hasTimeLimit,
+          question: pollTitle,
+          description: description.trim() || null,
+          allow_multiple: questions[0].allowMultiple,
+          is_active: isActive,
+          has_time_limit: hasTimeLimit,
           start_date:
-            formData.hasTimeLimit && formData.startDate
-              ? new Date(formData.startDate).toISOString()
+            hasTimeLimit && startDate
+              ? new Date(startDate).toISOString()
               : null,
           end_date:
-            formData.hasTimeLimit && formData.endDate
-              ? new Date(formData.endDate).toISOString()
-              : null,
+            hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
         };
 
-        const success = await updatePoll(pollId, pollData, validOptions);
+        const questionsInput = questions.map((q) => ({
+          id: q.id,
+          question_text: q.questionText.trim(),
+          question_type: q.questionType,
+          allow_multiple: q.allowMultiple,
+          settings: q.settings,
+          options: questionTypeHasOptions(q.questionType)
+            ? q.options
+                .filter((o) => o.text.trim())
+                .map((o) => ({
+                  text: o.text.trim(),
+                  ...(o.image_url ? { image_url: o.image_url } : {}),
+                }))
+            : [],
+        }));
+
+        const success = await updatePoll(
+          pollId,
+          pollData,
+          undefined,
+          questionsInput,
+        );
 
         if (!success) {
           throw new Error("Failed to update poll");
@@ -445,7 +807,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
       setShowSuccess(true);
 
-      // Fire confetti on success
       confetti({
         particleCount: 100,
         spread: 80,
@@ -515,18 +876,13 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 <h3 className="font-semibold text-foreground mb-4 text-sm">
                   Share your poll:
                 </h3>
-
                 <div className="flex items-center gap-2 bg-card rounded-lg border p-3">
                   <div className="flex-1 truncate">
                     <div className="text-xs text-muted-foreground mb-0.5">
                       Direct Link
                     </div>
                     <div className="font-mono text-sm text-foreground truncate">
-                      {`${
-                        typeof window !== "undefined"
-                          ? window.location.origin
-                          : ""
-                      }/answer/${generatedPollCode}`}
+                      {`${typeof window !== "undefined" ? window.location.origin : ""}/answer/${generatedPollCode}`}
                     </div>
                   </div>
                   <Button
@@ -575,6 +931,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
       </div>
     );
   }
+
+  const isSingleQuestion = questions.length === 1;
 
   return (
     <div className="min-h-screen bg-background relative">
@@ -628,89 +986,112 @@ export default function PollForm({ pollCode }: PollFormProps) {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Question */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Poll Question *
-                </label>
-                <Input
-                  type="text"
-                  value={formData.question}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      question: e.target.value,
-                    }))
-                  }
-                  placeholder="What's your question?"
-                  className="text-lg h-12"
-                  required
-                />
-              </div>
+              {/* Multi-question: show title + description separately */}
+              {!isSingleQuestion && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Poll Title *
+                    </label>
+                    <Input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Give your poll a title"
+                      className="text-lg h-12"
+                      required
+                    />
+                  </div>
 
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Description (optional)
-                </label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  placeholder="Add context or instructions..."
-                  rows={3}
-                  className="flex w-full rounded-lg border border-border bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 transition-shadow"
-                />
-              </div>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Description (optional)
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Add context or instructions..."
+                      rows={2}
+                      className="flex w-full rounded-lg border border-border bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 transition-shadow"
+                    />
+                  </div>
+                </>
+              )}
 
-              {/* Options */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Answer Options *
-                </label>
-                <div className="text-xs text-muted-foreground mb-3">
-                  Drag the grip handle to reorder options
+              {/* Single-question: description field */}
+              {isSingleQuestion && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Description (optional)
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Add context or instructions..."
+                    rows={3}
+                    className="flex w-full rounded-lg border border-border bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 transition-shadow"
+                  />
                 </div>
+              )}
 
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                  modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-                >
-                  <SortableContext
-                    items={formData.options.map((option) => option.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    <div className="space-y-3">
-                      {formData.options.map((option, index) => (
-                        <SortableOption
-                          key={option.id}
-                          option={option}
-                          index={index}
-                          updateOption={updateOption}
-                          removeOption={removeOption}
-                          canRemove={formData.options.length > 2}
-                        />
-                      ))}
-                    </div>
-                  </SortableContext>
-                </DndContext>
+              {/* Questions */}
+              <div className="space-y-4">
+                {questions.map((q, i) => (
+                  <QuestionCard
+                    key={i}
+                    question={q}
+                    questionIndex={i}
+                    totalQuestions={questions.length}
+                    sensors={sensors}
+                    onUpdate={(updated) => updateQuestion(i, updated)}
+                    onRemove={() => removeQuestion(i)}
+                    canRemove={questions.length > 1}
+                    userTier={userTier}
+                    onUpgradeRequest={(feature) => {
+                      setUpgradeFeature(feature);
+                      setUpgradeModalOpen(true);
+                    }}
+                  />
+                ))}
 
+                {/* Add Question button */}
                 <motion.button
                   type="button"
-                  onClick={addOption}
+                  onClick={addQuestion}
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
-                  className="mt-3 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm font-medium"
+                  className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm font-medium"
                 >
-                  <IconPlus size={16} />
-                  Add Another Option
+                  {canAddQuestion ? (
+                    <IconPlus size={16} />
+                  ) : (
+                    <IconLock size={16} />
+                  )}
+                  Add Question
+                  {!canAddQuestion && (
+                    <span className="text-xs text-muted-foreground/60 ml-1">
+                      (Pro)
+                    </span>
+                  )}
                 </motion.button>
+
+                {userTier === "free" && (
+                  <p className="text-xs text-muted-foreground text-center">
+                    {questions.length} / {questionLimit} questions
+                    {questions.length >= questionLimit && (
+                      <>
+                        {" — "}
+                        <button
+                          type="button"
+                          onClick={() => setUpgradeModalOpen(true)}
+                          className="text-emerald-500 hover:text-emerald-400 underline"
+                        >
+                          Upgrade for unlimited
+                        </button>
+                      </>
+                    )}
+                  </p>
+                )}
               </div>
 
               {/* Settings */}
@@ -724,38 +1105,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     <div className="relative">
                       <input
                         type="checkbox"
-                        checked={formData.allowMultiple}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            allowMultiple: e.target.checked,
-                          }))
-                        }
-                        className="sr-only peer"
-                      />
-                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
-                        <IconCheck
-                          size={12}
-                          className="text-white opacity-0 peer-checked:opacity-100"
-                        />
-                      </div>
-                    </div>
-                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
-                      Allow multiple selections
-                    </span>
-                  </label>
-
-                  <label className="flex items-center cursor-pointer group">
-                    <div className="relative">
-                      <input
-                        type="checkbox"
-                        checked={formData.isActive}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            isActive: e.target.checked,
-                          }))
-                        }
+                        checked={isActive}
+                        onChange={(e) => setIsActive(e.target.checked)}
                         className="sr-only peer"
                       />
                       <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
@@ -774,15 +1125,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     <div className="relative">
                       <input
                         type="checkbox"
-                        checked={formData.hasTimeLimit}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            hasTimeLimit: e.target.checked,
-                            startDate: e.target.checked ? prev.startDate : "",
-                            endDate: e.target.checked ? prev.endDate : "",
-                          }))
-                        }
+                        checked={hasTimeLimit}
+                        onChange={(e) => {
+                          setHasTimeLimit(e.target.checked);
+                          if (!e.target.checked) {
+                            setStartDate("");
+                            setEndDate("");
+                          }
+                        }}
                         className="sr-only peer"
                       />
                       <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
@@ -798,7 +1148,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   </label>
 
                   <AnimatePresence>
-                    {formData.hasTimeLimit && (
+                    {hasTimeLimit && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
@@ -814,13 +1164,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
                               </label>
                               <Input
                                 type="datetime-local"
-                                value={formData.startDate}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    startDate: e.target.value,
-                                  }))
-                                }
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
                               />
                             </div>
                             <div>
@@ -829,19 +1174,13 @@ export default function PollForm({ pollCode }: PollFormProps) {
                               </label>
                               <Input
                                 type="datetime-local"
-                                value={formData.endDate}
-                                onChange={(e) =>
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    endDate: e.target.value,
-                                  }))
-                                }
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
                               />
                             </div>
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
                             Poll will only accept votes between these dates.
-                            Leave empty to allow voting indefinitely.
                           </p>
                         </div>
                       </motion.div>
@@ -884,6 +1223,13 @@ export default function PollForm({ pollCode }: PollFormProps) {
           </div>
         </motion.div>
       </div>
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        feature={upgradeFeature}
+      />
     </div>
   );
 }

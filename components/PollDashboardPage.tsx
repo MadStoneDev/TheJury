@@ -29,6 +29,8 @@ import {
   togglePollStatus,
   getCurrentUser,
   duplicatePoll,
+  getActivePollCount,
+  getProfile,
 } from "@/lib/supabaseHelpers";
 import { toast } from "sonner";
 import type { Poll } from "@/lib/supabaseHelpers";
@@ -38,6 +40,9 @@ import DashboardControls from "@/components/DashboardControls";
 import type { StatusFilter, SortOption } from "@/components/DashboardControls";
 import Pagination from "@/components/Pagination";
 import ShareModal from "@/components/ShareModal";
+import UpgradeModal from "@/components/UpgradeModal";
+import { getFeatureLimit } from "@/lib/featureGate";
+import type { TierName } from "@/lib/stripe";
 
 const POLLS_PER_PAGE = 10;
 
@@ -62,6 +67,11 @@ export default function PollDashboardPage() {
     null,
   );
 
+  // Tier & active poll limit state
+  const [userTier, setUserTier] = useState<TierName>("free");
+  const [activePollCount, setActivePollCount] = useState(0);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+
   // Show checkout success toast
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
@@ -82,6 +92,13 @@ export default function PollDashboardPage() {
 
         const userPolls = await getUserPolls(user.id);
         setPolls(userPolls);
+
+        // Load tier info and active poll count
+        const profile = await getProfile(user.id);
+        const tier = (profile?.subscription_tier as TierName) || "free";
+        setUserTier(tier);
+        const count = await getActivePollCount(user.id);
+        setActivePollCount(count);
       } catch (err) {
         console.error("Error loading polls:", err);
         setError("Failed to load polls");
@@ -149,24 +166,27 @@ export default function PollDashboardPage() {
 
   const handleTogglePollStatus = async (pollId: string) => {
     try {
-      const success = await togglePollStatus(pollId);
-      if (success) {
+      const result = await togglePollStatus(pollId);
+      if (result.success) {
+        const poll = polls.find((p) => p.id === pollId);
+        const wasActive = poll?.is_active;
         setPolls((prev) =>
-          prev.map((poll) =>
-            poll.id === pollId ? { ...poll, is_active: !poll.is_active } : poll,
+          prev.map((p) =>
+            p.id === pollId ? { ...p, is_active: !p.is_active } : p,
           ),
         );
-        const poll = polls.find((p) => p.id === pollId);
-        toast.success(
-          poll?.is_active ? "Poll deactivated" : "Poll activated",
-        );
-      } else {
-        setError("Failed to update poll status");
-        toast.error("Failed to update poll status");
+        // Update active count
+        setActivePollCount((prev) => (wasActive ? prev - 1 : prev + 1));
+        toast.success(wasActive ? "Poll deactivated" : "Poll activated");
+      } else if (result.error) {
+        // Hit the active poll limit — show upgrade modal
+        if (result.error.includes("limit")) {
+          setUpgradeModalOpen(true);
+        }
+        toast.error(result.error);
       }
     } catch (err) {
       console.error("Error toggling poll status:", err);
-      setError("Failed to update poll status");
       toast.error("Failed to update poll status");
     }
   };
@@ -319,6 +339,50 @@ export default function PollDashboardPage() {
           </HoverCard>
         </div>
 
+        {/* Active Poll Limit Indicator (free tier only) */}
+        {userTier === "free" && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 rounded-2xl border border-border bg-card p-4"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-foreground">
+                Active Polls
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {activePollCount} / {getFeatureLimit("free", "maxActivePolls")}
+              </span>
+            </div>
+            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  activePollCount >= getFeatureLimit("free", "maxActivePolls")
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+                }`}
+                style={{
+                  width: `${Math.min(
+                    (activePollCount / getFeatureLimit("free", "maxActivePolls")) * 100,
+                    100,
+                  )}%`,
+                }}
+              />
+            </div>
+            {activePollCount >= getFeatureLimit("free", "maxActivePolls") && (
+              <p className="text-xs text-amber-500 mt-2">
+                You&apos;ve reached your free tier limit.{" "}
+                <button
+                  onClick={() => setUpgradeModalOpen(true)}
+                  className="underline hover:text-amber-400 transition-colors"
+                >
+                  Upgrade for unlimited
+                </button>
+              </p>
+            )}
+          </motion.div>
+        )}
+
         {/* Controls */}
         {polls.length > 0 && (
           <DashboardControls
@@ -444,6 +508,11 @@ export default function PollDashboardPage() {
                             </span>
                           </span>
                           <span>{poll.total_votes || 0} votes</span>
+                          {(poll.question_count || 1) > 1 && (
+                            <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                              {poll.question_count} questions
+                            </span>
+                          )}
                           <span>Created {formatDate(poll.created_at)}</span>
                         </div>
                       </div>
@@ -638,6 +707,14 @@ export default function PollDashboardPage() {
             ? `${typeof window !== "undefined" ? window.location.origin : ""}/answer/${shareModalPollCode}`
             : ""
         }
+        userTier={userTier}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        feature="maxActivePolls"
       />
     </div>
   );

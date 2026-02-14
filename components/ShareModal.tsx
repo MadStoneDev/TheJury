@@ -17,15 +17,19 @@ import {
   IconBrandFacebook,
   IconMail,
   IconDownload,
+  IconLock,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { canUseFeature } from "@/lib/featureGate";
+import type { TierName } from "@/lib/stripe";
 
 interface ShareModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pollCode: string;
   pollUrl: string;
+  userTier?: TierName;
 }
 
 export default function ShareModal({
@@ -33,6 +37,7 @@ export default function ShareModal({
   onOpenChange,
   pollCode,
   pollUrl,
+  userTier = "free",
 }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const qrRef = useRef<HTMLDivElement>(null);
@@ -167,23 +172,49 @@ export default function ShareModal({
             <h4 className="text-sm font-medium text-foreground mb-2">
               QR Code
             </h4>
-            <div className="flex items-center gap-4">
-              <div
-                ref={qrRef}
-                className="p-3 bg-white border-2 border-emerald-500/20 rounded-xl"
-              >
-                <QRCodeSVG value={pollUrl} size={128} />
+            {canUseFeature(userTier, "qrCodes") ? (
+              <div className="flex items-center gap-4">
+                <div
+                  ref={qrRef}
+                  className="p-3 bg-white border-2 border-emerald-500/20 rounded-xl"
+                >
+                  <QRCodeSVG value={pollUrl} size={128} />
+                </div>
+                <Button
+                  onClick={handleDownloadQR}
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                >
+                  <IconDownload size={14} />
+                  Download QR
+                </Button>
               </div>
-              <Button
-                onClick={handleDownloadQR}
-                variant="outline"
-                size="sm"
-                className="gap-1.5"
-              >
-                <IconDownload size={14} />
-                Download QR
-              </Button>
-            </div>
+            ) : (
+              <div className="flex items-center gap-4 p-4 rounded-xl border border-border bg-muted/50">
+                <div className="w-[128px] h-[128px] rounded-xl bg-muted flex items-center justify-center shrink-0">
+                  <IconLock size={32} className="text-muted-foreground/40" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    QR codes are a Pro feature
+                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Upgrade to generate QR codes for easy sharing.
+                  </p>
+                  <Button
+                    variant="brand"
+                    size="sm"
+                    onClick={() => {
+                      onOpenChange(false);
+                      window.location.href = "/pricing";
+                    }}
+                  >
+                    Upgrade
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Social Sharing */}

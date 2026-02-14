@@ -2,11 +2,43 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="078c4042-f9a0-4b86-885c-e4e24e89ec06" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/components/UpgradeModal.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/ImageOptionInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/ImageUploader.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/OpenEndedInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/OpenEndedResults.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/QuestionTypeConfig.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/QuestionTypeInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/QuestionTypeResults.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/RankedChoiceInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/RankedChoiceResults.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/RatingScaleConfig.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/RatingScaleInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/RatingScaleResults.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/ReactionPollConfig.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/ReactionPollInput.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/components/question-types/ReactionPollResults.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/featureGate.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/lib/questionTypes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/supabase/migrations/004_add_multi_question.sql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/supabase/migrations/005_add_question_types.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.env.example" beforeDir="false" afterPath="$PROJECT_DIR$/.env.example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/supabase/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabase/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/supabase/middleware.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabase/middleware.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/supabase/server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabase/server.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/PLAN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(public)/dashboard/results/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(public)/dashboard/results/[pollCode]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(public)/pricing/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(public)/pricing/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/answer/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/answer/[pollCode]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/api/stripe/checkout/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/api/stripe/checkout/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/embed/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/embed/[pollCode]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/results/[pollCode]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/results/[pollCode]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/PollDashboardPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/PollDashboardPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/PollForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/PollForm.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/PricingCards.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/PricingCards.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ShareModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ShareModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/exportUtils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/exportUtils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/stripe.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/stripe.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/supabaseHelpers.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/supabaseHelpers.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,6 +47,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/package-lock.json" root0="SKIP_HIGHLIGHTING" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
@@ -64,6 +99,7 @@
       <updated>1770384216561</updated>
       <workItem from="1770384218803" duration="3631000" />
       <workItem from="1770989499081" duration="1638000" />
+      <workItem from="1771063845977" duration="5659000" />
     </task>
     <servers />
   </component>

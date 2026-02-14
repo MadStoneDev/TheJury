@@ -13,32 +13,47 @@ import {
   IconDownload,
   IconLink,
   IconTrophy,
+  IconLock,
 } from "@tabler/icons-react";
 import {
   getPollByCode,
-  getPollResults,
+  getPollResultsByQuestion,
   getCurrentUser,
 } from "@/lib/supabaseHelpers";
-import type { Poll, PollResult } from "@/lib/supabaseHelpers";
+import type { Poll, PollResult, QuestionResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import ResultsSkeleton from "@/components/skeletons/ResultsSkeleton";
-import { exportResultsToCSV } from "@/lib/exportUtils";
+import { exportResultsToCSV, exportQuestionResultsToCSV } from "@/lib/exportUtils";
 import ShareModal from "@/components/ShareModal";
+import UpgradeModal from "@/components/UpgradeModal";
+import { QuestionTypeResults } from "@/components/question-types";
 import { Button } from "@/components/ui/button";
+import { canUseFeature } from "@/lib/featureGate";
+import type { TierName } from "@/lib/stripe";
 
 export default function PollResultsPage() {
   const params = useParams();
   const pollCode = params.pollCode as string;
 
   const [poll, setPoll] = useState<Poll | null>(null);
-  const [results, setResults] = useState<PollResult[]>([]);
+  const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
   const [copiedText, setCopiedText] = useState<string>("");
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [userTier, setUserTier] = useState<TierName>("free");
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeFeature, setUpgradeFeature] = useState<"csvExport" | "qrCodes">("csvExport");
+
+  const isMultiQuestion = questionResults.length > 1;
+
+  // Flat results for single-question summary stats
+  const flatResults: PollResult[] = isMultiQuestion
+    ? questionResults.flatMap((qr) => qr.results)
+    : questionResults[0]?.results || [];
 
   useEffect(() => {
     const loadPollResults = async () => {
@@ -54,7 +69,15 @@ export default function PollResultsPage() {
         }
 
         if (user && pollData.user_id === user.id) {
-          // Owner - allowed
+          // Owner - allowed. Fetch tier.
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("subscription_tier")
+            .eq("id", user.id)
+            .single();
+          if (profile?.subscription_tier) {
+            setUserTier(profile.subscription_tier as TierName);
+          }
         } else {
           setError("You don't have permission to view these results");
           return;
@@ -62,8 +85,8 @@ export default function PollResultsPage() {
 
         setPoll(pollData);
 
-        const pollResults = await getPollResults(pollData.id);
-        setResults(pollResults);
+        const qResults = await getPollResultsByQuestion(pollData.id);
+        setQuestionResults(qResults);
 
         const { count: voterCount } = await supabase
           .from("votes")
@@ -106,7 +129,16 @@ export default function PollResultsPage() {
 
   const handleExportCSV = () => {
     if (!poll) return;
-    exportResultsToCSV(poll.question, pollCode, results, totalVoters);
+    if (!canUseFeature(userTier, "csvExport")) {
+      setUpgradeFeature("csvExport");
+      setUpgradeModalOpen(true);
+      return;
+    }
+    if (isMultiQuestion) {
+      exportQuestionResultsToCSV(poll.question, pollCode, questionResults, totalVoters);
+    } else {
+      exportResultsToCSV(poll.question, pollCode, flatResults, totalVoters);
+    }
     toast.success("CSV exported!");
   };
 
@@ -155,10 +187,71 @@ export default function PollResultsPage() {
 
   if (!poll) return null;
 
-  const maxVotes = Math.max(...results.map((r) => r.vote_count));
   const showResultsToVoters = (
     poll as Poll & { show_results_to_voters?: boolean }
   ).show_results_to_voters;
+
+  const renderResultBar = (
+    result: PollResult,
+    index: number,
+    maxVotes: number,
+  ) => {
+    const percentage = getPercentage(result.vote_count);
+    const isTopChoice = result.vote_count === maxVotes && maxVotes > 0;
+
+    return (
+      <motion.div
+        key={result.option_id}
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: index * 0.08 }}
+        className={`relative p-4 rounded-xl border overflow-hidden ${
+          isTopChoice
+            ? "border-emerald-500/50 bg-emerald-500/5"
+            : "border-border"
+        }`}
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{
+            duration: 0.8,
+            delay: index * 0.08,
+            ease: "easeOut",
+          }}
+          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+        />
+
+        <div className="relative flex justify-between items-start">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-medium text-foreground">
+                {result.option_text}
+              </span>
+              {isTopChoice && (
+                <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                  <IconTrophy size={10} />
+                  Leading
+                </span>
+              )}
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Option #{result.option_order}
+            </span>
+          </div>
+          <div className="text-right">
+            <div className="font-bold text-lg text-foreground">
+              {percentage}%
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {result.vote_count}{" "}
+              {result.vote_count === 1 ? "vote" : "votes"}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -214,6 +307,11 @@ export default function PollResultsPage() {
                   <IconUsers size={14} />
                   {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
                 </span>
+                {isMultiQuestion && (
+                  <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
+                    {questionResults.length} questions
+                  </span>
+                )}
                 <span>Created {formatDate(poll.created_at)}</span>
                 {poll.is_active ? (
                   <span className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-medium">
@@ -279,66 +377,95 @@ export default function PollResultsPage() {
               Share Poll
             </Button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {results.map((result, i) => {
-              const percentage = getPercentage(result.vote_count);
-              const isTopChoice =
-                result.vote_count === maxVotes && maxVotes > 0;
+        ) : isMultiQuestion ? (
+          /* Multi-question results: per-question sections */
+          <div className="space-y-8">
+            {questionResults.map((qr, qIndex) => {
+              const qType = qr.question_type || "multiple_choice";
+              const qMaxVotes = Math.max(
+                ...qr.results.map((r) => r.vote_count),
+                0,
+              );
 
               return (
-                <motion.div
-                  key={result.option_id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.08 }}
-                  className={`relative p-4 rounded-xl border overflow-hidden ${
-                    isTopChoice
-                      ? "border-emerald-500/50 bg-emerald-500/5"
-                      : "border-border"
-                  }`}
-                >
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{
-                      duration: 0.8,
-                      delay: i * 0.08,
-                      ease: "easeOut",
-                    }}
-                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
-                  />
-
-                  <div className="relative flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <span className="font-medium text-foreground">
-                          {result.option_text}
-                        </span>
-                        {isTopChoice && (
-                          <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
-                            <IconTrophy size={10} />
-                            Leading
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        Option #{result.option_order}
-                      </span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-lg text-foreground">
-                        {percentage}%
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {result.vote_count}{" "}
-                        {result.vote_count === 1 ? "vote" : "votes"}
-                      </div>
-                    </div>
+                <div key={qr.question_id}>
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-xs font-mono bg-muted text-muted-foreground px-2 py-0.5 rounded">
+                      Q{qr.question_order}
+                    </span>
+                    <h4 className="font-semibold text-foreground">
+                      {qr.question_text}
+                    </h4>
                   </div>
-                </motion.div>
+
+                  {qType !== "multiple_choice" && qType !== "image_choice" ? (
+                    <QuestionTypeResults
+                      questionResult={qr}
+                      totalVoters={totalVoters}
+                    />
+                  ) : (
+                    <div className="space-y-3">
+                      {qr.results.map((result, i) =>
+                        renderResultBar(result, qIndex * 4 + i, qMaxVotes),
+                      )}
+                    </div>
+                  )}
+                </div>
               );
             })}
+
+            {/* Summary Stats */}
+            <div className="pt-6 border-t border-border">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {totalVoters}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Total Voters
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {questionResults.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Questions</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {questionResults.reduce(
+                      (sum, qr) => sum + qr.results.length,
+                      0,
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Total Options
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          /* Single-question results */
+          <div className="space-y-4">
+            {questionResults[0] &&
+            questionResults[0].question_type !== "multiple_choice" &&
+            questionResults[0].question_type !== "image_choice" ? (
+              <QuestionTypeResults
+                questionResult={questionResults[0]}
+                totalVoters={totalVoters}
+              />
+            ) : (
+              (() => {
+                const maxVotes = Math.max(
+                  ...flatResults.map((r) => r.vote_count),
+                  0,
+                );
+                return flatResults.map((result, i) =>
+                  renderResultBar(result, i, maxVotes),
+                );
+              })()
+            )}
 
             {/* Summary Stats */}
             <div className="mt-6 pt-6 border-t border-border">
@@ -353,15 +480,19 @@ export default function PollResultsPage() {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-foreground">
-                    {results.length}
+                    {flatResults.length}
                   </div>
                   <div className="text-xs text-muted-foreground">Options</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-emerald-500">
                     {(() => {
+                      const maxVotes = Math.max(
+                        ...flatResults.map((r) => r.vote_count),
+                        0,
+                      );
                       if (maxVotes === 0) return "None";
-                      const topChoice = results.find(
+                      const topChoice = flatResults.find(
                         (r) => r.vote_count === maxVotes,
                       );
                       if (!topChoice?.option_text) return "None";
@@ -425,7 +556,11 @@ export default function PollResultsPage() {
               onClick={handleExportCSV}
               className="gap-1.5"
             >
-              <IconDownload size={14} />
+              {canUseFeature(userTier, "csvExport") ? (
+                <IconDownload size={14} />
+              ) : (
+                <IconLock size={14} className="text-muted-foreground" />
+              )}
               Export CSV
             </Button>
           )}
@@ -449,6 +584,14 @@ export default function PollResultsPage() {
         onOpenChange={setShareModalOpen}
         pollCode={pollCode}
         pollUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/answer/${pollCode}`}
+        userTier={userTier}
+      />
+
+      {/* Upgrade Modal */}
+      <UpgradeModal
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        feature={upgradeFeature}
       />
     </div>
   );

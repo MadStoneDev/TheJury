@@ -13,7 +13,12 @@
       "Bash(xargs:*)",
       "Bash(npx shadcn@latest add:*)",
       "Bash(node -e:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(cat:*)",
+      "Bash(npx next build:*)",
+      "Bash(grep:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }
