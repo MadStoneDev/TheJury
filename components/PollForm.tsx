@@ -1,7 +1,7 @@
 // components/PollForm.tsx
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import confetti from "canvas-confetti";
 import {
@@ -16,6 +16,7 @@ import {
   IconArrowLeft,
   IconLock,
   IconChevronDown,
+  IconSparkles,
 } from "@tabler/icons-react";
 import { generateUniquePollCode } from "@/utils/pollCodeGenerator";
 import {
@@ -62,6 +63,9 @@ import {
 } from "@/lib/questionTypes";
 import { QuestionTypeConfig } from "@/components/question-types";
 import ImageUploader from "@/components/question-types/ImageUploader";
+import { getTemplateById } from "@/lib/templates";
+import AIGenerateModal from "@/components/AIGenerateModal";
+import { hashPassword } from "@/lib/passwordUtils";
 
 interface PollOption {
   id: string;
@@ -462,6 +466,7 @@ function QuestionCard({
 
 export default function PollForm({ pollCode }: PollFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const isEditing = !!pollCode;
 
   const sensors = useSensors(
@@ -481,6 +486,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [hasTimeLimit, setHasTimeLimit] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [hasPassword, setHasPassword] = useState(false);
+  const [pollPassword, setPollPassword] = useState("");
 
   // Questions
   const [questions, setQuestions] = useState<QuestionFormData[]>([
@@ -509,6 +516,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [userTier, setUserTier] = useState<TierName>("free");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<Feature>("maxQuestionsPerPoll");
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -518,6 +526,39 @@ export default function PollForm({ pollCode }: PollFormProps) {
         const profile = await getProfile(user.id);
         if (profile?.subscription_tier) {
           setUserTier(profile.subscription_tier as TierName);
+        }
+      }
+
+      // Load template if specified in query params
+      if (!isEditing) {
+        const templateId = searchParams.get("template");
+        if (templateId) {
+          const template = getTemplateById(templateId);
+          if (template) {
+            if (template.questions.length > 1) {
+              setTitle(template.name);
+              setDescription(template.description);
+            }
+            setQuestions(
+              template.questions.map((q, qi) => ({
+                questionText: q.question_text,
+                questionType: q.question_type,
+                allowMultiple: q.allow_multiple,
+                settings: q.settings,
+                options:
+                  q.options.length > 0
+                    ? q.options.map((o, oi) => ({
+                        id: `t${qi}-${oi}-${Date.now()}`,
+                        text: o.text,
+                        optionOrder: oi,
+                      }))
+                    : [
+                        { id: `t${qi}-0-${Date.now()}`, text: "", optionOrder: 0 },
+                        { id: `t${qi}-1-${Date.now()}`, text: "", optionOrder: 1 },
+                      ],
+              })),
+            );
+          }
         }
       }
 
@@ -552,6 +593,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
           );
           setGeneratedPollCode(poll.code);
           setPollId(poll.id);
+          setHasPassword(!!poll.password_hash);
 
           // Load questions
           if (poll.questions && poll.questions.length > 0) {
@@ -712,6 +754,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
         }
       }
 
+      // Hash password if set
+      const passwordHash = hasPassword && pollPassword.trim()
+        ? await hashPassword(pollPassword.trim())
+        : null;
+
       let code = generatedPollCode;
 
       if (!isEditing) {
@@ -732,6 +779,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
               : null,
           end_date:
             hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
+          password_hash: passwordHash,
         };
 
         const questionsInput: QuestionInput[] = questions.map((q) => ({
@@ -775,6 +823,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
               : null,
           end_date:
             hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
+          password_hash: passwordHash,
         };
 
         const questionsInput = questions.map((q) => ({
@@ -965,6 +1014,18 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   ? "Make changes to your poll"
                   : "Build a poll that gets results"}
               </p>
+              {!isEditing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 gap-1.5"
+                  onClick={() => setAiModalOpen(true)}
+                >
+                  <IconSparkles size={14} className="text-emerald-500" />
+                  Generate with AI
+                </Button>
+              )}
               {isEditing && (
                 <div className="mt-2 text-xs text-muted-foreground">
                   Poll Code:{" "}
@@ -1127,6 +1188,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
                         type="checkbox"
                         checked={hasTimeLimit}
                         onChange={(e) => {
+                          if (!canUseFeature(userTier, "scheduling")) {
+                            setUpgradeFeature("scheduling");
+                            setUpgradeModalOpen(true);
+                            return;
+                          }
                           setHasTimeLimit(e.target.checked);
                           if (!e.target.checked) {
                             setStartDate("");
@@ -1142,8 +1208,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
                         />
                       </div>
                     </div>
-                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-1.5">
                       Set time limit for voting
+                      {!canUseFeature(userTier, "scheduling") && (
+                        <IconLock size={12} className="text-muted-foreground" />
+                      )}
                     </span>
                   </label>
 
@@ -1181,6 +1250,67 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           </div>
                           <p className="text-xs text-muted-foreground mt-2">
                             Poll will only accept votes between these dates.
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Password Protection */}
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={hasPassword}
+                        onChange={(e) => {
+                          if (!canUseFeature(userTier, "passwordProtect")) {
+                            setUpgradeFeature("passwordProtect");
+                            setUpgradeModalOpen(true);
+                            return;
+                          }
+                          setHasPassword(e.target.checked);
+                          if (!e.target.checked) {
+                            setPollPassword("");
+                          }
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-1.5">
+                      Password protect this poll
+                      {!canUseFeature(userTier, "passwordProtect") && (
+                        <IconLock size={12} className="text-muted-foreground" />
+                      )}
+                    </span>
+                  </label>
+
+                  <AnimatePresence>
+                    {hasPassword && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-2 p-4 bg-card rounded-xl border border-border">
+                          <label className="block text-sm font-medium text-foreground mb-1">
+                            Poll Password
+                          </label>
+                          <Input
+                            type="text"
+                            value={pollPassword}
+                            onChange={(e) => setPollPassword(e.target.value)}
+                            placeholder="Enter a password for voters"
+                          />
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Voters will need this password to access the poll.
                           </p>
                         </div>
                       </motion.div>
@@ -1229,6 +1359,39 @@ export default function PollForm({ pollCode }: PollFormProps) {
         open={upgradeModalOpen}
         onOpenChange={setUpgradeModalOpen}
         feature={upgradeFeature}
+      />
+
+      {/* AI Generate Modal */}
+      <AIGenerateModal
+        open={aiModalOpen}
+        onOpenChange={setAiModalOpen}
+        onApply={(poll) => {
+          if (poll.questions.length > 1) {
+            setTitle(poll.title);
+            setDescription(poll.description);
+          } else {
+            setDescription(poll.description);
+          }
+          setQuestions(
+            poll.questions.map((q, qi) => ({
+              questionText: q.question_text,
+              questionType: q.question_type,
+              allowMultiple: q.allow_multiple,
+              settings: {},
+              options:
+                q.options.length > 0
+                  ? q.options.map((o, oi) => ({
+                      id: `ai${qi}-${oi}-${Date.now()}`,
+                      text: o.text,
+                      optionOrder: oi,
+                    }))
+                  : [
+                      { id: `ai${qi}-0-${Date.now()}`, text: "", optionOrder: 0 },
+                      { id: `ai${qi}-1-${Date.now()}`, text: "", optionOrder: 1 },
+                    ],
+            })),
+          );
+        }}
       />
     </div>
   );

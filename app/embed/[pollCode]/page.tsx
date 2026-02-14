@@ -16,6 +16,7 @@ import {
 import type { Poll, PollQuestion, PollResult, QuestionResult } from "@/lib/supabaseHelpers";
 import { supabase } from "@/lib/supabase";
 import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
+import { hashPassword } from "@/lib/passwordUtils";
 
 export default function PollEmbedPage() {
   const params = useParams();
@@ -39,6 +40,9 @@ export default function PollEmbedPage() {
   const [totalVoters, setTotalVoters] = useState(0);
   const [targetOrigin, setTargetOrigin] = useState("*");
   const [ownerTier, setOwnerTier] = useState<string>("free");
+  const [passwordUnlocked, setPasswordUnlocked] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -400,6 +404,50 @@ export default function PollEmbedPage() {
   }
 
   if (!poll) return null;
+
+  // Password gate for embedded polls
+  if (poll.password_hash && !passwordUnlocked && !hasVotedFlag) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px] p-4">
+        <div className="text-center w-full max-w-xs">
+          <p className="text-sm font-medium text-foreground mb-3">
+            This poll is password protected
+          </p>
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              if (!passwordInput.trim()) return;
+              const hash = await hashPassword(passwordInput);
+              if (hash === poll.password_hash) {
+                setPasswordUnlocked(true);
+                setPasswordError("");
+              } else {
+                setPasswordError("Incorrect password");
+              }
+            }}
+            className="space-y-2"
+          >
+            <input
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Enter password"
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground"
+            />
+            {passwordError && (
+              <p className="text-xs text-destructive">{passwordError}</p>
+            )}
+            <button
+              type="submit"
+              className="w-full px-3 py-2 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+            >
+              Unlock
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   const renderCompactResultBar = (result: PollResult) => {
     const percentage = getPercentage(result.vote_count);

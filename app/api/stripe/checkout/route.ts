@@ -61,7 +61,8 @@ export async function POST(request: Request) {
         .eq("id", user.id);
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = origin;
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

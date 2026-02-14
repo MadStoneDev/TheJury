@@ -45,6 +45,7 @@ export interface Poll {
   is_active: boolean;
   has_time_limit: boolean;
   show_results_to_voters?: boolean;
+  password_hash?: string | null;
   start_date?: string;
   end_date?: string;
   created_at: string;

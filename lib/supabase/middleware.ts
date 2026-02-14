@@ -57,7 +57,8 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/api/live-polls") &&
     !request.nextUrl.pathname.startsWith("/api/stripe/webhook") &&
     !request.nextUrl.pathname.startsWith("/pricing") &&
-    !request.nextUrl.pathname.startsWith("/results")
+    !request.nextUrl.pathname.startsWith("/results") &&
+    !request.nextUrl.pathname.startsWith("/templates")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();

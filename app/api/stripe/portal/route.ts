@@ -39,7 +39,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = origin;
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,

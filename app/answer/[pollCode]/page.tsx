@@ -31,6 +31,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
+import PasswordGate from "@/components/PasswordGate";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -52,6 +53,7 @@ export default function PollAnswerPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
+  const [passwordUnlocked, setPasswordUnlocked] = useState(false);
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -95,11 +97,15 @@ export default function PollAnswerPage() {
         if (pollData.has_time_limit) {
           const now = new Date();
           if (pollData.start_date && new Date(pollData.start_date) > now) {
-            setLoadError("Voting has not started yet");
+            const diff = new Date(pollData.start_date).getTime() - now.getTime();
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const timeStr = days > 0 ? `${days} day${days !== 1 ? "s" : ""}` : `${hours} hour${hours !== 1 ? "s" : ""}`;
+            setLoadError(`This poll opens in ${timeStr}. Check back soon!`);
             return;
           }
           if (pollData.end_date && new Date(pollData.end_date) < now) {
-            setLoadError("Voting has ended");
+            setLoadError("Voting for this poll has ended");
             return;
           }
         }
@@ -394,6 +400,17 @@ export default function PollAnswerPage() {
   }
 
   if (!poll) return null;
+
+  // Password gate — show before the poll content
+  if (poll.password_hash && !passwordUnlocked && !hasVotedFlag) {
+    return (
+      <PasswordGate
+        passwordHash={poll.password_hash}
+        pollTitle={poll.question}
+        onUnlock={() => setPasswordUnlocked(true)}
+      />
+    );
+  }
 
   const getPercentage = (votes: number) => {
     return totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0;

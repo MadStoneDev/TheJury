@@ -9,6 +9,7 @@ import type { User } from "@supabase/supabase-js";
 import {
   IconCurrencyDollar,
   IconDashboard,
+  IconTemplate,
   IconMenu2,
   IconMoon,
   IconPlus,
@@ -78,6 +79,7 @@ export const Navbar = () => {
 
   const navLinks = [
     { href: "/pricing", label: "Pricing", icon: IconCurrencyDollar, show: true },
+    { href: "/templates", label: "Templates", icon: IconTemplate, show: true },
     { href: "/dashboard", label: "Dashboard", icon: IconDashboard, show: !!user },
     { href: "/create", label: "Create Poll", icon: IconPlus, show: !!user },
   ];

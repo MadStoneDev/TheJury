@@ -22,6 +22,7 @@ import {
   IconCode,
   IconShare,
   IconCopy as IconCopyFiles,
+  IconClock,
 } from "@tabler/icons-react";
 import {
   getUserPolls,
@@ -491,6 +492,43 @@ export default function PollDashboardPage() {
                                 Inactive
                               </span>
                             )}
+                            {poll.has_time_limit && (() => {
+                              const now = new Date();
+                              const start = poll.start_date ? new Date(poll.start_date) : null;
+                              const end = poll.end_date ? new Date(poll.end_date) : null;
+
+                              if (start && start > now) {
+                                const diff = start.getTime() - now.getTime();
+                                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor(diff / (1000 * 60 * 60));
+                                return (
+                                  <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">
+                                    <IconClock size={12} />
+                                    Starts in {days > 0 ? `${days}d` : `${hours}h`}
+                                  </span>
+                                );
+                              }
+                              if (end && end > now) {
+                                const diff = end.getTime() - now.getTime();
+                                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor(diff / (1000 * 60 * 60));
+                                return (
+                                  <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full text-xs font-medium">
+                                    <IconClock size={12} />
+                                    Ends in {days > 0 ? `${days}d` : `${hours}h`}
+                                  </span>
+                                );
+                              }
+                              if (end && end < now) {
+                                return (
+                                  <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs font-medium">
+                                    <IconClock size={12} />
+                                    Ended
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         </div>
 
