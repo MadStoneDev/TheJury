@@ -1,11 +1,11 @@
 // app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Outfit, DM_Serif_Display } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
-import Link from "next/link";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const defaultUrl =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -46,6 +46,13 @@ const outfitSans = Outfit({
   subsets: ["latin"],
 });
 
+const dmSerifDisplay = DM_Serif_Display({
+  variable: "--font-display",
+  weight: "400",
+  display: "swap",
+  subsets: ["latin"],
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,31 +60,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfitSans.className} antialiased`}>
+      <body
+        className={`${outfitSans.variable} ${dmSerifDisplay.variable} font-sans antialiased`}
+      >
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
-          disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>
+            {children}
+          </TooltipProvider>
 
           <Toaster richColors position="bottom-right" />
-
-          <footer
-            className={`w-full border-t border-neutral-100 p-2 bg-white text-center text-xs text-neutral-600`}
-          >
-            <p>
-              Made with ❤️ by{" "}
-              <Link
-                target="_blank"
-                href={`https://ravenci.solutions`}
-                className={`hover:p-1 hover:bg-emerald-700 hover:text-white transition-all duration-300 ease-in-out`}
-              >
-                RAVENCI
-              </Link>
-            </p>
-          </footer>
         </ThemeProvider>
       </body>
 

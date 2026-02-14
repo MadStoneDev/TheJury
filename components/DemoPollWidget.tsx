@@ -1,11 +1,12 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Check, Loader } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
+import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import { generateFingerprint } from "@/lib/supabaseHelpers";
 import { safeJsonParse } from "@/lib/jsonUtils";
 
-// Types based on your Supabase schema
 interface LivePoll {
   id: string;
   question: string;
@@ -26,11 +27,9 @@ interface ApiResponse<T> {
   error?: string;
 }
 
-// Live poll API functions
 const livePollAPI = {
   async getRandomLivePoll(): Promise<LivePoll> {
     const response = await fetch("/api/live-polls/random");
-
     if (!response.ok) throw new Error("Failed to fetch live poll");
     return response.json();
   },
@@ -55,7 +54,6 @@ const livePollAPI = {
         voter_fingerprint: voterFingerprint,
       }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.message || "Failed to submit vote");
@@ -69,16 +67,9 @@ const livePollAPI = {
         `/api/live-polls/${pollId}/has-voted?fingerprint=${voterFingerprint}`,
       );
       if (!response.ok) return false;
-
-      try {
-        const data = await response.json();
-        return data.hasVoted;
-      } catch (parseError) {
-        console.error("Error parsing vote status response:", parseError);
-        return false;
-      }
-    } catch (error) {
-      console.error("Error checking vote status:", error);
+      const data = await response.json();
+      return data.hasVoted;
+    } catch {
       return false;
     }
   },
@@ -87,36 +78,32 @@ const livePollAPI = {
 const DemoPollWidget: React.FC = () => {
   const [demoPoll, setDemoPoll] = useState<LivePoll | null>(null);
   const [results, setResults] = useState<LivePollResult[]>([]);
-  const [hasVoted, setHasVoted] = useState<boolean>(false);
+  const [hasVoted, setHasVoted] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isVoting, setIsVoting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isVoting, setIsVoting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [voterFingerprint, setVoterFingerprint] = useState<string>("");
+  const [voterFingerprint, setVoterFingerprint] = useState("");
 
   useEffect(() => {
     setVoterFingerprint(generateFingerprint());
   }, []);
 
-  const loadDemoPoll = useCallback(async (): Promise<void> => {
+  const loadDemoPoll = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-
-      // Get random live poll
       const poll = await livePollAPI.getRandomLivePoll();
       setDemoPoll(poll);
-
-      // Check if user has already voted
       const voted = await livePollAPI.hasVoted(poll.id, voterFingerprint);
       setHasVoted(voted);
-
-      // Load results if already voted
       const pollResults = await livePollAPI.getLivePollResults(poll.id);
       setResults(pollResults || []);
     } catch (err) {
       console.error("Error loading live poll:", err);
-      setError(err instanceof Error ? err.message : "Failed to load live poll");
+      setError(
+        err instanceof Error ? err.message : "Failed to load live poll",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -127,40 +114,37 @@ const DemoPollWidget: React.FC = () => {
     loadDemoPoll();
   }, [voterFingerprint, loadDemoPoll]);
 
-  const handleVote = async (optionId: string): Promise<void> => {
-    if (hasVoted || isVoting || !optionId || !demoPoll) return;
+  const fireConfetti = () => {
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.7 },
+      colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
+    });
+  };
 
+  const handleVote = async (optionId: string) => {
+    if (hasVoted || isVoting || !optionId || !demoPoll) return;
     try {
       setIsVoting(true);
       setError(null);
-
-      // Submit vote
       await livePollAPI.submitLiveVote(
         demoPoll.id,
         [optionId],
         voterFingerprint,
       );
-
-      // Update state
       setSelectedOption(optionId);
       setHasVoted(true);
-
-      // Load updated results with retry logic
+      fireConfetti();
       try {
         const pollResults = await livePollAPI.getLivePollResults(demoPoll.id);
         setResults(pollResults || []);
-      } catch (resultsError) {
-        console.error("Error fetching results after vote:", resultsError);
-        // Don't fail the whole vote process if results fail
-        // The vote was successful, just show a message about results
-        setError(
-          "Vote submitted successfully, but couldn't load updated results. Please refresh to see results.",
-        );
+      } catch {
+        setError("Vote submitted! Results will update on refresh.");
       }
     } catch (err) {
       console.error("Error voting:", err);
       setError(err instanceof Error ? err.message : "Failed to submit vote");
-      // Reset voting state if vote failed
       setHasVoted(false);
       setSelectedOption(null);
     } finally {
@@ -168,43 +152,44 @@ const DemoPollWidget: React.FC = () => {
     }
   };
 
-  const tryNewPoll = async (): Promise<void> => {
+  const tryNewPoll = async () => {
     setHasVoted(false);
     setSelectedOption(null);
     setResults([]);
     await loadDemoPoll();
   };
 
-  const totalVotes = results.reduce(
-    (sum: number, result: LivePollResult) => sum + (result.vote_count || 0),
-    0,
-  );
-
-  const getPercentage = (votes: number): number =>
+  const totalVotes = results.reduce((sum, r) => sum + (r.vote_count || 0), 0);
+  const getPercentage = (votes: number) =>
     totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+
+  // Card wrapper styles
+  const cardClass =
+    "rounded-2xl border border-emerald-500/20 bg-card shadow-xl shadow-emerald-500/5 p-6 sm:p-8";
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+      <div className={cardClass}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <Loader className="w-8 h-8 animate-spin text-emerald-700 mx-auto mb-4" />
-            <p className="text-gray-600">Loading live poll...</p>
+            <IconLoader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-4" />
+            <p className="text-muted-foreground text-sm">
+              Loading live poll...
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !demoPoll) {
     return (
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-        <div className="text-center">
-          <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className={cardClass}>
+        <div className="text-center py-8">
+          <p className="text-destructive mb-4 text-sm">{error}</p>
           <button
             onClick={loadDemoPoll}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg transition-colors"
+            className="text-emerald-500 hover:text-emerald-400 font-medium text-sm transition-colors"
           >
             Try Again
           </button>
@@ -215,8 +200,10 @@ const DemoPollWidget: React.FC = () => {
 
   if (!demoPoll) {
     return (
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-        <div className="text-center text-gray-500">No live polls available</div>
+      <div className={cardClass}>
+        <div className="text-center text-muted-foreground py-8">
+          No live polls available
+        </div>
       </div>
     );
   }
@@ -228,8 +215,8 @@ const DemoPollWidget: React.FC = () => {
 
   if (!options.length) {
     return (
-      <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
-        <div className="text-center text-gray-500">
+      <div className={cardClass}>
+        <div className="text-center text-muted-foreground py-8">
           No poll options available
         </div>
       </div>
@@ -237,103 +224,145 @@ const DemoPollWidget: React.FC = () => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl p-8 border border-gray-100">
+    <div className={cardClass}>
+      {/* Header */}
       <div className="text-center mb-6">
-        <div className="inline-flex items-center px-3 py-1 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full mb-4">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-500 text-xs font-medium rounded-full mb-4">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Live Poll
-        </div>
-        <h3 className="text-xl font-bold text-gray-900 mb-2">
+        </span>
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           {demoPoll.question}
         </h3>
         {demoPoll.description && (
-          <p className="text-gray-600">{demoPoll.description}</p>
+          <p className="text-sm text-muted-foreground">
+            {demoPoll.description}
+          </p>
         )}
       </div>
 
-      {!hasVoted ? (
-        <div className="space-y-3">
-          {options.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleVote(option.id)}
-              disabled={isVoting}
-              className="w-full p-4 text-left border-2 border-gray-200 rounded-lg hover:border-emerald-300 hover:bg-emerald-50 transition-all duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <div className="flex items-center">
-                <div className="w-4 h-4 border-2 border-gray-300 rounded-full mr-3 group-hover:border-emerald-500"></div>
-                <span className="font-medium text-gray-900">{option.text}</span>
-              </div>
-            </button>
-          ))}
-
-          {isVoting && (
-            <div className="text-center text-emerald-700 font-medium">
-              <Loader className="w-4 h-4 animate-spin inline mr-2" />
-              Submitting vote...
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-3">
-          <div className="flex items-center justify-center gap-2 text-emerald-700 font-semibold mb-8">
-            <Check className="w-6 h-6" />
-            Thanks for voting!
-          </div>
-
-          {results.map((result) => {
-            const percentage = getPercentage(result.vote_count);
-            const isSelected = result.option_id === selectedOption;
-
-            return (
-              <div
-                key={result.option_id}
-                className={`p-3 rounded-lg border-2 ${
-                  isSelected
-                    ? "bg-emerald-50 border-emerald-200"
-                    : "bg-gray-50 border-gray-200"
-                }`}
+      <AnimatePresence mode="wait">
+        {!hasVoted ? (
+          <motion.div
+            key="voting"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-2.5"
+          >
+            {options.map((option) => (
+              <motion.button
+                key={option.id}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={() => handleVote(option.id)}
+                disabled={isVoting}
+                className="w-full p-3.5 text-left rounded-xl border border-border hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-colors group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <div className="flex justify-between items-center mb-2">
-                  <div className="flex items-center text-neutral-900">
-                    {isSelected && (
-                      <Check className="w-4 h-4 text-emerald-700 mr-2" />
-                    )}
-                    <span className="font-medium">{result.option_text}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-lg">{percentage}%</div>
-                    <div className="text-sm text-gray-500">
-                      {result.vote_count}{" "}
-                      {result.vote_count === 1 ? "vote" : "votes"}
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full border-2 border-muted-foreground/30 group-hover:border-emerald-500 transition-colors shrink-0" />
+                  <span className="font-medium text-foreground text-sm">
+                    {option.text}
+                  </span>
+                </div>
+              </motion.button>
+            ))}
+
+            {isVoting && (
+              <div className="text-center text-emerald-500 text-sm font-medium pt-2">
+                <IconLoader2 className="w-4 h-4 animate-spin inline mr-1.5" />
+                Submitting vote...
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-3"
+          >
+            <div className="flex items-center justify-center gap-2 text-emerald-500 font-medium text-sm mb-4">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 15,
+                }}
+              >
+                <IconCheck className="w-5 h-5" />
+              </motion.div>
+              Thanks for voting!
+            </div>
+
+            {results.map((result, i) => {
+              const percentage = getPercentage(result.vote_count);
+              const isSelected = result.option_id === selectedOption;
+
+              return (
+                <motion.div
+                  key={result.option_id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`relative p-3 rounded-xl border overflow-hidden ${
+                    isSelected
+                      ? "border-emerald-500/50 bg-emerald-500/5"
+                      : "border-border"
+                  }`}
+                >
+                  {/* Progress bar background */}
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+                  />
+
+                  <div className="relative flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      {isSelected && (
+                        <IconCheck className="w-3.5 h-3.5 text-emerald-500" />
+                      )}
+                      <span className="font-medium text-foreground text-sm">
+                        {result.option_text}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-foreground text-sm">
+                        {percentage}%
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-1.5">
+                        ({result.vote_count})
+                      </span>
                     </div>
                   </div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className={`h-2 rounded-full transition-all duration-1000 ${
-                      isSelected ? "bg-emerald-700" : "bg-emerald-400"
-                    }`}
-                    style={{ width: `${percentage}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
 
-          <div className="text-center pt-4">
-            <button
-              onClick={tryNewPoll}
-              className="text-emerald-700 hover:text-emerald-800 font-medium text-sm transition-colors"
-            >
-              Try another poll →
-            </button>
-          </div>
-        </div>
+            <div className="text-center pt-3">
+              <button
+                onClick={tryNewPoll}
+                className="text-emerald-500 hover:text-emerald-400 font-medium text-sm transition-colors"
+              >
+                Try another poll &rarr;
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {error && demoPoll && (
+        <p className="text-xs text-destructive text-center mt-3">{error}</p>
       )}
 
-      <div className="text-center mt-6 pt-4 border-t border-gray-100">
-        <p className="text-xs text-gray-500">
-          Total votes: {totalVotes} • This is a live poll using real data
+      <div className="text-center mt-5 pt-4 border-t border-border">
+        <p className="text-xs text-muted-foreground">
+          Total votes: {totalVotes} &bull; Live poll with real data
         </p>
       </div>
     </div>

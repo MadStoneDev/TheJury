@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Container } from "@/components/Container";
+import { motion } from "motion/react";
 import {
   IconArrowLeft,
   IconCopy,
@@ -12,6 +12,7 @@ import {
   IconChartBar,
   IconDownload,
   IconLink,
+  IconTrophy,
 } from "@tabler/icons-react";
 import {
   getPollByCode,
@@ -25,6 +26,7 @@ import { toast } from "sonner";
 import ResultsSkeleton from "@/components/skeletons/ResultsSkeleton";
 import { exportResultsToCSV } from "@/lib/exportUtils";
 import ShareModal from "@/components/ShareModal";
+import { Button } from "@/components/ui/button";
 
 export default function PollResultsPage() {
   const params = useParams();
@@ -129,21 +131,24 @@ export default function PollResultsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-4 sm:p-8">
-            <div className="text-red-500 text-6xl mb-4">&#x26A0;&#xFE0F;</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <Link
-              href={`/dashboard`}
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
-            >
-              <IconArrowLeft size={20} />
-              <span>Back to Dashboard</span>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto text-center">
+          <div className="rounded-2xl border bg-card p-8">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">!</span>
+            </div>
+            <h1 className="text-xl font-display text-foreground mb-2">
+              Oops!
+            </h1>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Link href="/dashboard">
+              <Button variant="brand" className="gap-2">
+                <IconArrowLeft size={18} />
+                Back to Dashboard
+              </Button>
             </Link>
           </div>
-        </Container>
+        </div>
       </div>
     );
   }
@@ -151,279 +156,292 @@ export default function PollResultsPage() {
   if (!poll) return null;
 
   const maxVotes = Math.max(...results.map((r) => r.vote_count));
-  const showResultsToVoters = (poll as Poll & { show_results_to_voters?: boolean }).show_results_to_voters;
+  const showResultsToVoters = (
+    poll as Poll & { show_results_to_voters?: boolean }
+  ).show_results_to_voters;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <Container>
-        <div className="max-w-4xl mx-auto">
-          {/* Header with Navigation */}
-          <div className="mb-8">
-            <Link
-              href={`/dashboard`}
-              className="inline-flex items-center text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-            >
-              <IconArrowLeft size={20} className="mr-2" />
-              Back to Dashboard
-            </Link>
-          </div>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Back Link */}
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm"
+      >
+        <IconArrowLeft size={18} className="mr-1.5" />
+        Back to Dashboard
+      </Link>
 
-          {/* Poll Info Header */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex-1 mb-4 lg:mb-0">
-                <div className="flex items-center space-x-3 mb-4">
-                  <IconChartBar size={24} className="text-emerald-700" />
-                  <h1 className="text-3xl font-bold text-gray-900">
-                    Poll Results
-                  </h1>
-                </div>
-
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  {poll.question}
-                </h2>
-
-                {poll.description && (
-                  <p className="text-gray-600 mb-4">{poll.description}</p>
-                )}
-
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-                  <span className="flex items-center">
-                    <span className="font-mono bg-gray-100 px-2 py-1 rounded mr-2">
-                      {pollCode}
-                    </span>
-                    Poll Code
-                  </span>
-                  <span className="flex items-center">
-                    <IconUsers size={16} className="mr-1" />
-                    {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
-                  </span>
-                  <span>Created {formatDate(poll.created_at)}</span>
-                  <div className="flex items-center space-x-2">
-                    {poll.is_active ? (
-                      <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Active
-                      </span>
-                    ) : (
-                      <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Inactive
-                      </span>
-                    )}
-                    {poll.allow_multiple && (
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
-                        Multiple Choice
-                      </span>
-                    )}
-                  </div>
-                </div>
+      {/* Header Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-2xl border bg-card overflow-hidden mb-6"
+      >
+        <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+        <div className="p-6">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-3">
+                <IconChartBar size={20} className="text-emerald-500" />
+                <h1 className="text-2xl font-display text-foreground">
+                  Poll Results
+                </h1>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center space-x-2">
+              <h2 className="text-lg font-semibold text-foreground mb-1">
+                {poll.question}
+              </h2>
+
+              {poll.description && (
+                <p className="text-muted-foreground text-sm mb-3">
+                  {poll.description}
+                </p>
+              )}
+
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <button
                   onClick={handleCopyCode}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                  title="Copy poll code"
+                  className="flex items-center gap-1.5 font-mono bg-muted px-2.5 py-1 rounded-md hover:bg-accent transition-colors"
                 >
                   {copiedText === "code" ? (
-                    <IconCheck size={18} className="text-green-600" />
+                    <IconCheck size={14} className="text-emerald-500" />
                   ) : (
-                    <IconCopy size={18} />
+                    <IconCopy size={14} />
                   )}
-                  <span className="text-sm">Copy Code</span>
+                  {pollCode}
                 </button>
-
-                <button
-                  onClick={() => setShareModalOpen(true)}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                  title="Share poll"
-                >
-                  <IconShare size={18} />
-                  <span className="text-sm">Share Poll</span>
-                </button>
-
-                <Link
-                  href={`/answer/${pollCode}`}
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-md font-medium transition-colors text-sm"
-                >
-                  View Poll
-                </Link>
+                <span className="flex items-center gap-1">
+                  <IconUsers size={14} />
+                  {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
+                </span>
+                <span>Created {formatDate(poll.created_at)}</span>
+                {poll.is_active ? (
+                  <span className="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    Active
+                  </span>
+                ) : (
+                  <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
+                    Inactive
+                  </span>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Results */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-6">
-              Detailed Results
-            </h3>
-
-            {totalVoters === 0 ? (
-              <div className="text-center py-12">
-                <div className="text-6xl mb-4">🗳️</div>
-                <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                  No votes yet
-                </h4>
-                <p className="text-gray-600 mb-6">
-                  Share your poll to start collecting votes!
-                </p>
-                <button
-                  onClick={() => setShareModalOpen(true)}
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
-                >
-                  <IconShare size={20} />
-                  <span>Share Poll</span>
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {results.map((result) => {
-                  const percentage = getPercentage(result.vote_count);
-                  const isTopChoice =
-                    result.vote_count === maxVotes && maxVotes > 0;
-
-                  return (
-                    <div
-                      key={result.option_id}
-                      className={`relative p-4 rounded-lg border-2 ${
-                        isTopChoice
-                          ? "bg-emerald-50 border-emerald-200"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                    >
-                      <div className="flex justify-between items-start mb-3">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span className="text-lg font-medium text-gray-900">
-                              {result.option_text}
-                            </span>
-                            {isTopChoice && (
-                              <span className="bg-emerald-700 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                Leading
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Option #{result.option_order}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-2xl font-bold ${
-                              isTopChoice ? "text-emerald-800" : "text-gray-900"
-                            }`}
-                          >
-                            {percentage}%
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            {result.vote_count}{" "}
-                            {result.vote_count === 1 ? "vote" : "votes"}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Progress Bar */}
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div
-                          className={`h-3 rounded-full transition-all duration-1000 ${
-                            isTopChoice ? "bg-emerald-700" : "bg-emerald-400"
-                          }`}
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Summary Stats */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {totalVoters}
-                      </div>
-                      <div className="text-sm text-gray-600">Total Voters</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {results.length}
-                      </div>
-                      <div className="text-sm text-gray-600">Options</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-emerald-800">
-                        {(() => {
-                          if (maxVotes === 0) return "None";
-                          const topChoice = results.find(
-                            (r) => r.vote_count === maxVotes,
-                          );
-                          if (!topChoice?.option_text) return "None";
-                          return topChoice.option_text.length > 15
-                            ? topChoice.option_text.slice(0, 15) + "..."
-                            : topChoice.option_text;
-                        })()}
-                      </div>
-                      <div className="text-sm text-gray-600">Top Choice</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900">
-                        {poll.allow_multiple ? "Multi" : "Single"}
-                      </div>
-                      <div className="text-sm text-gray-600">Choice Type</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Additional Actions */}
-          <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">
-              Poll Management
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/edit/${pollCode}`}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors"
-              >
-                Edit Poll
-              </Link>
-              <Link
-                href={`/answer/${pollCode}`}
-                className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-md font-medium transition-colors"
-              >
-                View Voting Page
-              </Link>
-              <button
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setShareModalOpen(true)}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
+                className="gap-1.5"
               >
                 <IconShare size={16} />
-                Share Poll
-              </button>
-              {totalVoters > 0 && (
-                <button
-                  onClick={handleExportCSV}
-                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
-                >
-                  <IconDownload size={16} />
-                  Export CSV
-                </button>
-              )}
-              {showResultsToVoters && (
-                <button
-                  onClick={handleCopyResultsLink}
-                  className="border border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-2 rounded-md font-medium transition-colors inline-flex items-center gap-2"
-                >
-                  <IconLink size={16} />
-                  {copiedText === "results" ? "Copied!" : "Share Results"}
-                </button>
-              )}
+                Share
+              </Button>
+              <Link href={`/answer/${pollCode}`}>
+                <Button variant="brand" size="sm">
+                  View Poll
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
-      </Container>
+      </motion.div>
+
+      {/* Results */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="rounded-2xl border bg-card p-6"
+      >
+        <h3 className="text-lg font-semibold text-foreground mb-6">
+          Detailed Results
+        </h3>
+
+        {totalVoters === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <IconChartBar className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h4 className="text-lg font-semibold text-foreground mb-2">
+              No votes yet
+            </h4>
+            <p className="text-muted-foreground mb-6 text-sm">
+              Share your poll to start collecting votes!
+            </p>
+            <Button
+              variant="brand"
+              onClick={() => setShareModalOpen(true)}
+              className="gap-2"
+            >
+              <IconShare size={18} />
+              Share Poll
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {results.map((result, i) => {
+              const percentage = getPercentage(result.vote_count);
+              const isTopChoice =
+                result.vote_count === maxVotes && maxVotes > 0;
+
+              return (
+                <motion.div
+                  key={result.option_id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.08 }}
+                  className={`relative p-4 rounded-xl border overflow-hidden ${
+                    isTopChoice
+                      ? "border-emerald-500/50 bg-emerald-500/5"
+                      : "border-border"
+                  }`}
+                >
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${percentage}%` }}
+                    transition={{
+                      duration: 0.8,
+                      delay: i * 0.08,
+                      ease: "easeOut",
+                    }}
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+                  />
+
+                  <div className="relative flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="font-medium text-foreground">
+                          {result.option_text}
+                        </span>
+                        {isTopChoice && (
+                          <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                            <IconTrophy size={10} />
+                            Leading
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        Option #{result.option_order}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg text-foreground">
+                        {percentage}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {result.vote_count}{" "}
+                        {result.vote_count === 1 ? "vote" : "votes"}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+
+            {/* Summary Stats */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {totalVoters}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Total Voters
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {results.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Options</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-emerald-500">
+                    {(() => {
+                      if (maxVotes === 0) return "None";
+                      const topChoice = results.find(
+                        (r) => r.vote_count === maxVotes,
+                      );
+                      if (!topChoice?.option_text) return "None";
+                      return topChoice.option_text.length > 15
+                        ? topChoice.option_text.slice(0, 15) + "..."
+                        : topChoice.option_text;
+                    })()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Top Choice
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-foreground">
+                    {poll.allow_multiple ? "Multi" : "Single"}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Choice Type
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </motion.div>
+
+      {/* Management Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="mt-6 rounded-2xl border bg-card p-6"
+      >
+        <h3 className="font-semibold text-foreground mb-4 text-sm">
+          Poll Management
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/edit/${pollCode}`}>
+            <Button variant="outline" size="sm">
+              Edit Poll
+            </Button>
+          </Link>
+          <Link href={`/answer/${pollCode}`}>
+            <Button variant="brand" size="sm">
+              View Voting Page
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShareModalOpen(true)}
+            className="gap-1.5"
+          >
+            <IconShare size={14} />
+            Share Poll
+          </Button>
+          {totalVoters > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCSV}
+              className="gap-1.5"
+            >
+              <IconDownload size={14} />
+              Export CSV
+            </Button>
+          )}
+          {showResultsToVoters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyResultsLink}
+              className="gap-1.5"
+            >
+              <IconLink size={14} />
+              {copiedText === "results" ? "Copied!" : "Share Results"}
+            </Button>
+          )}
+        </div>
+      </motion.div>
 
       {/* Share Modal */}
       <ShareModal

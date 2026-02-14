@@ -1,6 +1,7 @@
 "use client";
 
 import { IconSearch } from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -30,52 +31,54 @@ export default function DashboardControls({
   onSortChange,
 }: DashboardControlsProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3 mb-6">
-      {/* Search */}
-      <div className="relative flex-1">
-        <IconSearch
-          size={18}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-        />
-        <input
-          type="text"
-          placeholder="Search polls..."
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white"
-        />
+    <div className="rounded-2xl border bg-card p-4 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <IconSearch
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          />
+          <Input
+            type="text"
+            placeholder="Search polls..."
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {/* Status Filter */}
+        <Select
+          value={statusFilter}
+          onValueChange={(v) => onStatusFilterChange(v as StatusFilter)}
+        >
+          <SelectTrigger className="w-full sm:w-[140px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Sort */}
+        <Select
+          value={sortOption}
+          onValueChange={(v) => onSortChange(v as SortOption)}
+        >
+          <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest</SelectItem>
+            <SelectItem value="oldest">Oldest</SelectItem>
+            <SelectItem value="most-votes">Most Votes</SelectItem>
+            <SelectItem value="least-votes">Least Votes</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-
-      {/* Status Filter */}
-      <Select
-        value={statusFilter}
-        onValueChange={(v) => onStatusFilterChange(v as StatusFilter)}
-      >
-        <SelectTrigger className="w-full sm:w-[140px] bg-white">
-          <SelectValue placeholder="Status" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All</SelectItem>
-          <SelectItem value="active">Active</SelectItem>
-          <SelectItem value="inactive">Inactive</SelectItem>
-        </SelectContent>
-      </Select>
-
-      {/* Sort */}
-      <Select
-        value={sortOption}
-        onValueChange={(v) => onSortChange(v as SortOption)}
-      >
-        <SelectTrigger className="w-full sm:w-[160px] bg-white">
-          <SelectValue placeholder="Sort by" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="newest">Newest</SelectItem>
-          <SelectItem value="oldest">Oldest</SelectItem>
-          <SelectItem value="most-votes">Most Votes</SelectItem>
-          <SelectItem value="least-votes">Least Votes</SelectItem>
-        </SelectContent>
-      </Select>
     </div>
   );
 }

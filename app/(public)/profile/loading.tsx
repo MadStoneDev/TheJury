@@ -1,42 +1,57 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { Container } from "@/components/Container";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gray-50 sm:py-8">
-      <Container>
-        <div className="max-w-2xl mx-auto">
-          <Skeleton className="h-9 w-40 mb-8" />
+    <div className="min-h-screen sm:py-8">
+      <div className="max-w-4xl mx-auto px-4">
+        <Skeleton className="h-9 w-40 mb-8" />
 
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <Skeleton className="h-6 w-28 mb-6" />
-            <div className="flex items-center gap-4 mb-6">
-              <Skeleton className="w-16 h-16 rounded-full" />
-              <div>
-                <Skeleton className="h-5 w-32 mb-1" />
-                <Skeleton className="h-4 w-48" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="rounded-2xl border bg-card p-6 text-center">
+              <Skeleton className="w-20 h-20 rounded-full mx-auto mb-4" />
+              <Skeleton className="h-6 w-32 mx-auto mb-1" />
+              <Skeleton className="h-4 w-48 mx-auto mb-4" />
+              <Skeleton className="h-6 w-16 mx-auto rounded-full" />
+              <div className="mt-6 pt-6 border-t border-border grid grid-cols-2 gap-4">
+                <div className="text-center">
+                  <Skeleton className="h-8 w-8 mx-auto mb-1" />
+                  <Skeleton className="h-3 w-16 mx-auto" />
+                </div>
+                <div className="text-center">
+                  <Skeleton className="h-8 w-12 mx-auto mb-1" />
+                  <Skeleton className="h-3 w-20 mx-auto" />
+                </div>
               </div>
-            </div>
-            <Skeleton className="h-4 w-20 mb-2" />
-            <div className="flex gap-3">
-              <Skeleton className="flex-1 h-10 rounded-md" />
-              <Skeleton className="h-10 w-20 rounded-md" />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <Skeleton className="h-6 w-28 mb-6" />
-            <div className="space-y-4">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i}>
-                  <Skeleton className="h-4 w-24 mb-1" />
-                  <Skeleton className="h-5 w-48" />
-                </div>
-              ))}
+          {/* Main */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="rounded-2xl border bg-card p-6">
+              <Skeleton className="h-6 w-28 mb-6" />
+              <Skeleton className="h-4 w-20 mb-2" />
+              <div className="flex gap-3">
+                <Skeleton className="flex-1 h-11 rounded-lg" />
+                <Skeleton className="h-11 w-20 rounded-lg" />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border bg-card p-6">
+              <Skeleton className="h-6 w-36 mb-6" />
+              <div className="space-y-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i}>
+                    <Skeleton className="h-3 w-24 mb-1" />
+                    <Skeleton className="h-5 w-48" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 }

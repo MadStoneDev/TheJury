@@ -66,12 +66,12 @@ export function SignUpForm({
   const getUsernameStatusIcon = () => {
     switch (usernameStatus) {
       case "checking":
-        return <IconLoader size={16} className="animate-spin text-gray-400" />;
+        return <IconLoader size={16} className="animate-spin text-muted-foreground" />;
       case "available":
-        return <IconCheck size={16} className="text-green-500" />;
+        return <IconCheck size={16} className="text-emerald-500" />;
       case "taken":
       case "invalid":
-        return <IconX size={16} className="text-red-500" />;
+        return <IconX size={16} className="text-destructive" />;
       default:
         return null;
     }
@@ -81,29 +81,29 @@ export function SignUpForm({
     switch (usernameStatus) {
       case "checking":
         return (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             Checking availability...
           </span>
         );
       case "available":
         return (
-          <span className="text-xs text-green-600">Username is available!</span>
+          <span className="text-xs text-emerald-500">Username is available!</span>
         );
       case "taken":
         return (
-          <span className="text-xs text-red-500">
+          <span className="text-xs text-destructive">
             Username is already taken
           </span>
         );
       case "invalid":
         return (
-          <span className="text-xs text-red-500">
+          <span className="text-xs text-destructive">
             3-50 characters, letters, numbers, and underscores only
           </span>
         );
       default:
         return (
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-muted-foreground">
             Choose a unique username
           </span>
         );
@@ -158,7 +158,7 @@ export function SignUpForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">Sign up</CardTitle>
+          <CardTitle className="text-2xl font-display">Sign up</CardTitle>
           <CardDescription>
             Create a new account to start creating polls
           </CardDescription>
@@ -191,10 +191,10 @@ export function SignUpForm({
                     className={cn(
                       "pr-8",
                       usernameStatus === "available" &&
-                        "border-green-300 focus:border-green-500",
+                        "border-emerald-500/50 focus:border-emerald-500",
                       (usernameStatus === "taken" ||
                         usernameStatus === "invalid") &&
-                        "border-red-300 focus:border-red-500",
+                        "border-destructive/50 focus:border-destructive",
                     )}
                   />
                   <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -214,7 +214,7 @@ export function SignUpForm({
                   onChange={(e) => setPassword(e.target.value)}
                   minLength={6}
                 />
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   At least 6 characters
                 </span>
               </div>
@@ -230,24 +230,25 @@ export function SignUpForm({
                   className={cn(
                     repeatPassword &&
                       password !== repeatPassword &&
-                      "border-red-300 focus:border-red-500",
+                      "border-destructive/50 focus:border-destructive",
                   )}
                 />
                 {repeatPassword && password !== repeatPassword && (
-                  <span className="text-xs text-red-500">
+                  <span className="text-xs text-destructive">
                     Passwords do not match
                   </span>
                 )}
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-600">{error}</p>
+                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                  <p className="text-sm text-destructive">{error}</p>
                 </div>
               )}
 
               <Button
                 type="submit"
+                variant="brand"
                 className="w-full"
                 disabled={isLoading || !isFormValid}
               >
@@ -257,7 +258,7 @@ export function SignUpForm({
 
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
+              <Link href="/auth/login" className="text-emerald-500 underline-offset-4 hover:underline">
                 Login
               </Link>
             </div>

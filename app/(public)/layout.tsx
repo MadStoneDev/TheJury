@@ -1,17 +1,19 @@
-﻿// app/(public)/layout.tsx
+// app/(public)/layout.tsx
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
-export default function RootLayout({
+export default function PublicLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <main>
+    <main className="min-h-screen flex flex-col">
       <Navbar />
-      {/* Spacing */}
-      <div className={`block h-16`} />
-      {children}
+      {/* Navbar spacing */}
+      <div className="h-16" />
+      <div className="flex-1">{children}</div>
+      <Footer />
     </main>
   );
 }

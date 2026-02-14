@@ -1,8 +1,9 @@
-﻿// components/PollForm.tsx
+// components/PollForm.tsx
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Container } from "@/components/Container";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
 import {
   IconPlus,
   IconX,
@@ -10,6 +11,9 @@ import {
   IconCheck,
   IconGripVertical,
   IconTrash,
+  IconLoader2,
+  IconChartBar,
+  IconArrowLeft,
 } from "@tabler/icons-react";
 import { generateUniquePollCode } from "@/utils/pollCodeGenerator";
 import {
@@ -38,6 +42,9 @@ import {
   restrictToParentElement,
 } from "@dnd-kit/modifiers";
 import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 interface PollOption {
   id: string;
@@ -98,65 +105,66 @@ function SortableOption({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative flex items-center space-x-2 p-2 pl-0 bg-white border rounded-lg transition-all ${
-        isDragging ? "shadow-lg border-emerald-300" : "border-neutral-300"
+      className={`relative flex items-center space-x-2 p-2 pl-0 bg-card border rounded-xl transition-all ${
+        isDragging ? "shadow-lg border-emerald-500/50" : "border-border"
       } overflow-hidden`}
     >
       {/* Confirm delete */}
-      <div
-        className={`absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center flex-wrap gap-2 bg-white text-neutral-900 ${
-          isDeleting
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0"
-        } transition-all duration-300 ease-in-out`}
-      >
-        <p>Delete this option?</p>
-        <div className={`flex items-center space-x-2 text-sm`}>
-          <button
-            type="button"
-            onClick={() => removeOption(option.id)}
-            className={`p-1 flex items-center space-x-1 rounded-lg border border-red-500 hover:bg-red-500 hover:text-white transition-colors`}
+      <AnimatePresence>
+        {isDeleting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center flex-wrap gap-2 bg-card/95 backdrop-blur-sm z-10"
           >
-            <IconTrash size={18} />
-            <p>
-              Yes<span className={`hidden md:inline`}>, delete it</span>
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsDeleting(false)}
-            className={`p-1 flex items-center space-x-1 rounded-lg border border-neutral-400 hover:bg-neutral-400 transition-colors`}
-          >
-            <IconX size={18} />
-            <p>
-              No<span className={`hidden md:inline`}>, keep it</span>
-            </p>
-          </button>
-        </div>
-      </div>
+            <p className="text-sm text-foreground">Delete this option?</p>
+            <div className="flex items-center space-x-2 text-sm">
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => removeOption(option.id)}
+              >
+                <IconTrash size={14} />
+                Yes, delete
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsDeleting(false)}
+              >
+                <IconX size={14} />
+                Keep it
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Drag handle */}
       <div
         {...attributes}
         {...listeners}
-        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-neutral-400 hover:text-neutral-600 touch-none"
+        className="flex-shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
         aria-label="Drag to reorder"
       >
         <IconGripVertical size={20} />
       </div>
 
       {/* Option number */}
-      <div className="hidden sm:flex flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-800 text-sm font-medium rounded-full items-center justify-center">
+      <div className="hidden sm:flex flex-shrink-0 w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-400 text-white text-xs font-semibold rounded-full items-center justify-center">
         {index + 1}
       </div>
 
       {/* Option input */}
-      <input
+      <Input
         type="text"
         value={option.text}
         onChange={(e) => updateOption(option.id, e.target.value)}
         placeholder={`Option ${index + 1}`}
-        className="flex-1 px-3 py-2 border border-neutral-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+        className="flex-1"
         required
       />
 
@@ -165,7 +173,7 @@ function SortableOption({
         <button
           type="button"
           onClick={() => setIsDeleting(true)}
-          className="flex-shrink-0 text-neutral-400 hover:text-red-600 transition-colors p-1"
+          className="flex-shrink-0 text-muted-foreground hover:text-destructive transition-colors p-1"
           aria-label="Remove option"
         >
           <IconTrash size={18} />
@@ -183,12 +191,12 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // Requires 8px of movement before drag starts
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // 200ms delay before touch drag starts (helps with scrolling)
+        delay: 200,
         tolerance: 8,
       },
     }),
@@ -213,7 +221,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [generatedPollCode, setGeneratedPollCode] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
-  // const [copiedPoll, setCopiedPoll] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [error, setError] = useState<string>("");
   const [pollId, setPollId] = useState<string>("");
@@ -295,10 +302,9 @@ export default function PollForm({ pollCode }: PollFormProps) {
   };
 
   const removeOption = (id: string) => {
-    if (formData.options.length <= 2) return; // Minimum 2 options
+    if (formData.options.length <= 2) return;
     setFormData((prev) => {
       const filteredOptions = prev.options.filter((option) => option.id !== id);
-      // Reorder remaining options
       const reorderedOptions = filteredOptions.map((option, index) => ({
         ...option,
         optionOrder: index,
@@ -333,7 +339,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
         const [reorderedItem] = newOptions.splice(oldIndex, 1);
         newOptions.splice(newIndex, 0, reorderedItem);
 
-        // Update option orders
         const updatedOptions = newOptions.map((option, index) => ({
           ...option,
           optionOrder: index,
@@ -353,13 +358,11 @@ export default function PollForm({ pollCode }: PollFormProps) {
     setError("");
 
     try {
-      // Check authentication
       const user = await getCurrentUser();
       if (!user) {
         throw new Error("You must be logged in to create or edit polls");
       }
 
-      // Basic validation
       if (!formData.question.trim()) {
         throw new Error("Please enter a question");
       }
@@ -369,7 +372,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
         throw new Error("Please provide at least 2 options");
       }
 
-      // Validate time limit dates if enabled
       if (formData.hasTimeLimit) {
         if (formData.startDate && formData.endDate) {
           const startDate = new Date(formData.startDate);
@@ -384,7 +386,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
       let createdPollId: string | null = pollId;
 
       if (!isEditing) {
-        // Generate poll code for new polls
         try {
           pollCode = await generateUniquePollCode();
           setGeneratedPollCode(pollCode);
@@ -395,7 +396,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
           );
         }
 
-        // Create new poll
         const pollData = {
           code: pollCode,
           user_id: user.id,
@@ -420,7 +420,6 @@ export default function PollForm({ pollCode }: PollFormProps) {
           throw new Error("Failed to create poll");
         }
       } else {
-        // Update existing poll
         const pollData = {
           question: formData.question.trim(),
           description: formData.description.trim() || null,
@@ -445,6 +444,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
       }
 
       setShowSuccess(true);
+
+      // Fire confetti on success
+      confetti({
+        particleCount: 100,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -459,137 +466,174 @@ export default function PollForm({ pollCode }: PollFormProps) {
     setTimeout(() => setCopiedLink(false), 2000);
   };
 
-  // const copyPollCode = async () => {
-  //   await navigator.clipboard.writeText(generatedPollCode);
-  //   setCopiedPoll(true);
-  //   setTimeout(() => setCopiedPoll(false), 2000);
-  // };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <Container>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800 mx-auto mb-4"></div>
-            <p className="text-neutral-600">Loading poll...</p>
-          </div>
-        </Container>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <IconLoader2 className="w-10 h-10 animate-spin text-emerald-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading poll...</p>
+        </div>
       </div>
     );
   }
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-neutral-50 py-12">
-        <Container>
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 text-center">
-              <div className="text-emerald-700 text-6xl mb-4">🎉</div>
-              <h1 className="text-3xl font-bold text-neutral-900 mb-4">
+      <div className="min-h-screen bg-background relative">
+        <div className="absolute inset-0 grid-bg pointer-events-none" />
+        <div className="relative max-w-2xl mx-auto px-4 py-12">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-2xl border bg-card overflow-hidden shadow-lg"
+          >
+            <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+            <div className="p-6 sm:p-8 text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 15,
+                  delay: 0.1,
+                }}
+                className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4"
+              >
+                <IconCheck className="w-8 h-8 text-emerald-500" />
+              </motion.div>
+
+              <h1 className="text-2xl font-display text-foreground mb-2">
                 {isEditing ? "Poll Updated!" : "Poll Created!"}
               </h1>
-              <p className="text-lg text-neutral-600 mb-8">
+              <p className="text-muted-foreground mb-8">
                 Your poll is live and ready to collect votes.
               </p>
 
-              <div className="bg-neutral-50 rounded-lg p-6 mb-6">
-                <h3 className="font-semibold text-neutral-900 mb-4">
+              <div className="rounded-xl border bg-muted/50 p-5 mb-6">
+                <h3 className="font-semibold text-foreground mb-4 text-sm">
                   Share your poll:
                 </h3>
 
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between bg-white rounded border p-3">
-                    <div className="flex-1 truncate">
-                      <div className="text-sm text-neutral-500">
-                        Direct Link
-                      </div>
-                      <div className="font-mono text-sm text-neutral-900 truncate">
-                        {`${
-                          typeof window !== "undefined"
-                            ? window.location.origin
-                            : ""
-                        }/answer/${generatedPollCode}`}
-                      </div>
+                <div className="flex items-center gap-2 bg-card rounded-lg border p-3">
+                  <div className="flex-1 truncate">
+                    <div className="text-xs text-muted-foreground mb-0.5">
+                      Direct Link
                     </div>
-                    <button
-                      onClick={copyPollLink}
-                      className="flex items-center space-x-2 bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded transition-colors"
-                    >
-                      {copiedLink ? (
-                        <IconCheck size={16} />
-                      ) : (
-                        <IconCopy size={16} />
-                      )}
-                      <span>{copiedLink ? "Copied!" : "Copy"}</span>
-                    </button>
+                    <div className="font-mono text-sm text-foreground truncate">
+                      {`${
+                        typeof window !== "undefined"
+                          ? window.location.origin
+                          : ""
+                      }/answer/${generatedPollCode}`}
+                    </div>
                   </div>
+                  <Button
+                    onClick={copyPollLink}
+                    variant="brand"
+                    size="sm"
+                    className="gap-1.5 shrink-0"
+                  >
+                    {copiedLink ? (
+                      <IconCheck size={14} />
+                    ) : (
+                      <IconCopy size={14} />
+                    )}
+                    {copiedLink ? "Copied!" : "Copy"}
+                  </Button>
                 </div>
               </div>
 
-              <div className="space-x-4">
-                <button
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button
+                  variant="brand"
                   onClick={() =>
                     router.push(`/dashboard/results/${generatedPollCode}`)
                   }
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
+                  className="gap-1.5"
                 >
-                  View Poll
-                </button>
-                <button
+                  <IconChartBar size={16} />
+                  View Results
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => router.push("/dashboard")}
-                  className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
                 >
                   Dashboard
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setShowSuccess(false)}
-                  className="border border-neutral-300 hover:border-neutral-400 text-neutral-700 px-6 py-3 rounded-md font-medium transition-colors"
                 >
-                  {isEditing ? "Edit Another" : "Create Another"}
-                </button>
+                  {isEditing ? "Edit Again" : "Create Another"}
+                </Button>
               </div>
             </div>
-          </div>
-        </Container>
+          </motion.div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 py-8">
-      <Container>
-        <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8">
+    <div className="min-h-screen bg-background relative">
+      <div className="absolute inset-0 grid-bg pointer-events-none" />
+
+      <div className="relative max-w-2xl mx-auto px-4 py-8">
+        {/* Back link */}
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6 transition-colors text-sm"
+        >
+          <IconArrowLeft size={18} className="mr-1.5" />
+          Back to Dashboard
+        </Link>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="rounded-2xl border bg-card overflow-hidden shadow-lg"
+        >
+          <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+          <div className="p-4 sm:p-8">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+              <h1 className="text-2xl font-display text-foreground mb-2">
                 {isEditing ? "Edit Poll" : "Create New Poll"}
               </h1>
-              <p className="text-neutral-600">
+              <p className="text-muted-foreground text-sm">
                 {isEditing
                   ? "Make changes to your poll"
                   : "Build a poll that gets results"}
               </p>
               {isEditing && (
-                <div className="mt-2 text-sm text-neutral-500">
+                <div className="mt-2 text-xs text-muted-foreground">
                   Poll Code:{" "}
-                  <span className="font-mono font-semibold">{pollCode}</span>
+                  <span className="font-mono font-semibold bg-muted px-2 py-0.5 rounded">
+                    {pollCode}
+                  </span>
                 </div>
               )}
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-                <div className="text-red-600 text-sm">{error}</div>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-xl"
+              >
+                <div className="text-destructive text-sm">{error}</div>
+              </motion.div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Question */}
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Poll Question *
                 </label>
-                <input
+                <Input
                   type="text"
                   value={formData.question}
                   onChange={(e) =>
@@ -599,14 +643,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     }))
                   }
                   placeholder="What's your question?"
-                  className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-lg"
+                  className="text-lg h-12"
                   required
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Description (optional)
                 </label>
                 <textarea
@@ -619,16 +663,16 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   }
                   placeholder="Add context or instructions..."
                   rows={3}
-                  className="w-full px-4 py-3 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="flex w-full rounded-lg border border-border bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 focus-visible:ring-offset-2 transition-shadow"
                 />
               </div>
 
               {/* Options */}
               <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Answer Options *
                 </label>
-                <div className="text-xs text-neutral-500 mb-3">
+                <div className="text-xs text-muted-foreground mb-3">
                   Drag the grip handle to reorder options
                 </div>
 
@@ -657,147 +701,189 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   </SortableContext>
                 </DndContext>
 
-                <button
+                <motion.button
                   type="button"
                   onClick={addOption}
-                  className="mt-3 flex items-center space-x-2 text-emerald-800 hover:text-emerald-900 font-medium"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  className="mt-3 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-border rounded-xl text-muted-foreground hover:text-emerald-500 hover:border-emerald-500/50 transition-colors text-sm font-medium"
                 >
                   <IconPlus size={16} />
-                  <span>Add Another Option</span>
-                </button>
+                  Add Another Option
+                </motion.button>
               </div>
 
               {/* Settings */}
-              <div className="bg-neutral-50 rounded-lg p-4">
-                <h3 className="font-medium text-neutral-900 mb-3">
+              <div className="rounded-xl border bg-muted/50 p-4">
+                <h3 className="font-semibold text-foreground mb-4 text-sm">
                   Poll Settings
                 </h3>
 
                 <div className="space-y-4">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.allowMultiple}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          allowMultiple: e.target.checked,
-                        }))
-                      }
-                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className="ml-2 text-sm text-neutral-700">
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={formData.allowMultiple}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            allowMultiple: e.target.checked,
+                          }))
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
                       Allow multiple selections
                     </span>
                   </label>
 
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.isActive}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isActive: e.target.checked,
-                        }))
-                      }
-                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className="ml-2 text-sm text-neutral-700">
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={formData.isActive}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            isActive: e.target.checked,
+                          }))
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
                       Poll is active (people can vote)
                     </span>
                   </label>
 
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={formData.hasTimeLimit}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          hasTimeLimit: e.target.checked,
-                          startDate: e.target.checked ? prev.startDate : "",
-                          endDate: e.target.checked ? prev.endDate : "",
-                        }))
-                      }
-                      className="w-4 h-4 text-emerald-700 bg-neutral-100 border-neutral-300 rounded focus:ring-emerald-500"
-                    />
-                    <span className="ml-2 text-sm text-neutral-700">
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={formData.hasTimeLimit}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            hasTimeLimit: e.target.checked,
+                            startDate: e.target.checked ? prev.startDate : "",
+                            endDate: e.target.checked ? prev.endDate : "",
+                          }))
+                        }
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors">
                       Set time limit for voting
                     </span>
                   </label>
 
-                  {formData.hasTimeLimit && (
-                    <div className="mt-4 p-4 bg-white rounded border border-neutral-200">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            Start Date & Time
-                          </label>
-                          <input
-                            type="datetime-local"
-                            value={formData.startDate}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                startDate: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
+                  <AnimatePresence>
+                    {formData.hasTimeLimit && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-2 p-4 bg-card rounded-xl border border-border">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-1">
+                                Start Date & Time
+                              </label>
+                              <Input
+                                type="datetime-local"
+                                value={formData.startDate}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    startDate: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-foreground mb-1">
+                                End Date & Time
+                              </label>
+                              <Input
+                                type="datetime-local"
+                                value={formData.endDate}
+                                onChange={(e) =>
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    endDate: e.target.value,
+                                  }))
+                                }
+                              />
+                            </div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Poll will only accept votes between these dates.
+                            Leave empty to allow voting indefinitely.
+                          </p>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium text-neutral-700 mb-1">
-                            End Date & Time
-                          </label>
-                          <input
-                            type="datetime-local"
-                            value={formData.endDate}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                endDate: e.target.value,
-                              }))
-                            }
-                            className="w-full px-3 py-2 border border-neutral-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                          />
-                        </div>
-                      </div>
-                      <p className="text-xs text-neutral-500 mt-2">
-                        Poll will only accept votes between these dates. Leave
-                        empty to allow voting indefinitely.
-                      </p>
-                    </div>
-                  )}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
               {/* Submit */}
-              <div className="flex space-x-4">
-                <button
+              <div className="flex gap-3">
+                <Button
                   type="submit"
                   disabled={isSaving}
-                  className="flex-1 bg-emerald-800 hover:bg-emerald-900 disabled:bg-neutral-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-md font-medium text-lg transition-colors"
+                  variant="brand"
+                  size="xl"
+                  className="flex-1 gap-2"
                 >
-                  {isSaving
-                    ? "Saving..."
-                    : isEditing
-                      ? "Update Poll"
-                      : "Create Poll"}
-                </button>
+                  {isSaving ? (
+                    <>
+                      <IconLoader2 className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : isEditing ? (
+                    "Update Poll"
+                  ) : (
+                    "Create Poll"
+                  )}
+                </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="xl"
                   onClick={() => router.push("/dashboard")}
-                  className="px-6 py-3 border border-neutral-300 hover:border-neutral-400 text-neutral-700 rounded-md font-medium transition-colors"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>
-        </div>
-      </Container>
+        </motion.div>
+      </div>
     </div>
   );
 }

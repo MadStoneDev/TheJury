@@ -1,9 +1,9 @@
-﻿// /embed/[pollCode]/page.tsx
+// /embed/[pollCode]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { IconCheck } from "@tabler/icons-react";
+import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import {
   getPollByCode,
   submitVote,
@@ -34,7 +34,6 @@ export default function PollEmbedPage() {
 
   // Determine target origin for postMessage
   useEffect(() => {
-    // Try ?origin= query param first
     const searchParams = new URLSearchParams(window.location.search);
     const originParam = searchParams.get("origin");
     if (originParam) {
@@ -46,7 +45,6 @@ export default function PollEmbedPage() {
         // invalid URL, fall through
       }
     }
-    // Fall back to document.referrer
     if (document.referrer) {
       try {
         const url = new URL(document.referrer);
@@ -56,7 +54,6 @@ export default function PollEmbedPage() {
         // invalid referrer, fall through
       }
     }
-    // Default remains "*"
   }, []);
 
   // Auto-resize iframe function
@@ -71,7 +68,6 @@ export default function PollEmbedPage() {
       }
     };
 
-    // Resize on load and when content changes
     resizeIframe();
     const observer = new ResizeObserver(resizeIframe);
     observer.observe(document.body);
@@ -79,7 +75,6 @@ export default function PollEmbedPage() {
     return () => observer.disconnect();
   }, [targetOrigin]);
 
-  // [Include all your existing poll loading logic here - same as the original file]
   useEffect(() => {
     const loadPoll = async () => {
       if (!pollCode) return;
@@ -171,7 +166,6 @@ export default function PollEmbedPage() {
     loadPoll();
   }, [pollCode]);
 
-  // [Include your existing vote handling logic]
   const handleOptionToggle = (optionId: string) => {
     if (poll?.allow_multiple) {
       setSelectedOptions((prev) =>
@@ -241,10 +235,10 @@ export default function PollEmbedPage() {
 
   if (isLoading) {
     return (
-      <div className="p-4 bg-white min-h-[200px] flex items-center justify-center">
+      <div className="p-4 bg-background min-h-[200px] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-700 mx-auto mb-2"></div>
-          <p className="text-gray-600 text-sm">Loading poll...</p>
+          <IconLoader2 className="w-6 h-6 animate-spin text-emerald-500 mx-auto mb-2" />
+          <p className="text-muted-foreground text-sm">Loading poll...</p>
         </div>
       </div>
     );
@@ -252,10 +246,12 @@ export default function PollEmbedPage() {
 
   if (error) {
     return (
-      <div className="p-4 bg-white min-h-[200px] flex items-center justify-center">
+      <div className="p-4 bg-background min-h-[200px] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-4xl mb-2">⚠️</div>
-          <p className="text-gray-600 text-sm">{error}</p>
+          <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-2">
+            <span className="text-destructive text-lg">!</span>
+          </div>
+          <p className="text-muted-foreground text-sm">{error}</p>
         </div>
       </div>
     );
@@ -264,64 +260,63 @@ export default function PollEmbedPage() {
   if (!poll) return null;
 
   return (
-    <div className="bg-white p-4 font-sans">
+    <div className="bg-background p-4 font-sans">
       {/* Compact poll header */}
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-2">
+        <h2 className="text-lg font-display text-foreground mb-1">
           {poll.question}
         </h2>
         {poll.description && (
-          <p className="text-gray-600 text-sm mb-2">{poll.description}</p>
+          <p className="text-muted-foreground text-sm mb-2">
+            {poll.description}
+          </p>
         )}
-        <div className="text-xs text-gray-500">
+        <div className="text-xs text-muted-foreground">
           {totalVoters} {totalVoters === 1 ? "vote" : "votes"}
         </div>
       </div>
 
       {hasVotedFlag ? (
         /* Compact Results View */
-        <div className="space-y-3">
-          <div className="text-center mb-4">
-            <div className="text-emerald-700 text-2xl mb-1">
-              <IconCheck size={24} />
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <IconCheck size={14} className="text-emerald-500" />
             </div>
-            <p className="text-sm text-gray-600">Thanks for voting!</p>
+            <p className="text-sm text-muted-foreground">
+              Thanks for voting!
+            </p>
           </div>
 
           {results.map((result) => {
+            const percentage = getPercentage(result.vote_count);
             const isJustVotedFor = justVotedFor.includes(result.option_id);
             return (
-              <div key={result.option_id} className="relative">
+              <div key={result.option_id}>
                 <div
-                  className={`flex justify-between items-center p-3 rounded ${
+                  className={`relative flex justify-between items-center p-3 rounded-lg overflow-hidden ${
                     isJustVotedFor
-                      ? "bg-emerald-50 border border-emerald-200"
-                      : "bg-gray-50"
+                      ? "bg-emerald-500/5 border border-emerald-500/30"
+                      : "bg-muted/50 border border-border"
                   }`}
                 >
-                  <div className="flex items-center">
+                  {/* Progress bar background */}
+                  <div
+                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 transition-all duration-500"
+                    style={{ width: `${percentage}%` }}
+                  />
+
+                  <div className="relative flex items-center gap-1.5">
                     {isJustVotedFor && (
-                      <div className="mr-2 text-emerald-700">
-                        <IconCheck size={16} />
-                      </div>
+                      <IconCheck size={14} className="text-emerald-500" />
                     )}
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-foreground">
                       {result.option_text}
                     </span>
                   </div>
-                  <div className="text-right">
-                    <div className="font-bold text-sm">
-                      {getPercentage(result.vote_count)}%
-                    </div>
+                  <div className="relative font-bold text-sm text-foreground">
+                    {percentage}%
                   </div>
-                </div>
-                <div className="mt-1 bg-gray-200 rounded-full h-1">
-                  <div
-                    className="bg-emerald-700 h-1 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${getPercentage(result.vote_count)}%`,
-                    }}
-                  ></div>
                 </div>
               </div>
             );
@@ -329,37 +324,49 @@ export default function PollEmbedPage() {
         </div>
       ) : (
         /* Compact Voting View */
-        <div className="space-y-3">
-          <p className="text-xs text-gray-600 text-center mb-3">
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground text-center mb-3">
             {poll.allow_multiple
               ? "Select all that apply:"
               : "Choose one option:"}
           </p>
 
-          {poll.options?.map((option) => (
-            <label
-              key={option.id}
-              className="flex items-center p-3 border border-gray-200 rounded hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer transition-colors"
-            >
-              <input
-                type={poll.allow_multiple ? "checkbox" : "radio"}
-                name={poll.allow_multiple ? undefined : "poll-option"}
-                value={option.id}
-                checked={selectedOptions.includes(option.id)}
-                onChange={() => handleOptionToggle(option.id)}
-                className="w-3 h-3 text-emerald-700 bg-gray-100 border-gray-300 focus:ring-emerald-500"
-              />
-              <span className="ml-2 text-sm font-medium text-gray-900">
-                {option.text}
-              </span>
-            </label>
-          )) || <div>No options available</div>}
+          {poll.options?.map((option) => {
+            const isSelected = selectedOptions.includes(option.id);
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => handleOptionToggle(option.id)}
+                className={`w-full flex items-center p-3 border-2 rounded-lg text-left transition-all ${
+                  isSelected
+                    ? "border-emerald-500 bg-emerald-500/5"
+                    : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all mr-2.5 ${
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-500"
+                      : "border-muted-foreground/30"
+                  }`}
+                >
+                  {isSelected && (
+                    <IconCheck className="w-2.5 h-2.5 text-white" />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-foreground">
+                  {option.text}
+                </span>
+              </button>
+            );
+          }) || <div className="text-muted-foreground">No options available</div>}
 
-          <div className="pt-3 text-center">
+          <div className="pt-2 text-center">
             <button
               onClick={handleVote}
               disabled={selectedOptions.length === 0 || isSubmitting}
-              className="bg-emerald-700 hover:bg-emerald-800 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-2 rounded text-sm font-medium transition-colors"
+              className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-glow-emerald"
             >
               {isSubmitting ? "Voting..." : "Vote"}
             </button>
@@ -369,12 +376,12 @@ export default function PollEmbedPage() {
 
       {/* Compact footer — only shown for free tier */}
       {ownerTier === "free" && (
-        <div className="text-center mt-4 pt-3 border-t border-gray-100">
+        <div className="text-center mt-4 pt-3 border-t border-border">
           <a
             href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-gray-500 hover:text-emerald-700 transition-colors"
+            className="text-xs text-muted-foreground hover:text-emerald-500 transition-colors"
           >
             Powered by TheJury
           </a>

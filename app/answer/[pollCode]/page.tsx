@@ -1,10 +1,11 @@
-﻿// answer/[pollCode]/page.tsx
+// answer/[pollCode]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Container } from "@/components/Container";
-import { IconCheck } from "@tabler/icons-react";
+import { motion, AnimatePresence } from "motion/react";
+import confetti from "canvas-confetti";
+import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import {
   getPollByCode,
   submitVote,
@@ -18,6 +19,7 @@ import { toast } from "sonner";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -39,7 +41,6 @@ export default function PollAnswerPage() {
 
       setIsLoading(true);
       try {
-        // Fetch poll data
         const pollData = await getPollByCode(pollCode);
         if (!pollData) {
           setError("Poll not found");
@@ -51,7 +52,6 @@ export default function PollAnswerPage() {
           return;
         }
 
-        // Check time limits
         if (pollData.has_time_limit) {
           const now = new Date();
           if (pollData.start_date && new Date(pollData.start_date) > now) {
@@ -66,11 +66,9 @@ export default function PollAnswerPage() {
 
         setPoll(pollData);
 
-        // Load results and total voter count
         const pollResults = await getPollResults(pollData.id);
         setResults(pollResults);
 
-        // Get total number of unique voters
         const { count: voterCount } = await supabase
           .from("votes")
           .select("*", { count: "exact", head: true })
@@ -78,19 +76,16 @@ export default function PollAnswerPage() {
 
         setTotalVoters(voterCount || 0);
 
-        // Then check if user has voted
         const user = await getCurrentUser();
         let voted = false;
         let userVotes: string[] = [];
 
         if (user) {
-          // Authenticated user
           voted = await hasUserVoted(pollData.id, user.id);
           if (voted) {
             userVotes = await getUserVotes(pollData.id, user.id);
           }
         } else {
-          // Anonymous user - check database with fingerprint only
           try {
             const fingerprint = generateFingerprint();
             voted = await hasUserVoted(pollData.id, undefined, fingerprint);
@@ -123,34 +118,39 @@ export default function PollAnswerPage() {
 
   const handleOptionToggle = (optionId: string) => {
     if (poll?.allow_multiple) {
-      // Multiple choice: toggle selection
       setSelectedOptions((prev) =>
         prev.includes(optionId)
           ? prev.filter((id) => id !== optionId)
           : [...prev, optionId],
       );
     } else {
-      // Single choice: replace selection
       setSelectedOptions([optionId]);
     }
+  };
+
+  const fireConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 80,
+      origin: { y: 0.6 },
+      colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
+    });
   };
 
   const handleVote = async () => {
     if (selectedOptions.length === 0 || !poll) return;
 
     setIsSubmitting(true);
-    setError(null); // Clear any previous errors
+    setError(null);
 
     try {
       const user = await getCurrentUser();
       let success = false;
 
       if (user) {
-        // Authenticated user
         await submitVote(poll.id, selectedOptions, user.id);
         success = true;
       } else {
-        // Anonymous user
         const fingerprint = generateFingerprint();
         await submitVote(
           poll.id,
@@ -163,11 +163,9 @@ export default function PollAnswerPage() {
       }
 
       if (success) {
-        // Load updated results and voter count
         const pollResults = await getPollResults(poll.id);
         setResults(pollResults);
 
-        // Update voter count
         const { count: voterCount } = await supabase
           .from("votes")
           .select("*", { count: "exact", head: true })
@@ -177,6 +175,7 @@ export default function PollAnswerPage() {
 
         setJustVotedFor([...selectedOptions]);
         setHasVotedFlag(true);
+        fireConfetti();
         toast.success("Vote submitted!");
       }
     } catch (err) {
@@ -195,39 +194,38 @@ export default function PollAnswerPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading poll...</p>
-          </div>
-        </Container>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <IconLoader2 className="w-10 h-10 animate-spin text-emerald-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading poll...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-4 sm:p-8">
-            <div className="text-red-500 text-6xl mb-4">⚠️</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Oops!</h1>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <p className="text-sm text-gray-500 mb-6">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto text-center">
+          <div className="rounded-2xl border bg-card p-8">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">!</span>
+            </div>
+            <h1 className="text-xl font-display text-foreground mb-2">
+              Oops!
+            </h1>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <p className="text-xs text-muted-foreground mb-6">
               Poll code:{" "}
-              <span className="font-mono bg-gray-100 px-2 py-1 rounded">
+              <span className="font-mono bg-muted px-2 py-1 rounded">
                 {pollCode}
               </span>
             </p>
-            <Link
-              href="/"
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
-            >
-              Back to Home
+            <Link href="/">
+              <Button variant="brand">Back to Home</Button>
             </Link>
           </div>
-        </Container>
+        </div>
       </div>
     );
   }
@@ -239,153 +237,218 @@ export default function PollAnswerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <Container>
-        <div className="max-w-2xl mx-auto">
-          {/* Poll Header */}
-          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mb-6">
-            <div className="text-center mb-6">
-              <div className="text-sm text-gray-500 mb-2">
-                Poll Code: {pollCode}
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+    <div className="min-h-screen bg-background relative">
+      <div className="absolute inset-0 grid-bg pointer-events-none" />
+
+      <div className="relative max-w-2xl mx-auto px-4 py-8 sm:py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Poll Card */}
+          <div className="rounded-2xl border border-emerald-500/20 bg-card shadow-xl shadow-emerald-500/5 p-6 sm:p-8">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <span className="inline-block text-xs text-muted-foreground font-mono bg-muted px-3 py-1 rounded-full mb-4">
+                {pollCode}
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-display text-foreground mb-2">
                 {poll.question}
               </h1>
               {poll.description && (
-                <p className="text-lg text-gray-600">{poll.description}</p>
+                <p className="text-muted-foreground">{poll.description}</p>
               )}
-              <div className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-muted-foreground mt-3">
                 {totalVoters} {totalVoters === 1 ? "person has" : "people have"}{" "}
                 voted so far
-              </div>
+              </p>
             </div>
 
-            {hasVotedFlag ? (
-              /* Results View */
-              <div className="space-y-4">
-                <div className="flex flex-col items-center text-center mb-6">
-                  <div className="text-emerald-700 text-5xl mb-2">
-                    <IconCheck size={48} />
+            <AnimatePresence mode="wait">
+              {hasVotedFlag ? (
+                /* Results View */
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="space-y-4"
+                >
+                  <div className="flex flex-col items-center text-center mb-6">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 15,
+                      }}
+                      className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3"
+                    >
+                      <IconCheck className="w-7 h-7 text-emerald-500" />
+                    </motion.div>
+                    <h2 className="text-lg font-semibold text-foreground">
+                      Thanks for voting!
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      Here are the current results:
+                    </p>
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    Thanks for voting!
-                  </h2>
-                  <p className="text-gray-600">Here are the current results:</p>
-                </div>
 
-                {results.map((result) => {
-                  const isJustVotedFor = justVotedFor.includes(
-                    result.option_id,
-                  );
-                  return (
-                    <div key={result.option_id} className="relative">
-                      <div
-                        className={`flex justify-between items-center p-4 rounded-lg ${
+                  {results.map((result, i) => {
+                    const percentage = getPercentage(result.vote_count);
+                    const isJustVotedFor = justVotedFor.includes(
+                      result.option_id,
+                    );
+
+                    return (
+                      <motion.div
+                        key={result.option_id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className={`relative p-4 rounded-xl border overflow-hidden ${
                           isJustVotedFor
-                            ? "bg-emerald-50 border-2 border-emerald-200"
-                            : "bg-gray-50"
+                            ? "border-emerald-500/50 bg-emerald-500/5"
+                            : "border-border"
                         }`}
                       >
-                        <div className="flex items-center">
-                          {isJustVotedFor && (
-                            <div className="mr-3 text-emerald-700">
-                              <IconCheck size={20} />
-                            </div>
-                          )}
-                          <span
-                            className={`font-medium ${
-                              isJustVotedFor
-                                ? "text-emerald-900"
-                                : "text-gray-900"
-                            }`}
-                          >
-                            {result.option_text}
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percentage}%` }}
+                          transition={{
+                            duration: 0.8,
+                            delay: i * 0.08,
+                            ease: "easeOut",
+                          }}
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+                        />
+
+                        <div className="relative flex justify-between items-center">
+                          <div className="flex items-center gap-2">
                             {isJustVotedFor && (
-                              <span className="ml-2 text-sm text-emerald-700 font-semibold">
-                                Your vote!
+                              <IconCheck className="w-4 h-4 text-emerald-500" />
+                            )}
+                            <span className="font-medium text-foreground">
+                              {result.option_text}
+                            </span>
+                            {isJustVotedFor && (
+                              <span className="text-xs text-emerald-500 font-medium">
+                                Your vote
                               </span>
                             )}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`font-bold text-lg ${
-                              isJustVotedFor
-                                ? "text-emerald-800"
-                                : "text-gray-900"
-                            }`}
-                          >
-                            {getPercentage(result.vote_count)}%
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {result.vote_count}{" "}
-                            {result.vote_count === 1 ? "vote" : "votes"}
+                          <div className="text-right">
+                            <span className="font-bold text-foreground">
+                              {percentage}%
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {result.vote_count}{" "}
+                              {result.vote_count === 1 ? "vote" : "votes"}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="mt-2 bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            isJustVotedFor ? "bg-emerald-700" : "bg-emerald-700"
-                          }`}
-                          style={{
-                            width: `${getPercentage(result.vote_count)}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* Voting View */
-              <div className="space-y-4">
-                <div className="mb-4 text-center">
-                  <p className="text-sm text-gray-600">
+                      </motion.div>
+                    );
+                  })}
+                </motion.div>
+              ) : (
+                /* Voting View */
+                <motion.div
+                  key="voting"
+                  initial={{ opacity: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-3"
+                >
+                  <p className="text-center text-sm text-muted-foreground mb-4">
                     {poll.allow_multiple
                       ? "Select all that apply:"
                       : "Choose one option:"}
                   </p>
-                </div>
 
-                {poll.options?.map((option) => (
-                  <label
-                    key={option.id}
-                    className="flex items-center p-4 border border-gray-200 rounded-lg hover:border-emerald-500 hover:bg-emerald-50 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type={poll.allow_multiple ? "checkbox" : "radio"}
-                      name={poll.allow_multiple ? undefined : "poll-option"}
-                      value={option.id}
-                      checked={selectedOptions.includes(option.id)}
-                      onChange={() => handleOptionToggle(option.id)}
-                      className="w-4 h-4 text-emerald-700 bg-gray-100 border-gray-300 focus:ring-emerald-500"
-                    />
-                    <span className="ml-3 text-lg font-medium text-gray-900">
-                      {option.text}
-                    </span>
-                  </label>
-                )) || <div>No options available</div>}
+                  {poll.options?.map((option) => {
+                    const isSelected = selectedOptions.includes(option.id);
+                    return (
+                      <motion.button
+                        key={option.id}
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={() => handleOptionToggle(option.id)}
+                        className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-200 ${
+                          isSelected
+                            ? "border-emerald-500 bg-emerald-500/5"
+                            : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                              isSelected
+                                ? "border-emerald-500 bg-emerald-500"
+                                : "border-muted-foreground/30"
+                            }`}
+                          >
+                            {isSelected && (
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 500 }}
+                              >
+                                <IconCheck className="w-3 h-3 text-white" />
+                              </motion.div>
+                            )}
+                          </div>
+                          <span className="font-medium text-foreground">
+                            {option.text}
+                          </span>
+                        </div>
+                      </motion.button>
+                    );
+                  }) || (
+                    <div className="text-center text-muted-foreground">
+                      No options available
+                    </div>
+                  )}
 
-                <div className="pt-6 text-center">
-                  <button
-                    onClick={handleVote}
-                    disabled={selectedOptions.length === 0 || isSubmitting}
-                    className="bg-emerald-800 hover:bg-emerald-900 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-md font-medium text-lg transition-colors"
-                  >
-                    {isSubmitting ? "Submitting..." : "Cast Your Vote"}
-                  </button>
-                </div>
-              </div>
-            )}
+                  <div className="pt-4">
+                    <Button
+                      onClick={handleVote}
+                      disabled={selectedOptions.length === 0 || isSubmitting}
+                      variant="brand"
+                      size="xl"
+                      className="w-full"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <IconLoader2 className="w-5 h-5 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Cast Your Vote"
+                      )}
+                    </Button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Footer */}
-          <div className="text-center">
-            <p className="text-gray-500 mb-4">Powered by TheJury</p>
+          <div className="text-center mt-6">
+            <p className="text-xs text-muted-foreground">
+              Powered by{" "}
+              <Link
+                href="/"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
+              >
+                TheJury
+              </Link>
+            </p>
           </div>
-        </div>
-      </Container>
+        </motion.div>
+      </div>
     </div>
   );
 }

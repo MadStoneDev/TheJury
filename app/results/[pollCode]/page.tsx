@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { Container } from "@/components/Container";
-import { IconUsers, IconChartBar } from "@tabler/icons-react";
+import { motion } from "motion/react";
+import {
+  IconUsers,
+  IconChartBar,
+  IconTrophy,
+  IconLoader2,
+} from "@tabler/icons-react";
 import { getPollByCode, getPollResults } from "@/lib/supabaseHelpers";
 import type { Poll, PollResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
 
 export default function PublicResultsPage() {
   const params = useParams();
@@ -31,7 +37,6 @@ export default function PublicResultsPage() {
           return;
         }
 
-        // Check if results are publicly visible
         const pollWithSettings = pollData as Poll & {
           show_results_to_voters?: boolean;
         };
@@ -68,35 +73,34 @@ export default function PublicResultsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-800 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading results...</p>
-          </div>
-        </Container>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <IconLoader2 className="w-10 h-10 animate-spin text-emerald-500 mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading results...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Container>
-          <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-4 sm:p-8">
-            <div className="text-6xl mb-4">🔒</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {error === "Poll not found" ? "Not Found" : "Results Unavailable"}
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto text-center">
+          <div className="rounded-2xl border bg-card p-8">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">!</span>
+            </div>
+            <h1 className="text-xl font-display text-foreground mb-2">
+              {error === "Poll not found"
+                ? "Not Found"
+                : "Results Unavailable"}
             </h1>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <Link
-              href="/"
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors"
-            >
-              Back to Home
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <Link href="/">
+              <Button variant="brand">Back to Home</Button>
             </Link>
           </div>
-        </Container>
+        </div>
       </div>
     );
   }
@@ -106,109 +110,132 @@ export default function PublicResultsPage() {
   const maxVotes = Math.max(...results.map((r) => r.vote_count));
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <Container>
-        <div className="max-w-2xl mx-auto">
-          {/* Header */}
-          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-8 mb-6">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <IconChartBar size={24} className="text-emerald-700" />
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Poll Results
+    <div className="min-h-screen bg-background relative">
+      <div className="absolute inset-0 grid-bg pointer-events-none" />
+
+      <div className="relative max-w-2xl mx-auto px-4 py-8 sm:py-12">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          {/* Results Card */}
+          <div className="rounded-2xl border bg-card overflow-hidden shadow-lg">
+            <div className="h-1 bg-gradient-to-r from-emerald-500 to-teal-400" />
+            <div className="p-6 sm:p-8">
+              {/* Header */}
+              <div className="text-center mb-8">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <IconChartBar size={20} className="text-emerald-500" />
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Poll Results
+                  </span>
+                </div>
+                <h1 className="text-2xl font-display text-foreground mb-2">
+                  {poll.question}
                 </h1>
+                {poll.description && (
+                  <p className="text-muted-foreground text-sm">
+                    {poll.description}
+                  </p>
+                )}
+                <div className="flex items-center justify-center gap-1.5 mt-4 text-sm text-muted-foreground">
+                  <IconUsers size={14} />
+                  <span>
+                    {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
+                  </span>
+                </div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                {poll.question}
-              </h2>
-              {poll.description && (
-                <p className="text-gray-600">{poll.description}</p>
-              )}
-              <div className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-500">
-                <IconUsers size={16} />
-                <span>
-                  {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
-                </span>
-              </div>
-            </div>
 
-            {/* Results */}
-            {totalVoters === 0 ? (
-              <div className="text-center py-8">
-                <div className="text-6xl mb-4">🗳️</div>
-                <p className="text-gray-600">No votes yet.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {results.map((result) => {
-                  const percentage = getPercentage(result.vote_count);
-                  const isTopChoice =
-                    result.vote_count === maxVotes && maxVotes > 0;
+              {/* Results */}
+              {totalVoters === 0 ? (
+                <div className="text-center py-8">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                    <IconChartBar className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-sm">
+                    No votes yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {results.map((result, i) => {
+                    const percentage = getPercentage(result.vote_count);
+                    const isTopChoice =
+                      result.vote_count === maxVotes && maxVotes > 0;
 
-                  return (
-                    <div key={result.option_id}>
-                      <div
-                        className={`flex justify-between items-center p-4 rounded-lg ${
+                    return (
+                      <motion.div
+                        key={result.option_id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className={`relative p-4 rounded-xl border overflow-hidden ${
                           isTopChoice
-                            ? "bg-emerald-50 border-2 border-emerald-200"
-                            : "bg-gray-50"
+                            ? "border-emerald-500/50 bg-emerald-500/5"
+                            : "border-border"
                         }`}
                       >
-                        <div className="flex items-center">
-                          <span
-                            className={`font-medium ${
-                              isTopChoice ? "text-emerald-900" : "text-gray-900"
-                            }`}
-                          >
-                            {result.option_text}
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percentage}%` }}
+                          transition={{
+                            duration: 0.8,
+                            delay: i * 0.08,
+                            ease: "easeOut",
+                          }}
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500/10 to-teal-500/10"
+                        />
+
+                        <div className="relative flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-foreground">
+                              {result.option_text}
+                            </span>
                             {isTopChoice && (
-                              <span className="ml-2 text-xs bg-emerald-700 text-white px-2 py-0.5 rounded-full">
+                              <span className="inline-flex items-center gap-1 bg-emerald-500 text-white px-2 py-0.5 rounded-full text-[10px] font-semibold">
+                                <IconTrophy size={10} />
                                 Leading
                               </span>
                             )}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`font-bold text-lg ${
-                              isTopChoice ? "text-emerald-800" : "text-gray-900"
-                            }`}
-                          >
-                            {percentage}%
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {result.vote_count}{" "}
-                            {result.vote_count === 1 ? "vote" : "votes"}
+                          <div className="text-right">
+                            <span className="font-bold text-foreground">
+                              {percentage}%
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {result.vote_count}{" "}
+                              {result.vote_count === 1 ? "vote" : "votes"}
+                            </span>
                           </div>
                         </div>
-                      </div>
-                      <div className="mt-2 bg-gray-200 rounded-full h-2">
-                        <div
-                          className={`h-2 rounded-full transition-all duration-500 ${
-                            isTopChoice ? "bg-emerald-700" : "bg-emerald-400"
-                          }`}
-                          style={{ width: `${percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Vote CTA */}
-          <div className="text-center space-y-4">
-            <Link
-              href={`/answer/${pollCode}`}
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-block"
-            >
-              Vote on this poll
+          <div className="text-center mt-6 space-y-3">
+            <Link href={`/answer/${pollCode}`}>
+              <Button variant="brand" size="lg">
+                Vote on this poll
+              </Button>
             </Link>
-            <p className="text-gray-500 text-sm">Powered by TheJury</p>
+            <p className="text-xs text-muted-foreground">
+              Powered by{" "}
+              <Link
+                href="/"
+                className="text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
+              >
+                TheJury
+              </Link>
+            </p>
           </div>
-        </div>
-      </Container>
+        </motion.div>
+      </div>
     </div>
   );
 }

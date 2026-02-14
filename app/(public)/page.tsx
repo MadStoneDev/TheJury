@@ -1,413 +1,444 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
 import {
-  IconChevronDown,
   IconUsers,
   IconCode,
   IconShare,
-  IconChartBar,
-  IconGlobe,
   IconArrowRight,
   IconScale,
   IconGavel,
+  IconClock,
+  IconBolt,
 } from "@tabler/icons-react";
 import DemoPollWidget from "@/components/DemoPollWidget";
+import { Button } from "@/components/ui/button";
+import {
+  ScrollReveal,
+  StaggerContainer,
+  StaggerItem,
+  AnimatedCounter,
+  HoverCard,
+} from "@/components/motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
-interface Feature {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-}
+// --- Data ---
 
-interface FAQ {
-  question: string;
-  answer: string;
-}
+const features = [
+  {
+    icon: IconGavel,
+    title: "Ask Your Question",
+    description: "Create a poll in under 30 seconds. It's that easy!",
+    span: "md:col-span-2",
+  },
+  {
+    icon: IconUsers,
+    title: "Get Responses",
+    description: "Track votes and responses from one simple dashboard.",
+    span: "md:col-span-1",
+  },
+  {
+    icon: IconClock,
+    title: "Schedule Polls",
+    description: "Set start and end times for time-sensitive polls.",
+    span: "md:col-span-1",
+  },
+  {
+    icon: IconCode,
+    title: "Embed Anywhere",
+    description: "Drop polls into your blog, stream overlay, or team site.",
+    span: "md:col-span-1",
+  },
+  {
+    icon: IconShare,
+    title: "Share Everywhere",
+    description:
+      "Discord, WhatsApp, social media, or anywhere you like.",
+    span: "md:col-span-1",
+  },
+  {
+    icon: IconBolt,
+    title: "Real-Time Results",
+    description: "Watch votes come in live as your audience responds.",
+    span: "md:col-span-2",
+  },
+];
 
-const HomePage: React.FC = () => {
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+const howItWorks = [
+  {
+    step: 1,
+    title: "Ask Your Question",
+    description:
+      "Type your question and add options. Which strategy to use? Planning an event? The power is yours.",
+  },
+  {
+    step: 2,
+    title: "Share With People",
+    description:
+      "Drop the link in group chats, Discord, social media, or embed it on your website.",
+  },
+  {
+    step: 3,
+    title: "Get Your Answer",
+    description:
+      "See the results in real-time from your dashboard. Find out which response won.",
+  },
+];
 
-  const features: Feature[] = [
-    {
-      icon: <IconGavel className="w-6 h-6" />,
-      title: "Ask Your Question",
-      description: "Create a poll in under 30 seconds. It's that easy!",
-    },
-    {
-      icon: <IconUsers className="w-6 h-6" />,
-      title: "Get Responses",
-      description: "Track votes and responses from one simple dashboard.",
-    },
-    {
-      icon: <IconScale className="w-6 h-6" />,
-      title: "Schedule Polls",
-      description:
-        "Is your poll time-sensitive? Set start and end times for your poll (optional).",
-    },
-    {
-      icon: <IconCode className="w-6 h-6" />,
-      title: "Share Everywhere",
-      description:
-        "Share a link in Discord, WhatsApp, social media, or embed it anywhere.",
-    },
+const faqs = [
+  {
+    question: "How quickly can I create a poll?",
+    answer:
+      "Less than 30 seconds! Just type your question, add some options, and share the link. TheJury has gone back to basics, focusing only on what's most important.",
+  },
+  {
+    question: "Can I schedule when my poll opens and closes?",
+    answer:
+      "You sure can! When creating your poll, just set a starting and end date. The poll will only be available within that time. You don't even need both dates.",
+  },
+  {
+    question: "How do I share my poll with my friends?",
+    answer:
+      "Send them the link, share it on social media, drop it in your Discord server, or embed it on your website. TheJury polls work everywhere.",
+  },
+  {
+    question: "Can I watch responses come in real-time?",
+    answer:
+      "Absolutely! Go to your dashboard and see votes come as people respond. You can also choose whether voters see current results or wait until everyone's voted.",
+  },
+  {
+    question: "Is there a limit to how many people can vote?",
+    answer:
+      "Nope! TheJury handles any crowd size you throw at it, or any crowd you throw the poll at. Either way, it works!",
+  },
+  {
+    question: "Can I embed polls on my website or stream?",
+    answer:
+      "For sure! Get an embed code and drop it anywhere - your blog, Twitch overlay, team website, you name it. Fully customizable to match your vibe.",
+  },
+];
+
+// --- Animated Word Component ---
+
+function AnimatedWord() {
+  const words = [
+    "friends",
+    "family",
+    "colleagues",
+    "team",
+    "community",
+    "audience",
   ];
+  const [index, setIndex] = useState(0);
 
-  const faqs: FAQ[] = [
-    {
-      question: "How quickly can I create a poll?",
-      answer:
-        "Less than 30 seconds! Just type your question, add some options, and share the link. TheJury has gone back" +
-        " to basics, focusing only on what's most important.",
-    },
-    {
-      question: "Can I schedule when my poll opens and closes?",
-      answer:
-        "You sure can! When creating your poll, just set a starting and end date. The poll will only be available" +
-        " within that time. You don't even need both dates. Just set the constraint you need.",
-    },
-    {
-      question: "How do I share my poll with my friends?",
-      answer:
-        "Send them the link, share it on social media, drop it in your Discord server, or embed it on your" +
-        " website. TheJury polls work everywhere.",
-    },
-    {
-      question: "Can I watch responses come in real-time?",
-      answer:
-        "Absolutely! Go to your dashboard and see votes come as people respond. You can also choose whether" +
-        " voters see current results or wait until everyone's voted.",
-    },
-    {
-      question: "Is there a limit to how many people can vote?",
-      answer:
-        "Nope! TheJury handles any crowd size you throw at it, or any crowd you throw the poll at. Either way, it" +
-        " works!",
-    },
-    {
-      question: "Can I embed polls on my website or stream?",
-      answer:
-        "For sure! Get an embed code and drop it anywhere - your blog, Twitch overlay, team website, you name it. Fully customizable to match your vibe.",
-    },
-  ];
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % words.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [words.length]);
 
-  const toggleFaq = (index: number): void => {
-    setOpenFaq(openFaq === index ? null : index);
-  };
-
-  const AnimatedWord: React.FC = () => {
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(true);
-    const words = [
-      "friends",
-      "family",
-      "colleagues",
-      "team",
-      "community",
-      "audience",
-    ];
-    const doubledWords = [...words, words[0]]; // Add first word to the end for seamless loop
-
-    React.useEffect(() => {
-      const interval = setInterval(() => {
-        setCurrentIndex((prevIndex) => {
-          const nextIndex = prevIndex + 1;
-
-          if (nextIndex >= doubledWords.length) {
-            return 0;
-          }
-
-          if (nextIndex === doubledWords.length - 1) {
-            setTimeout(() => {
-              setIsTransitioning(false);
-              setCurrentIndex(0);
-              setTimeout(() => setIsTransitioning(true), 50);
-            }, 750);
-          }
-          return nextIndex;
-        });
-      }, 2000);
-
-      return () => clearInterval(interval);
-    }, [doubledWords.length]);
-
-    return (
-      <div className="inline-block overflow-hidden h-[1.2em]">
-        <div
-          className={`flex flex-col ${
-            isTransitioning
-              ? "transition-transform duration-500 ease-in-out"
-              : ""
-          }`}
-          style={{
-            transform: `translateY(-${currentIndex * 1.2}em)`,
-          }}
+  return (
+    <span className="inline-block relative h-[1.15em] overflow-hidden align-bottom min-w-[4ch]">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={words[index]}
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -30, opacity: 0 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+          className="absolute left-0 gradient-text"
         >
-          {doubledWords.map((word, index) => (
-            <span key={index} className="h-[1.2em] flex items-center">
-              {word}
-            </span>
-          ))}
-        </div>
-      </div>
-    );
-  };
+          {words[index]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
+}
 
-  const HeroSection: React.FC = () => (
-    <section className="relative bg-gradient-to-br from-emerald-50 to-blue-50 pt-20 pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left side - Hero content */}
-          <div className="space-y-8">
-            <div className="space-y-4">
-              <div className="space-y-2 text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                <h1 className="flex items-center gap-2.5">
+// --- Page ---
+
+export default function HomePage() {
+  return (
+    <div className="min-h-screen">
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 animated-gradient-bg opacity-10 dark:opacity-20" />
+        <div className="absolute inset-0 grid-bg" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-20 lg:pt-24 lg:pb-28">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left — copy */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="space-y-8"
+            >
+              <div className="space-y-4">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display leading-[1.1] text-foreground">
                   Let your <AnimatedWord />
+                  <br />
+                  <span className="gradient-text">decide</span>
                 </h1>
-                <span className="text-emerald-700 block">decide</span>
-              </div>
-              <div>
-                <p className="text-xl text-gray-600 leading-relaxed">
+                <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
                   Finally, a poll creator that gets straight to the point.
                   Create polls in seconds, share with your people, and get
                   answers fast.
                 </p>
               </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href={`/create`}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
-              >
-                Create Your First Poll
-                <IconArrowRight className="w-5 h-5" />
-              </a>
-              <a
-                href={`/auth/sign-up`}
-                className={`px-8 py-4 border-2 border-emerald-700 text-emerald-700 hover:text-white hover:bg-emerald-700 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center`}
-              >
-                Join the Community
-              </a>
-            </div>
-          </div>
-
-          {/* Right side - Database-driven demo poll */}
-          <div className="lg:pl-8">
-            <DemoPollWidget />
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
-  const FeaturesSection: React.FC = () => (
-    <section className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            Everything you need to get consensus
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            From casual polls to serious team decisions
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {features.map((feature, index) => (
-            <div key={index} className="text-center group">
-              <div className="bg-emerald-50 text-emerald-700 w-16 h-16 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-emerald-700 group-hover:border-emerald-700 group-hover:text-white transition-all duration-300">
-                {feature.icon}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link href="/create">
+                  <Button variant="brand" size="xl" className="gap-2">
+                    Create Your First Poll
+                    <IconArrowRight className="w-5 h-5" />
+                  </Button>
+                </Link>
+                <Link href="#how-it-works">
+                  <Button variant="brand-outline" size="xl">
+                    See How It Works
+                  </Button>
+                </Link>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-gray-600">{feature.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
 
-  const HowItWorksSection: React.FC = () => (
-    <section className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-2">
-            From question to answer in three easy steps
-          </h2>
-          <p className="text-xl text-gray-600">
-            Ask your question, share with people, and get results
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="text-center">
-            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
-              1
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Ask Your Question
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Type your question and add options. Which strategy to use?
-              Planning an event? Deciding between gard shell tacos or wraps? Por
-              qué no los dos!
-            </p>
-            <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded w-3/4 animate-pulse"></div>
-                <div className="h-3 bg-gray-100 rounded w-full animate-pulse"></div>
-                <div className="h-3 bg-gray-100 rounded w-full animate-pulse"></div>
-                <div className="h-3 bg-gray-100 rounded w-2/3 animate-pulse"></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
-              2
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Share With People
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Drop the link in a group chat, in a Discord server, on social
-              media, or anywhere you like. You can even embed your poll on your
-              website!
-            </p>
-            <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <IconShare className="w-5 h-5 text-emerald-700" />
-                <IconGlobe className="w-5 h-5 text-blue-600" />
-                <IconCode className="w-5 h-5 text-purple-600" />
-              </div>
-              <div className="text-sm text-gray-500 font-mono bg-gray-50 px-3 py-2 rounded">
-                thejury.app/answer/ABC123XYZ
-              </div>
-            </div>
-          </div>
-
-          <div className="text-center">
-            <div className="bg-emerald-700 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">
-              3
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              Get Your Answer
-            </h3>
-            <p className="text-gray-600 mb-6">
-              See the results as the responses come in real-time straight from
-              the dashboard. Find out which response has the most votes.
-            </p>
-            <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-              <IconChartBar className="w-8 h-8 text-emerald-700 mx-auto mb-3" />
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span>Option A</span>
-                  <span className="font-semibold">67%</span>
+              {/* Trust bar */}
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <IconScale className="w-4 h-4 text-emerald-500" />
+                  <span>
+                    <AnimatedCounter
+                      target={1200}
+                      suffix="+"
+                      className="font-semibold text-foreground"
+                    />{" "}
+                    polls created
+                  </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-emerald-700 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: "67%" }}
-                  ></div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Option B</span>
-                  <span className="font-semibold">33%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-emerald-400 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: "33%" }}
-                  ></div>
+                <div className="flex items-center gap-2">
+                  <IconUsers className="w-4 h-4 text-emerald-500" />
+                  <span>
+                    <AnimatedCounter
+                      target={8500}
+                      suffix="+"
+                      className="font-semibold text-foreground"
+                    />{" "}
+                    votes cast
+                  </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
+
+            {/* Right — demo poll */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="lg:pl-4"
+            >
+              <div className="animate-float">
+                <DemoPollWidget />
+              </div>
+            </motion.div>
           </div>
         </div>
-      </div>
-    </section>
-  );
+      </section>
 
-  const FAQSection: React.FC = () => (
-    <section className="py-20 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">FAQ</h2>
-          <p className="text-xl text-gray-600">
-            Common questions on using TheJury for your polls
-          </p>
+      {/* Features — Bento Grid */}
+      <section className="py-20 lg:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+                Everything you need to get{" "}
+                <span className="gradient-text">consensus</span>
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                From casual polls to serious team decisions
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <StaggerContainer className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {features.map((feature) => (
+              <StaggerItem key={feature.title} className={feature.span}>
+                <HoverCard className="h-full">
+                  <div className="h-full rounded-2xl border bg-card p-6 transition-shadow hover:shadow-md">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 text-white mb-4">
+                      <feature.icon className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-2">
+                      {feature.title}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {feature.description}
+                    </p>
+                  </div>
+                </HoverCard>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
         </div>
+      </section>
 
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg">
-              <button
-                className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors duration-200 focus:outline-none focus:bg-gray-50"
-                onClick={() => toggleFaq(index)}
-              >
-                <span className="font-semibold text-gray-900">
-                  {faq.question}
-                </span>
-                <IconChevronDown
-                  className={`w-5 h-5 text-gray-500 transition-transform duration-200 ${
-                    openFaq === index ? "rotate-180" : ""
-                  }`}
+      {/* How It Works — Timeline */}
+      <section id="how-it-works" className="py-20 lg:py-28 bg-muted/50 dark:bg-slate-950/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+                From question to answer in{" "}
+                <span className="gradient-text">three steps</span>
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Ask your question, share with people, and get results
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <StaggerContainer className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+            {howItWorks.map((item) => (
+              <StaggerItem key={item.step}>
+                <div className="text-center">
+                  <div className="relative mx-auto mb-6">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 text-white flex items-center justify-center text-xl font-bold mx-auto shadow-glow-emerald">
+                      {item.step}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </StaggerItem>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="relative py-20 lg:py-28 bg-slate-900 dark:bg-slate-950 overflow-hidden">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 via-transparent to-teal-600/20" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+              <div>
+                <AnimatedCounter
+                  target={1200}
+                  suffix="+"
+                  className="text-4xl sm:text-5xl font-display text-white"
                 />
-              </button>
-
-              {openFaq === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                </div>
-              )}
+                <p className="text-slate-400 mt-2 text-sm uppercase tracking-wider">
+                  Polls Created
+                </p>
+              </div>
+              <div>
+                <AnimatedCounter
+                  target={8500}
+                  suffix="+"
+                  className="text-4xl sm:text-5xl font-display text-white"
+                />
+                <p className="text-slate-400 mt-2 text-sm uppercase tracking-wider">
+                  Votes Cast
+                </p>
+              </div>
+              <div>
+                <AnimatedCounter
+                  target={500}
+                  suffix="+"
+                  className="text-4xl sm:text-5xl font-display text-white"
+                />
+                <p className="text-slate-400 mt-2 text-sm uppercase tracking-wider">
+                  Happy Users
+                </p>
+              </div>
             </div>
-          ))}
+          </ScrollReveal>
         </div>
-      </div>
-    </section>
-  );
+      </section>
 
-  const CTASection: React.FC = () => (
-    <section className="py-20 bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Ready to settle the debate?
-        </h2>
-        <p className="text-xl text-gray-600 mb-8">
-          Join TheJury for free and start making group decisions
-        </p>
+      {/* FAQ */}
+      <section className="py-20 lg:py-28">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <ScrollReveal>
+            <div className="text-center mb-14">
+              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
+                Frequently asked <span className="gradient-text">questions</span>
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                Common questions on using TheJury for your polls
+              </p>
+            </div>
+          </ScrollReveal>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <a
-            href="/create"
-            className="bg-emerald-700 hover:bg-emerald-800 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl inline-flex items-center justify-center gap-2"
-          >
-            Make Your First Poll
-            <IconArrowRight className="w-5 h-5" />
-          </a>
-          <a
-            href="/auth/sign-up"
-            className="border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 inline-flex items-center justify-center"
-          >
-            Join the Community
-          </a>
+          <ScrollReveal>
+            <Accordion type="single" collapsible className="space-y-3">
+              {faqs.map((faq, i) => (
+                <AccordionItem
+                  key={i}
+                  value={`faq-${i}`}
+                  className="rounded-xl border bg-card px-6 data-[state=open]:border-emerald-500/50 transition-colors"
+                >
+                  <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline py-5">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </ScrollReveal>
         </div>
-      </div>
-    </section>
-  );
+      </section>
 
-  return (
-    <div className="min-h-screen">
-      <HeroSection />
-      <FeaturesSection />
-      <HowItWorksSection />
-      <FAQSection />
-      <CTASection />
+      {/* CTA */}
+      <section className="relative py-20 lg:py-28 overflow-hidden">
+        <div className="absolute inset-0 animated-gradient-bg" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <ScrollReveal>
+            <h2 className="text-3xl sm:text-4xl font-display text-white mb-4">
+              Ready to settle the debate?
+            </h2>
+            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
+              Join TheJury for free and start making group decisions the easy
+              way.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/create">
+                <Button
+                  size="xl"
+                  className="bg-white text-emerald-700 hover:bg-white/90 shadow-lg gap-2"
+                >
+                  Make Your First Poll
+                  <IconArrowRight className="w-5 h-5" />
+                </Button>
+              </Link>
+              <Link href="/auth/sign-up">
+                <Button
+                  variant="outline"
+                  size="xl"
+                  className="border-white/40 text-white hover:bg-white/10"
+                >
+                  Join the Community
+                </Button>
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
     </div>
   );
-};
-
-export default HomePage;
+}

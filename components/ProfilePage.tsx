@@ -2,8 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { Container } from "@/components/Container";
-import { IconCheck, IconLoader2 } from "@tabler/icons-react";
+import { IconCheck, IconLoader2, IconMail, IconCalendar, IconChartBar } from "@tabler/icons-react";
 import {
   updateProfile,
   checkUsernameAvailable,
@@ -11,6 +10,11 @@ import {
 } from "@/lib/supabaseHelpers";
 import { profileUpdateSchema } from "@/lib/validations";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  StaggerContainer,
+  StaggerItem,
+} from "@/components/motion";
 import type { Profile } from "@/lib/supabaseHelpers";
 import type { TierName } from "@/lib/stripe";
 
@@ -23,6 +27,12 @@ interface ProfilePageProps {
   subscriptionStatus: string | null;
   currentPeriodEnd: string | null;
 }
+
+const tierBadgeStyles: Record<TierName, string> = {
+  free: "bg-muted text-muted-foreground border border-border",
+  pro: "bg-emerald-500/10 text-emerald-500 border border-emerald-500/30",
+  team: "bg-purple-500/10 text-purple-400 border border-purple-500/30",
+};
 
 export default function ProfilePage({
   profile,
@@ -134,179 +144,246 @@ export default function ProfilePage({
   const initial = (profile.username || email || "?")[0].toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gray-50 sm:py-8">
-      <Container>
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">
-            Your Profile
-          </h1>
-
-          {/* Profile Info */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              Profile Info
-            </h2>
-
-            {/* Avatar */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-16 rounded-full bg-emerald-800 text-white flex items-center justify-center text-2xl font-bold">
-                {initial}
+    <div className="min-h-screen bg-background py-8 sm:py-12">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <StaggerContainer className="flex flex-col lg:flex-row gap-8">
+          {/* Left Sidebar */}
+          <StaggerItem className="lg:w-80 shrink-0">
+            <div className="rounded-2xl bg-card border border-border p-8 flex flex-col items-center text-center">
+              {/* Avatar with gradient ring */}
+              <div className="relative mb-5">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 p-[3px]">
+                  <div className="w-full h-full rounded-full bg-card flex items-center justify-center">
+                    <span className="text-3xl font-bold gradient-text">
+                      {initial}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-gray-900">{profile.username}</p>
-                <p className="text-sm text-gray-500">{email}</p>
+
+              <h2 className="text-lg font-semibold text-foreground mb-1">
+                {profile.username}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">{email}</p>
+
+              {/* Tier Badge */}
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider mb-6 ${tierBadgeStyles[subscriptionTier]}`}
+              >
+                {subscriptionTier}
+              </span>
+
+              {/* Quick Stats */}
+              <div className="w-full border-t border-border pt-5 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <IconChartBar size={18} className="text-emerald-500" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm text-muted-foreground">Polls Created</p>
+                    <p className="text-foreground font-semibold">{pollCount}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <IconCalendar size={18} className="text-emerald-500" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm text-muted-foreground">Member Since</p>
+                    <p className="text-foreground font-semibold">
+                      {formatDate(memberSince)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <IconMail size={18} className="text-emerald-500" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <p className="text-sm text-muted-foreground">Email</p>
+                    <p className="text-foreground font-semibold truncate">
+                      {email}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+          </StaggerItem>
 
-            {/* Username */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Username
-              </label>
-              <div className="flex gap-3">
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameStatus("idle");
-                      setUsernameError("");
-                    }}
-                    onBlur={() => checkUsername(username)}
-                    className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
-                      usernameStatus === "taken" || usernameStatus === "invalid"
-                        ? "border-red-300"
-                        : usernameStatus === "available"
-                          ? "border-emerald-300"
-                          : "border-gray-300"
-                    }`}
-                  />
-                  {usernameStatus === "checking" && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <IconLoader2
-                        size={18}
-                        className="animate-spin text-gray-400"
+          {/* Main Content */}
+          <div className="flex-1 space-y-6">
+            {/* Page Title */}
+            <StaggerItem>
+              <h1 className="text-3xl font-display text-foreground">
+                Your Profile
+              </h1>
+            </StaggerItem>
+
+            {/* Profile Info */}
+            <StaggerItem>
+              <div className="rounded-2xl bg-card border border-border p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-6">
+                  Profile Info
+                </h2>
+
+                {/* Username */}
+                <div>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">
+                    Username
+                  </label>
+                  <div className="flex gap-3">
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => {
+                          setUsername(e.target.value);
+                          setUsernameStatus("idle");
+                          setUsernameError("");
+                        }}
+                        onBlur={() => checkUsername(username)}
+                        className={`w-full px-4 py-2 bg-background border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors ${
+                          usernameStatus === "taken" ||
+                          usernameStatus === "invalid"
+                            ? "border-destructive"
+                            : usernameStatus === "available"
+                              ? "border-emerald-500"
+                              : "border-border"
+                        }`}
                       />
+                      {usernameStatus === "checking" && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <IconLoader2
+                            size={18}
+                            className="animate-spin text-muted-foreground"
+                          />
+                        </div>
+                      )}
+                      {usernameStatus === "available" && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <IconCheck size={18} className="text-emerald-500" />
+                        </div>
+                      )}
                     </div>
+                    <Button
+                      variant="brand"
+                      onClick={handleSave}
+                      disabled={
+                        isSaving ||
+                        username === profile.username ||
+                        usernameStatus === "taken" ||
+                        usernameStatus === "invalid" ||
+                        usernameStatus === "checking"
+                      }
+                    >
+                      {isSaving ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                  {usernameError && (
+                    <p className="mt-1 text-sm text-destructive">
+                      {usernameError}
+                    </p>
                   )}
                   {usernameStatus === "available" && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <IconCheck size={18} className="text-emerald-600" />
+                    <p className="mt-1 text-sm text-emerald-500">
+                      Username is available
+                    </p>
+                  )}
+                </div>
+              </div>
+            </StaggerItem>
+
+            {/* Subscription */}
+            <StaggerItem>
+              <div className="rounded-2xl bg-card border border-border p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-6">
+                  Subscription
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      Current Plan
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${tierBadgeStyles[subscriptionTier]}`}
+                      >
+                        {subscriptionTier}
+                      </span>
+                      {subscriptionStatus &&
+                        subscriptionStatus !== "active" && (
+                          <span className="bg-yellow-500/10 text-yellow-500 border border-yellow-500/30 px-2 py-0.5 rounded-full text-xs font-medium">
+                            {subscriptionStatus}
+                          </span>
+                        )}
+                    </div>
+                  </div>
+
+                  {currentPeriodEnd && (
+                    <div>
+                      <label className="block text-sm font-medium text-muted-foreground mb-1">
+                        Current Period Ends
+                      </label>
+                      <p className="text-foreground font-medium">
+                        {formatDate(currentPeriodEnd)}
+                      </p>
                     </div>
                   )}
                 </div>
-                <button
-                  onClick={handleSave}
-                  disabled={
-                    isSaving ||
-                    username === profile.username ||
-                    usernameStatus === "taken" ||
-                    usernameStatus === "invalid" ||
-                    usernameStatus === "checking"
-                  }
-                  className="bg-emerald-800 hover:bg-emerald-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-medium transition-colors"
-                >
-                  {isSaving ? "Saving..." : "Save"}
-                </button>
-              </div>
-              {usernameError && (
-                <p className="mt-1 text-sm text-red-600">{usernameError}</p>
-              )}
-              {usernameStatus === "available" && (
-                <p className="mt-1 text-sm text-emerald-600">
-                  Username is available
-                </p>
-              )}
-            </div>
-          </div>
 
-          {/* Subscription */}
-          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              Subscription
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  Current Plan
-                </label>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-900 font-medium capitalize">
-                    {subscriptionTier}
-                  </span>
-                  {subscriptionStatus && subscriptionStatus !== "active" && (
-                    <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-medium">
-                      {subscriptionStatus}
-                    </span>
+                <div className="flex gap-3 pt-5 mt-5 border-t border-border">
+                  {subscriptionTier === "free" ? (
+                    <Button variant="brand" asChild>
+                      <Link href="/pricing">Upgrade</Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="brand"
+                      onClick={handleManageBilling}
+                      disabled={isPortalLoading}
+                    >
+                      {isPortalLoading ? "Loading..." : "Manage Billing"}
+                    </Button>
                   )}
                 </div>
               </div>
+            </StaggerItem>
 
-              {currentPeriodEnd && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-500 mb-1">
-                    Current Period Ends
-                  </label>
-                  <p className="text-gray-900">
-                    {formatDate(currentPeriodEnd)}
-                  </p>
+            {/* Account Info */}
+            <StaggerItem>
+              <div className="rounded-2xl bg-card border border-border p-6">
+                <h2 className="text-lg font-semibold text-foreground mb-6">
+                  Account Info
+                </h2>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      Email
+                    </label>
+                    <p className="text-foreground">{email}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      Member Since
+                    </label>
+                    <p className="text-foreground">{formatDate(memberSince)}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-muted-foreground mb-1">
+                      Polls Created
+                    </label>
+                    <p className="text-foreground">{pollCount}</p>
+                  </div>
                 </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                {subscriptionTier === "free" ? (
-                  <Link
-                    href="/pricing"
-                    className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-2 rounded-md font-medium transition-colors"
-                  >
-                    Upgrade
-                  </Link>
-                ) : (
-                  <button
-                    onClick={handleManageBilling}
-                    disabled={isPortalLoading}
-                    className="bg-emerald-800 hover:bg-emerald-900 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2 rounded-md font-medium transition-colors"
-                  >
-                    {isPortalLoading ? "Loading..." : "Manage Billing"}
-                  </button>
-                )}
               </div>
-            </div>
+            </StaggerItem>
           </div>
-
-          {/* Account Info */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-6">
-              Account Info
-            </h2>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  Email
-                </label>
-                <p className="text-gray-900">{email}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  Member Since
-                </label>
-                <p className="text-gray-900">{formatDate(memberSince)}</p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-500 mb-1">
-                  Polls Created
-                </label>
-                <p className="text-gray-900">{pollCount}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Container>
+        </StaggerContainer>
+      </div>
     </div>
   );
 }

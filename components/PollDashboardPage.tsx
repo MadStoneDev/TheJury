@@ -3,7 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Container } from "@/components/Container";
+import { motion } from "motion/react";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { HoverCard, StaggerContainer, StaggerItem } from "@/components/motion";
 import {
   IconPlus,
   IconEdit,
@@ -217,63 +224,90 @@ export default function PollDashboardPage() {
   const isFiltered = search.trim() || statusFilter !== "all";
 
   return (
-    <div className="min-h-screen bg-gray-50 sm:py-8">
-      <Container>
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between xs:items-center gap-4 mb-8 transition-all duration-200 ease-in-out">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Your Polls
-              </h1>
-              <p className="text-gray-600">
-                Manage and track all your polls in one place
-              </p>
-            </div>
-            <Link
-              href={`/create`}
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors flex items-center space-x-2"
-            >
+    <div className="min-h-screen sm:py-8">
+      <div className="max-w-6xl mx-auto px-4">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="flex flex-col sm:flex-row justify-between xs:items-center gap-4 mb-8 transition-all duration-200 ease-in-out"
+        >
+          <div>
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2">
+              Your Polls
+            </h1>
+            <p className="text-muted-foreground">
+              Manage and track all your polls in one place
+            </p>
+          </div>
+          <Button variant="brand" size="lg" asChild>
+            <Link href={`/create`}>
               <IconPlus size={20} />
               <span>Create New Poll</span>
             </Link>
-          </div>
+          </Button>
+        </motion.div>
 
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-              <div className="text-red-600 text-sm">{error}</div>
-              <button
-                onClick={() => setError("")}
-                className="mt-2 text-sm text-red-500 underline"
-              >
-                Dismiss
-              </button>
-            </div>
-          )}
+        {/* Error Message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl"
+          >
+            <div className="text-destructive text-sm">{error}</div>
+            <button
+              onClick={() => setError("")}
+              className="mt-2 text-sm text-destructive underline"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 mb-6">
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="text-2xl font-bold text-gray-900">
+        {/* Stats */}
+        <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 mb-6">
+          <HoverCard>
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
+                <div className="text-sm text-muted-foreground">Total Polls</div>
+              </div>
+              <div className="text-2xl font-bold text-foreground pl-5">
                 {polls.length}
               </div>
-              <div className="text-sm text-gray-600">Total Polls</div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="text-2xl font-bold text-emerald-800">
+          </HoverCard>
+          <HoverCard>
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                <div className="text-sm text-muted-foreground">Active Polls</div>
+              </div>
+              <div className="text-2xl font-bold text-emerald-500 pl-5">
                 {polls.filter((p) => p.is_active).length}
               </div>
-              <div className="text-sm text-gray-600">Active Polls</div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="text-2xl font-bold text-gray-900">
+          </HoverCard>
+          <HoverCard>
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-2 h-2 rounded-full bg-blue-400/60" />
+                <div className="text-sm text-muted-foreground">Total Votes</div>
+              </div>
+              <div className="text-2xl font-bold text-foreground pl-5">
                 {polls.reduce((sum, p) => sum + (p.total_votes || 0), 0)}
               </div>
-              <div className="text-sm text-gray-600">Total Votes</div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <div className="text-2xl font-bold text-gray-900">
+          </HoverCard>
+          <HoverCard>
+            <div className="bg-card rounded-2xl border border-border p-6">
+              <div className="flex items-center gap-3 mb-1">
+                <div className="w-2 h-2 rounded-full bg-amber-400/60" />
+                <div className="text-sm text-muted-foreground">Avg Votes/Poll</div>
+              </div>
+              <div className="text-2xl font-bold text-foreground pl-5">
                 {polls.length > 0
                   ? Math.round(
                       polls.reduce((sum, p) => sum + (p.total_votes || 0), 0) /
@@ -281,93 +315,115 @@ export default function PollDashboardPage() {
                     )
                   : 0}
               </div>
-              <div className="text-sm text-gray-600">Avg Votes/Poll</div>
             </div>
-          </div>
+          </HoverCard>
+        </div>
 
-          {/* Controls */}
-          {polls.length > 0 && (
-            <DashboardControls
-              search={search}
-              onSearchChange={setSearch}
-              statusFilter={statusFilter}
-              onStatusFilterChange={setStatusFilter}
-              sortOption={sortOption}
-              onSortChange={setSortOption}
-            />
-          )}
+        {/* Controls */}
+        {polls.length > 0 && (
+          <DashboardControls
+            search={search}
+            onSearchChange={setSearch}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            sortOption={sortOption}
+            onSortChange={setSortOption}
+          />
+        )}
 
-          {/* Filtered count */}
-          {polls.length > 0 && isFiltered && (
-            <p className="text-sm text-gray-500 mb-4">
-              {filteredPolls.length} of {polls.length} polls
+        {/* Filtered count */}
+        {polls.length > 0 && isFiltered && (
+          <p className="text-sm text-muted-foreground mb-4">
+            {filteredPolls.length} of {polls.length} polls
+          </p>
+        )}
+
+        {/* Polls List */}
+        {polls.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="bg-card rounded-2xl border border-border p-12 text-center"
+          >
+            <div className="text-6xl mb-4">
+              <IconChartBar size={64} className="mx-auto text-muted-foreground/40" />
+            </div>
+            <h2 className="text-2xl font-display font-bold text-foreground mb-2">
+              No polls yet
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Create your first poll to get started!
             </p>
-          )}
-
-          {/* Polls List */}
-          {polls.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <div className="text-6xl mb-4">📊</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                No polls yet
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Create your first poll to get started!
-              </p>
-              <Link
-                href={`/create`}
-                className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center space-x-2"
-              >
+            <Button variant="brand" size="lg" asChild>
+              <Link href={`/create`}>
                 <IconPlus size={20} />
                 <span>Create Your First Poll</span>
               </Link>
+            </Button>
+          </motion.div>
+        ) : filteredPolls.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4 }}
+            className="bg-card rounded-2xl border border-border p-12 text-center"
+          >
+            <div className="text-6xl mb-4">
+              <IconEye size={64} className="mx-auto text-muted-foreground/40" />
             </div>
-          ) : filteredPolls.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-              <div className="text-6xl mb-4">🔍</div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                No polls match
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Try adjusting your search or filters.
-              </p>
-              <button
-                onClick={() => {
-                  setSearch("");
-                  setStatusFilter("all");
-                }}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-md font-medium transition-colors"
-              >
-                Clear Filters
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="space-y-4">
-                {paginatedPolls.map((poll) => (
+            <h2 className="text-2xl font-display font-bold text-foreground mb-2">
+              No polls match
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Try adjusting your search or filters.
+            </p>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => {
+                setSearch("");
+                setStatusFilter("all");
+              }}
+            >
+              Clear Filters
+            </Button>
+          </motion.div>
+        ) : (
+          <>
+            <StaggerContainer className="space-y-4">
+              {paginatedPolls.map((poll) => (
+                <StaggerItem key={poll.id}>
                   <div
-                    key={poll.id}
-                    className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6"
+                    className={`relative bg-card rounded-2xl border border-border p-4 sm:p-6 transition-colors border-l-4 ${
+                      poll.is_active
+                        ? "border-l-emerald-500"
+                        : "border-l-muted-foreground/30"
+                    }`}
                   >
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
                       <div className="flex-1 mb-4 lg:mb-0">
                         <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between lg:justify-start gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900 max-w-[300px]">
+                          <h3 className="text-lg font-semibold text-foreground max-w-[300px]">
                             {poll.question}
                           </h3>
 
                           <div className="flex items-center space-x-2">
                             {poll.allow_multiple && (
-                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">
                                 Multiple Choice
                               </span>
                             )}
                             {poll.is_active ? (
-                              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full text-xs font-medium">
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                </span>
                                 Active
                               </span>
                             ) : (
-                              <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-medium">
+                              <span className="bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs font-medium">
                                 Inactive
                               </span>
                             )}
@@ -375,15 +431,15 @@ export default function PollDashboardPage() {
                         </div>
 
                         {poll.description && (
-                          <p className="text-gray-600 mb-2">
+                          <p className="text-muted-foreground mb-2">
                             {poll.description}
                           </p>
                         )}
 
-                        <div className="py-4 md:py-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 border-t border-b md:border-0 border-neutral-200 text-xs font-light text-gray-400">
+                        <div className="py-4 md:py-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 border-t border-b md:border-0 border-border text-xs font-light text-muted-foreground">
                           <span>
                             Code:{" "}
-                            <span className="font-mono font-semibold">
+                            <span className="font-mono font-semibold bg-muted px-2 py-0.5 rounded text-xs">
                               {poll.code}
                             </span>
                           </span>
@@ -392,179 +448,183 @@ export default function PollDashboardPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2 lg:max-w-[400px]">
+                      <div className="flex items-center gap-1 lg:max-w-[400px]">
                         {/* Share */}
-                        <button
-                          onClick={() => setShareModalPollCode(poll.code)}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                          title="Share poll"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconShare size={18} />
-                            Share
-                          </span>
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => setShareModalPollCode(poll.code)}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <IconShare size={18} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Share poll</TooltipContent>
+                        </Tooltip>
 
                         {/* View Poll */}
-                        <Link
-                          href={`/answer/${poll.code}`}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                          title="View poll"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconEye size={18} />
-                            Go to Poll
-                          </span>
-                        </Link>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={`/answer/${poll.code}`}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <IconEye size={18} />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>View poll</TooltipContent>
+                        </Tooltip>
 
                         {/* View Results */}
-                        <Link
-                          href={`/dashboard/results/${poll.code}`}
-                          className="p-2 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                          title="View detailed results"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconChartBar size={18} />
-                            See Analytics
-                          </span>
-                        </Link>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={`/dashboard/results/${poll.code}`}
+                              className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
+                            >
+                              <IconChartBar size={18} />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>See analytics</TooltipContent>
+                        </Tooltip>
 
                         {/* Edit */}
-                        <Link
-                          href={`/edit/${poll.code}`}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                          title="Edit poll"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconEdit size={18} />
-                            Edit Poll
-                          </span>
-                        </Link>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Link
+                              href={`/edit/${poll.code}`}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <IconEdit size={18} />
+                            </Link>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit poll</TooltipContent>
+                        </Tooltip>
 
                         {/* Embed Code */}
-                        <button
-                          onClick={() =>
-                            setShowEmbedCode(
-                              showEmbedCode === poll.id ? "" : poll.id,
-                            )
-                          }
-                          className="p-2 text-purple-500 hover:text-purple-700 hover:bg-purple-50 rounded transition-colors"
-                          title="Get embed code"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconCode size={18} />
-                            Embed Code
-                          </span>
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() =>
+                                setShowEmbedCode(
+                                  showEmbedCode === poll.id ? "" : poll.id,
+                                )
+                              }
+                              className="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors"
+                            >
+                              <IconCode size={18} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Embed code</TooltipContent>
+                        </Tooltip>
 
                         {/* Duplicate */}
-                        <button
-                          onClick={() => handleDuplicatePoll(poll.id)}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                          title="Duplicate poll"
-                        >
-                          <span className="flex items-center gap-1 text-sm">
-                            <IconCopyFiles size={18} />
-                            Duplicate
-                          </span>
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleDuplicatePoll(poll.id)}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
+                            >
+                              <IconCopyFiles size={18} />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicate poll</TooltipContent>
+                        </Tooltip>
 
                         {/* Toggle Active/Inactive */}
-                        <button
-                          onClick={() => handleTogglePollStatus(poll.id)}
-                          className={`p-2 rounded transition-colors ${
-                            poll.is_active
-                              ? "text-emerald-700 hover:text-emerald-700 hover:bg-emerald-50"
-                              : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                          }`}
-                          title={
-                            poll.is_active
-                              ? "Deactivate poll"
-                              : "Activate poll"
-                          }
-                        >
-                          {poll.is_active ? (
-                            <span className="flex items-center gap-1 text-sm">
-                              <IconCheck size={18} /> Poll is active
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1 text-sm">
-                              <IconX size={18} />
-                              Poll is inactive
-                            </span>
-                          )}
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => handleTogglePollStatus(poll.id)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                poll.is_active
+                                  ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              }`}
+                            >
+                              {poll.is_active ? (
+                                <IconCheck size={18} />
+                              ) : (
+                                <IconX size={18} />
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {poll.is_active ? "Deactivate poll" : "Activate poll"}
+                          </TooltipContent>
+                        </Tooltip>
 
                         {/* Delete */}
                         {deleteConfirm === poll.id ? (
-                          <div className="absolute top-0 bottom-0 left-0 right-0 flex flex-col justify-center items-center space-y-2 bg-white/90">
-                            <span className="text-neutral-900 text-sm">
+                          <div className="absolute inset-0 flex flex-col justify-center items-center space-y-2 bg-card/95 backdrop-blur-sm rounded-2xl z-10">
+                            <span className="text-foreground text-sm">
                               Are you sure you want to delete this poll?
                             </span>
                             <div className="flex justify-center items-center space-x-1">
-                              <button
+                              <Button
+                                variant="destructive"
+                                size="sm"
                                 onClick={() => handleDeletePoll(poll.id)}
-                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded transition-colors text-sm"
-                                title="Confirm delete"
                               >
                                 Yes, chop it
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => setDeleteConfirm("")}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors text-sm"
-                                title="Cancel"
                               >
                                 Wait, no. Scratch that
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setDeleteConfirm(poll.id)}
-                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete poll"
-                          >
-                            <span className="flex items-center gap-1 text-sm">
-                              <IconTrash size={18} />
-                              Delete Poll
-                            </span>
-                          </button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => setDeleteConfirm(poll.id)}
+                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                              >
+                                <IconTrash size={18} />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Delete poll</TooltipContent>
+                          </Tooltip>
                         )}
                       </div>
                     </div>
 
                     {/* Embed Code Generator - Shows when toggled */}
                     {showEmbedCode === poll.id && (
-                      <div className="border-t border-gray-200 p-6 bg-gray-50">
+                      <div className="border-t border-border p-6 bg-muted/50 rounded-b-2xl -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-4">
                         <EmbedCodeGenerator pollCode={poll.code} />
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                </StaggerItem>
+              ))}
+            </StaggerContainer>
 
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </>
-          )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </>
+        )}
 
-          {/* Quick Actions Footer */}
-          <div className="mt-12 bg-white rounded-lg shadow-sm p-6">
-            <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href={`/create`}
-                className="bg-emerald-800 hover:bg-emerald-900 text-white px-4 py-2 rounded-md font-medium transition-colors"
-              >
+        {/* Quick Actions Footer */}
+        <div className="mt-12 bg-card rounded-2xl border border-border p-6">
+          <h3 className="font-display font-semibold text-foreground mb-4">Quick Actions</h3>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="brand" asChild>
+              <Link href={`/create`}>
+                <IconPlus size={18} />
                 Create New Poll
               </Link>
-            </div>
+            </Button>
           </div>
         </div>
-      </Container>
+      </div>
 
       {/* Share Modal */}
       <ShareModal

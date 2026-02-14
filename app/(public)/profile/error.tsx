@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { Container } from "@/components/Container";
 import { IconArrowLeft, IconRefresh } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
 
 export default function Error({
   error,
@@ -12,34 +12,32 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Container>
-        <div className="max-w-md mx-auto text-center bg-white rounded-lg shadow-lg p-8">
-          <div className="text-red-500 text-6xl mb-4">&#x26A0;&#xFE0F;</div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="max-w-md mx-auto text-center">
+        <div className="rounded-2xl border bg-card p-8">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl text-destructive">!</span>
+          </div>
+          <h1 className="text-2xl font-display text-foreground mb-2">
             Something went wrong
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {error.message || "Failed to load your profile. Please try again."}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              onClick={reset}
-              className="bg-emerald-800 hover:bg-emerald-900 text-white px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center justify-center space-x-2"
-            >
-              <IconRefresh size={20} />
-              <span>Try Again</span>
-            </button>
-            <Link
-              href="/dashboard"
-              className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-md font-medium transition-colors inline-flex items-center justify-center space-x-2"
-            >
-              <IconArrowLeft size={20} />
-              <span>Back to Dashboard</span>
+            <Button onClick={reset} variant="brand" className="gap-2">
+              <IconRefresh size={18} />
+              Try Again
+            </Button>
+            <Link href="/dashboard">
+              <Button variant="outline" className="gap-2">
+                <IconArrowLeft size={18} />
+                Back to Dashboard
+              </Button>
             </Link>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 }

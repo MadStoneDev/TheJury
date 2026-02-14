@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { TIERS, getProPriceId, getTeamPriceId, type TierName } from "@/lib/stripe";
 import PricingCards from "@/components/PricingCards";
+import { ScrollReveal } from "@/components/motion";
 
 export default async function PricingPage() {
   const supabase = await createClient();
@@ -26,17 +27,21 @@ export default async function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-background py-12 sm:py-20">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Simple, transparent pricing
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Start free with up to 100 votes per poll. Upgrade when you need
-            unlimited votes, custom branding, and more.
-          </p>
-        </div>
+        <ScrollReveal>
+          <div className="text-center mb-16">
+            <h1 className="text-4xl sm:text-5xl font-display text-foreground mb-4">
+              Simple,{" "}
+              <span className="gradient-text">transparent</span>{" "}
+              pricing
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Start free with up to 100 votes per poll. Upgrade when you need
+              unlimited votes, custom branding, and more.
+            </p>
+          </div>
+        </ScrollReveal>
 
         <PricingCards
           tiers={{

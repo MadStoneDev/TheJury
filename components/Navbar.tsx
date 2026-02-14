@@ -2,22 +2,50 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from "next-themes";
 import { getCurrentUser, signOut } from "@/lib/supabaseHelpers";
 import type { User } from "@supabase/supabase-js";
 import {
   IconCurrencyDollar,
   IconDashboard,
+  IconMenu2,
+  IconMoon,
   IconPlus,
   IconPower,
+  IconSun,
   IconUser,
 } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export const Navbar = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -46,205 +74,207 @@ export const Navbar = () => {
     }
   };
 
+  const isActive = (path: string) => pathname === path;
+
+  const navLinks = [
+    { href: "/pricing", label: "Pricing", icon: IconCurrencyDollar, show: true },
+    { href: "/dashboard", label: "Dashboard", icon: IconDashboard, show: !!user },
+    { href: "/create", label: "Create Poll", icon: IconPlus, show: !!user },
+  ];
+
   return (
-    <nav className="bg-white border-b border-neutral-200 fixed top-0 left-0 right-0 z-50">
-      <div className="bg-white max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "backdrop-blur-xl bg-background/80 border-b border-border shadow-sm"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center">
-            <Link
-              href="/"
-              className="text-2xl font-bold text-neutral-900 hover:text-emerald-700 transition-colors"
-            >
-              TheJury
-            </Link>
-          </div>
+          <Link
+            href="/"
+            className="text-2xl font-display text-foreground hover:text-emerald-500 transition-colors duration-200"
+          >
+            TheJury
+          </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/pricing"
-              className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-            >
-              Pricing
-            </Link>
-            {user && (
-              <>
+          <div className="hidden md:flex items-center gap-1">
+            {navLinks
+              .filter((l) => l.show)
+              .map((link) => (
                 <Link
-                  href="/dashboard"
-                  className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+                  key={link.href}
+                  href={link.href}
+                  className={`relative px-4 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                    isActive(link.href)
+                      ? "text-emerald-500"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
                 >
-                  Dashboard
+                  {link.label}
+                  {isActive(link.href) && (
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-emerald-500 rounded-full" />
+                  )}
                 </Link>
-                <Link
-                  href="/create"
-                  className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-                >
-                  Create Poll
-                </Link>
-              </>
-            )}
+              ))}
           </div>
 
-          {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          {/* Desktop Right Section */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Theme Toggle */}
+            {mounted && (
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <IconSun size={18} />
+                ) : (
+                  <IconMoon size={18} />
+                )}
+              </button>
+            )}
+
             {isLoading ? (
-              <div className="w-8 h-8 animate-pulse bg-gray-200 rounded"></div>
+              <div className="w-8 h-8 animate-pulse bg-muted rounded-full" />
             ) : user ? (
-              <>
+              <div className="flex items-center gap-2">
                 <Link
                   href="/profile"
-                  className="text-sm text-emerald-700 hover:text-emerald-900 font-medium transition-colors"
+                  className={`flex items-center justify-center w-8 h-8 rounded-full bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-500 transition-colors ${
+                    isActive("/profile") ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-background" : ""
+                  }`}
                 >
-                  Profile
+                  {user.email?.charAt(0).toUpperCase() || "U"}
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  aria-label="Sign out"
                 >
-                  Sign Out
+                  <IconPower size={18} />
                 </button>
-              </>
+              </div>
             ) : (
-              <>
-                <Link
-                  href="/auth/login"
-                  className="text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/sign-up"
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-md font-medium transition-colors"
-                >
-                  Create Account
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-neutral-500 hover:text-neutral-900 focus:outline-none focus:text-neutral-900 transition-colors"
-            >
-              <svg
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                {isMenuOpen ? (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                ) : (
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                )}
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Menu */}
-
-        <div className="md:hidden">
-          <div
-            className={`space-y-1 bg-white border-t border-neutral-200 ${
-              isMenuOpen ? "max-h-[999px] pt-2 pb-3" : "max-h-0"
-            } overflow-hidden z-50 transition-all duration-200`}
-          >
-            <Link
-              href="/pricing"
-              className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <IconCurrencyDollar size={20} />
-              Pricing
-            </Link>
-            {user && (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <IconDashboard size={20} />
-                  Dashboard
-                </Link>
-                <Link
-                  href="/create"
-                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <IconPlus size={20} />
-                  Create Poll
-                </Link>
-                <Link
-                  href="/profile"
-                  className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <IconUser size={20} />
-                  Profile
-                </Link>
-              </>
-            )}
-
-            <div className="border-t border-neutral-200 pt-4 mt-4">
-              {isLoading ? (
-                <div className="px-3 py-2">
-                  <div className="w-20 h-4 animate-pulse bg-gray-200 rounded"></div>
-                </div>
-              ) : user ? (
-                <>
-                  <button
-                    onClick={() => {
-                      handleSignOut();
-                      setIsMenuOpen(false);
-                    }}
-                    className="flex items-center gap-1 px-3 py-2 hover:bg-emerald-700 text-neutral-600 hover:text-neutral-50 font-medium transition-all w-full text-left"
-                  >
-                    <IconPower size={20} />
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/auth/login"
-                    className="block px-3 py-2 text-neutral-600 hover:text-neutral-900 font-medium transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
+              <div className="flex items-center gap-2">
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
                     Sign In
-                  </Link>
-                  <Link
-                    href="/auth/sign-up"
-                    className="block px-3 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-md font-medium mt-2 text-center transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Create Account
-                  </Link>
-                </>
-              )}
-            </div>
+                  </Button>
+                </Link>
+                <Link href="/auth/sign-up">
+                  <Button variant="brand" size="sm">
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
-          <div
-            className={`${
-              isMenuOpen ? "opacity-100" : "pointer-events-none opacity-0"
-            } fixed top-0 right-0 bottom-0 left-0 bg-neutral-900/40 transition-all duration-200 -z-10`}
-            onClick={() => setIsMenuOpen(false)}
-          ></div>
+          {/* Mobile Menu */}
+          <div className="md:hidden flex items-center gap-2">
+            {mounted && (
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? (
+                  <IconSun size={18} />
+                ) : (
+                  <IconMoon size={18} />
+                )}
+              </button>
+            )}
+
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <button
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                  aria-label="Open menu"
+                >
+                  <IconMenu2 size={22} />
+                </button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-72 bg-background">
+                <SheetHeader>
+                  <SheetTitle className="font-display text-xl text-left">
+                    TheJury
+                  </SheetTitle>
+                </SheetHeader>
+
+                <nav className="flex flex-col gap-1 mt-6">
+                  {navLinks
+                    .filter((l) => l.show)
+                    .map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        onClick={() => setSheetOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                          isActive(link.href)
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
+                      >
+                        <link.icon size={20} />
+                        {link.label}
+                      </Link>
+                    ))}
+
+                  <div className="my-3 h-px bg-border" />
+
+                  {isLoading ? (
+                    <div className="px-3 py-2">
+                      <div className="w-20 h-4 animate-pulse bg-muted rounded" />
+                    </div>
+                  ) : user ? (
+                    <>
+                      <Link
+                        href="/profile"
+                        onClick={() => setSheetOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                          isActive("/profile")
+                            ? "bg-emerald-500/10 text-emerald-500"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
+                      >
+                        <IconUser size={20} />
+                        Profile
+                      </Link>
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setSheetOpen(false);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors w-full text-left"
+                      >
+                        <IconPower size={20} />
+                        Sign Out
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-2 px-3">
+                      <Link href="/auth/login" onClick={() => setSheetOpen(false)}>
+                        <Button variant="outline" className="w-full">
+                          Sign In
+                        </Button>
+                      </Link>
+                      <Link href="/auth/sign-up" onClick={() => setSheetOpen(false)}>
+                        <Button variant="brand" className="w-full">
+                          Get Started
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </div>
     </nav>

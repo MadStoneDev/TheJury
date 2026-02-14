@@ -1,8 +1,11 @@
-﻿// components/EmbedCodeGenerator.tsx - Component to generate embed codes
+// components/EmbedCodeGenerator.tsx
 "use client";
 
 import { useState } from "react";
 import { IconCopy, IconCheck } from "@tabler/icons-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface EmbedCodeGeneratorProps {
   pollCode: string;
@@ -45,61 +48,61 @@ export default function EmbedCodeGenerator({
     try {
       await navigator.clipboard.writeText(embedCode);
       setCopied(true);
+      toast.success("Embed code copied!");
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error("Failed to copy:", err);
+      toast.error("Failed to copy embed code");
     }
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+    <div>
+      <h3 className="text-sm font-semibold text-foreground mb-4">
         Embed This Poll
       </h3>
 
-      <div className="space-y-4 mb-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Width
-            </label>
-            <input
-              type="text"
-              value={width}
-              onChange={(e) => setWidth(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              placeholder="100%"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Initial Height
-            </label>
-            <input
-              type="text"
-              value={height}
-              onChange={(e) => setHeight(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-              placeholder="400"
-            />
-          </div>
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Width
+          </label>
+          <Input
+            type="text"
+            value={width}
+            onChange={(e) => setWidth(e.target.value)}
+            placeholder="100%"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Initial Height
+          </label>
+          <Input
+            type="text"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            placeholder="400"
+          />
         </div>
       </div>
 
       <div className="relative">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-xs font-medium text-muted-foreground mb-2">
           Embed Code
         </label>
-        <pre className="bg-gray-50 border border-gray-200 rounded p-3 text-xs overflow-x-auto text-gray-800 font-mono">
+        <pre className="bg-slate-950 text-emerald-400 border border-border rounded-xl p-4 text-xs overflow-x-auto font-mono leading-relaxed">
           {embedCode}
         </pre>
-        <button
+        <Button
           onClick={copyToClipboard}
-          className="absolute top-8 right-2 bg-white border border-gray-300 rounded px-2 py-1 text-xs hover:bg-gray-50 transition-colors flex items-center gap-1 text-neutral-600"
+          variant="brand"
+          size="sm"
+          className="absolute top-7 right-2 gap-1"
         >
           {copied ? (
             <>
-              <IconCheck size={12} className="text-green-600" />
+              <IconCheck size={12} />
               Copied!
             </>
           ) : (
@@ -108,12 +111,12 @@ export default function EmbedCodeGenerator({
               Copy
             </>
           )}
-        </button>
+        </Button>
       </div>
 
-      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-800">
-        <strong>Note:</strong> The iframe will automatically resize to fit the
-        poll content. You can customize the width and initial height above.
+      <div className="mt-3 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-xs text-muted-foreground">
+        The iframe will automatically resize to fit the poll content. You can
+        customize the width and initial height above.
       </div>
     </div>
   );
