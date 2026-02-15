@@ -13,6 +13,39 @@ function createServiceClient() {
   );
 }
 
+/**
+ * Find the Supabase user ID for a Stripe customer.
+ * Checks: 1) checkout session metadata, 2) profiles.stripe_customer_id,
+ * 3) Stripe customer metadata.
+ */
+async function resolveUserId(
+  supabase: ReturnType<typeof createServiceClient>,
+  stripe: Stripe,
+  customerId: string | null,
+  sessionMetadataUserId?: string | null,
+): Promise<string | null> {
+  // 1. Checkout session metadata
+  if (sessionMetadataUserId) return sessionMetadataUserId;
+
+  if (!customerId) return null;
+
+  // 2. Look up by stripe_customer_id in profiles
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("stripe_customer_id", customerId)
+    .single();
+  if (profile?.id) return profile.id;
+
+  // 3. Stripe customer metadata
+  const customer = await stripe.customers.retrieve(customerId);
+  if (!customer.deleted && customer.metadata?.userId) {
+    return customer.metadata.userId;
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const stripe = getStripe();
@@ -60,9 +93,27 @@ export async function POST(request: Request) {
             : session.customer?.id;
         const periodEnd = subItem?.current_period_end;
 
-        await supabase
+        const userId = await resolveUserId(
+          supabase,
+          stripe,
+          customerId ?? null,
+          session.metadata?.userId,
+        );
+
+        if (!userId) {
+          console.error(
+            "Webhook: Could not resolve user for checkout session",
+            session.id,
+            "customer:",
+            customerId,
+          );
+          break;
+        }
+
+        const { error: updateError } = await supabase
           .from("profiles")
           .update({
+            stripe_customer_id: customerId,
             subscription_tier: tier,
             subscription_status: subscription.status,
             subscription_id: subscription.id,
@@ -70,7 +121,15 @@ export async function POST(request: Request) {
               ? new Date(periodEnd * 1000).toISOString()
               : null,
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("id", userId);
+
+        if (updateError) {
+          console.error(
+            "Webhook: Failed to update profile for user",
+            userId,
+            updateError,
+          );
+        }
 
         break;
       }
@@ -86,7 +145,23 @@ export async function POST(request: Request) {
             : subscription.customer?.id;
         const periodEnd = subItem?.current_period_end;
 
-        await supabase
+        const userId = await resolveUserId(
+          supabase,
+          stripe,
+          customerId ?? null,
+        );
+
+        if (!userId) {
+          console.error(
+            "Webhook: Could not resolve user for subscription.updated",
+            subscription.id,
+            "customer:",
+            customerId,
+          );
+          break;
+        }
+
+        const { error: updateError } = await supabase
           .from("profiles")
           .update({
             subscription_tier: tier,
@@ -95,7 +170,15 @@ export async function POST(request: Request) {
               ? new Date(periodEnd * 1000).toISOString()
               : null,
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("id", userId);
+
+        if (updateError) {
+          console.error(
+            "Webhook: Failed to update profile for user",
+            userId,
+            updateError,
+          );
+        }
 
         break;
       }
@@ -107,6 +190,20 @@ export async function POST(request: Request) {
             ? subscription.customer
             : subscription.customer?.id;
 
+        const userId = await resolveUserId(
+          supabase,
+          stripe,
+          customerId ?? null,
+        );
+
+        if (!userId) {
+          console.error(
+            "Webhook: Could not resolve user for subscription.deleted",
+            subscription.id,
+          );
+          break;
+        }
+
         await supabase
           .from("profiles")
           .update({
@@ -115,7 +212,7 @@ export async function POST(request: Request) {
             subscription_id: null,
             current_period_end: null,
           })
-          .eq("stripe_customer_id", customerId);
+          .eq("id", userId);
 
         break;
       }
@@ -128,10 +225,18 @@ export async function POST(request: Request) {
             : invoice.customer?.id;
 
         if (customerId) {
-          await supabase
-            .from("profiles")
-            .update({ subscription_status: "past_due" })
-            .eq("stripe_customer_id", customerId);
+          const userId = await resolveUserId(
+            supabase,
+            stripe,
+            customerId,
+          );
+
+          if (userId) {
+            await supabase
+              .from("profiles")
+              .update({ subscription_status: "past_due" })
+              .eq("id", userId);
+          }
         }
 
         break;
