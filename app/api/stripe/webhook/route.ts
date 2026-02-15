@@ -134,6 +134,7 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "customer.subscription.created":
       case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const subItem = subscription.items.data[0];
@@ -153,7 +154,7 @@ export async function POST(request: Request) {
 
         if (!userId) {
           console.error(
-            "Webhook: Could not resolve user for subscription.updated",
+            `Webhook: Could not resolve user for subscription.${event.type.split(".").pop()}`,
             subscription.id,
             "customer:",
             customerId,
@@ -164,8 +165,10 @@ export async function POST(request: Request) {
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
+            stripe_customer_id: customerId,
             subscription_tier: tier,
             subscription_status: subscription.status,
+            subscription_id: subscription.id,
             current_period_end: periodEnd
               ? new Date(periodEnd * 1000).toISOString()
               : null,
