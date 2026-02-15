@@ -10,614 +10,783 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "12.2.12"
   }
   public: {
     Tables: {
       ab_experiments: {
         Row: {
-          created_at: string | null
           id: string
-          is_active: boolean | null
-          name: string
           poll_id: string
+          name: string
+          is_active: boolean | null
           traffic_split: number | null
+          created_at: string | null
         }
         Insert: {
-          created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          name: string
           poll_id: string
+          name: string
+          is_active?: boolean | null
           traffic_split?: number | null
+          created_at?: string | null
         }
         Update: {
-          created_at?: string | null
           id?: string
-          is_active?: boolean | null
-          name?: string
           poll_id?: string
+          name?: string
+          is_active?: boolean | null
           traffic_split?: number | null
+          created_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ab_experiments_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       achievement_types: {
         Row: {
-          category: string
-          created_at: string | null
+          id: string
+          name: string
           description: string
           icon: string
-          id: string
-          is_repeatable: boolean | null
-          name: string
-          points: number | null
+          category: string
           target_value: number | null
+          is_repeatable: boolean | null
+          points: number | null
+          created_at: string | null
         }
         Insert: {
-          category: string
-          created_at?: string | null
+          id?: string
+          name: string
           description: string
           icon: string
-          id?: string
-          is_repeatable?: boolean | null
-          name: string
-          points?: number | null
+          category: string
           target_value?: number | null
+          is_repeatable?: boolean | null
+          points?: number | null
+          created_at?: string | null
         }
         Update: {
-          category?: string
-          created_at?: string | null
+          id?: string
+          name?: string
           description?: string
           icon?: string
-          id?: string
-          is_repeatable?: boolean | null
-          name?: string
-          points?: number | null
+          category?: string
           target_value?: number | null
+          is_repeatable?: boolean | null
+          points?: number | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_poll_usage: {
+        Row: {
+          id: string
+          user_id: string
+          month_year: string
+          usage_count: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          month_year: string
+          usage_count?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          month_year?: string
+          usage_count?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      api_keys: {
+        Row: {
+          id: string
+          user_id: string
+          name: string
+          key_hash: string
+          key_prefix: string
+          scopes: string
+          last_used_at: string | null
+          expires_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          name: string
+          key_hash: string
+          key_prefix: string
+          scopes?: string
+          last_used_at?: string | null
+          expires_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          name?: string
+          key_hash?: string
+          key_prefix?: string
+          scopes?: string
+          last_used_at?: string | null
+          expires_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      custom_domains: {
+        Row: {
+          id: string
+          user_id: string
+          domain: string
+          verification_token: string
+          verified: boolean | null
+          verified_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          domain: string
+          verification_token: string
+          verified?: boolean | null
+          verified_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          domain?: string
+          verification_token?: string
+          verified?: boolean | null
+          verified_at?: string | null
+          created_at?: string | null
         }
         Relationships: []
       }
       demo_polls: {
         Row: {
-          category: string | null
-          created_at: string | null
-          description: string | null
-          display_order: number | null
           id: string
-          is_active: boolean | null
-          options: Json
           question: string
+          description: string | null
+          options: Json
+          category: string | null
+          is_active: boolean | null
+          display_order: number | null
+          created_at: string | null
         }
         Insert: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          display_order?: number | null
           id?: string
-          is_active?: boolean | null
-          options: Json
           question: string
+          description?: string | null
+          options: Json
+          category?: string | null
+          is_active?: boolean | null
+          display_order?: number | null
+          created_at?: string | null
         }
         Update: {
-          category?: string | null
-          created_at?: string | null
-          description?: string | null
-          display_order?: number | null
           id?: string
-          is_active?: boolean | null
-          options?: Json
           question?: string
+          description?: string | null
+          options?: Json
+          category?: string | null
+          is_active?: boolean | null
+          display_order?: number | null
+          created_at?: string | null
         }
         Relationships: []
       }
       demo_votes: {
         Row: {
-          demo_poll_id: string
           id: string
+          demo_poll_id: string
           selected_options: Json
-          voted_at: string | null
           voter_fingerprint: string
+          voted_at: string | null
         }
         Insert: {
-          demo_poll_id: string
           id?: string
+          demo_poll_id: string
           selected_options: Json
-          voted_at?: string | null
           voter_fingerprint: string
+          voted_at?: string | null
         }
         Update: {
-          demo_poll_id?: string
           id?: string
+          demo_poll_id?: string
           selected_options?: Json
-          voted_at?: string | null
           voter_fingerprint?: string
+          voted_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "demo_votes_demo_poll_id_fkey"
-            columns: ["demo_poll_id"]
-            isOneToOne: false
-            referencedRelation: "demo_polls"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       poll_embeds: {
         Row: {
+          id: string
+          poll_id: string
           domain: string
           embed_type: string | null
           first_seen: string | null
-          id: string
           last_seen: string | null
-          poll_id: string
           total_views: number | null
           total_votes: number | null
         }
         Insert: {
+          id?: string
+          poll_id: string
           domain: string
           embed_type?: string | null
           first_seen?: string | null
-          id?: string
           last_seen?: string | null
-          poll_id: string
           total_views?: number | null
           total_votes?: number | null
         }
         Update: {
+          id?: string
+          poll_id?: string
           domain?: string
           embed_type?: string | null
           first_seen?: string | null
-          id?: string
           last_seen?: string | null
-          poll_id?: string
           total_views?: number | null
           total_votes?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "poll_embeds_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       poll_options: {
         Row: {
-          created_at: string | null
           id: string
-          option_order: number
           poll_id: string
           text: string
+          option_order: number
+          created_at: string | null
+          question_id: string | null
+          image_url: string | null
         }
         Insert: {
-          created_at?: string | null
           id?: string
-          option_order: number
           poll_id: string
           text: string
+          option_order: number
+          created_at?: string | null
+          question_id?: string | null
+          image_url?: string | null
         }
         Update: {
-          created_at?: string | null
           id?: string
-          option_order?: number
           poll_id?: string
           text?: string
+          option_order?: number
+          created_at?: string | null
+          question_id?: string | null
+          image_url?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "poll_options_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      poll_questions: {
+        Row: {
+          id: string
+          poll_id: string
+          question_text: string
+          question_type: string
+          question_order: number
+          allow_multiple: boolean | null
+          settings: Json | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          question_text: string
+          question_type?: string
+          question_order?: number
+          allow_multiple?: boolean | null
+          settings?: Json | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          question_text?: string
+          question_type?: string
+          question_order?: number
+          allow_multiple?: boolean | null
+          settings?: Json | null
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      poll_responses: {
+        Row: {
+          id: string
+          poll_id: string
+          question_id: string
+          user_id: string | null
+          voter_fingerprint: string | null
+          response_text: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          question_id: string
+          user_id?: string | null
+          voter_fingerprint?: string | null
+          response_text: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          question_id?: string
+          user_id?: string | null
+          voter_fingerprint?: string | null
+          response_text?: string
+          created_at?: string | null
+        }
+        Relationships: []
       }
       poll_variants: {
         Row: {
-          created_at: string | null
-          description: string | null
-          experiment_id: string
           id: string
-          question: string
+          experiment_id: string
           variant_name: string
+          question: string
+          description: string | null
+          created_at: string | null
         }
         Insert: {
-          created_at?: string | null
-          description?: string | null
-          experiment_id: string
           id?: string
-          question: string
+          experiment_id: string
           variant_name: string
+          question: string
+          description?: string | null
+          created_at?: string | null
         }
         Update: {
-          created_at?: string | null
-          description?: string | null
-          experiment_id?: string
           id?: string
-          question?: string
+          experiment_id?: string
           variant_name?: string
+          question?: string
+          description?: string | null
+          created_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "poll_variants_experiment_id_fkey"
-            columns: ["experiment_id"]
-            isOneToOne: false
-            referencedRelation: "ab_experiments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       polls: {
         Row: {
-          allow_multiple: boolean | null
-          allow_vote_editing: boolean | null
+          id: string
           code: string
-          created_at: string | null
+          user_id: string
+          question: string
           description: string | null
+          allow_multiple: boolean | null
+          is_active: boolean | null
+          has_time_limit: boolean | null
+          start_date: string | null
+          end_date: string | null
+          created_at: string | null
+          updated_at: string | null
+          allow_vote_editing: boolean | null
+          show_results_to_voters: boolean | null
           embed_enabled: boolean | null
           embed_settings: Json | null
-          end_date: string | null
-          has_time_limit: boolean | null
-          id: string
-          is_active: boolean | null
-          question: string
-          show_results_to_voters: boolean | null
-          start_date: string | null
-          updated_at: string | null
-          user_id: string
+          password_hash: string | null
+          live_mode: boolean | null
+          live_state: string | null
+          live_current_question: number | null
+          team_id: string | null
         }
         Insert: {
-          allow_multiple?: boolean | null
-          allow_vote_editing?: boolean | null
+          id?: string
           code: string
-          created_at?: string | null
+          user_id: string
+          question: string
           description?: string | null
+          allow_multiple?: boolean | null
+          is_active?: boolean | null
+          has_time_limit?: boolean | null
+          start_date?: string | null
+          end_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          allow_vote_editing?: boolean | null
+          show_results_to_voters?: boolean | null
           embed_enabled?: boolean | null
           embed_settings?: Json | null
-          end_date?: string | null
-          has_time_limit?: boolean | null
-          id?: string
-          is_active?: boolean | null
-          question: string
-          show_results_to_voters?: boolean | null
-          start_date?: string | null
-          updated_at?: string | null
-          user_id: string
+          password_hash?: string | null
+          live_mode?: boolean | null
+          live_state?: string | null
+          live_current_question?: number | null
+          team_id?: string | null
         }
         Update: {
-          allow_multiple?: boolean | null
-          allow_vote_editing?: boolean | null
+          id?: string
           code?: string
-          created_at?: string | null
+          user_id?: string
+          question?: string
           description?: string | null
+          allow_multiple?: boolean | null
+          is_active?: boolean | null
+          has_time_limit?: boolean | null
+          start_date?: string | null
+          end_date?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          allow_vote_editing?: boolean | null
+          show_results_to_voters?: boolean | null
           embed_enabled?: boolean | null
           embed_settings?: Json | null
-          end_date?: string | null
-          has_time_limit?: boolean | null
-          id?: string
-          is_active?: boolean | null
-          question?: string
-          show_results_to_voters?: boolean | null
-          start_date?: string | null
-          updated_at?: string | null
-          user_id?: string
+          password_hash?: string | null
+          live_mode?: boolean | null
+          live_state?: string | null
+          live_current_question?: number | null
+          team_id?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          id: string
+          username: string | null
           avatar_url: string | null
           created_at: string | null
-          id: string
           updated_at: string | null
-          username: string | null
+          brand_logo_url: string | null
+          stripe_customer_id: string | null
+          subscription_tier: string
+          subscription_status: string | null
+          subscription_id: string | null
+          current_period_end: string | null
         }
         Insert: {
+          id: string
+          username?: string | null
           avatar_url?: string | null
           created_at?: string | null
-          id: string
           updated_at?: string | null
-          username?: string | null
+          brand_logo_url?: string | null
+          stripe_customer_id?: string | null
+          subscription_tier?: string
+          subscription_status?: string | null
+          subscription_id?: string | null
+          current_period_end?: string | null
         }
         Update: {
+          id?: string
+          username?: string | null
           avatar_url?: string | null
           created_at?: string | null
-          id?: string
           updated_at?: string | null
-          username?: string | null
+          brand_logo_url?: string | null
+          stripe_customer_id?: string | null
+          subscription_tier?: string
+          subscription_status?: string | null
+          subscription_id?: string | null
+          current_period_end?: string | null
+        }
+        Relationships: []
+      }
+      team_members: {
+        Row: {
+          id: string
+          team_id: string
+          user_id: string
+          role: string
+          invited_email: string | null
+          invite_status: string
+          invited_at: string | null
+          joined_at: string | null
+        }
+        Insert: {
+          id?: string
+          team_id: string
+          user_id: string
+          role?: string
+          invited_email?: string | null
+          invite_status?: string
+          invited_at?: string | null
+          joined_at?: string | null
+        }
+        Update: {
+          id?: string
+          team_id?: string
+          user_id?: string
+          role?: string
+          invited_email?: string | null
+          invite_status?: string
+          invited_at?: string | null
+          joined_at?: string | null
+        }
+        Relationships: []
+      }
+      teams: {
+        Row: {
+          id: string
+          name: string
+          owner_id: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string
+          owner_id: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string
+          owner_id?: string
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       user_achievements: {
         Row: {
-          achievement_type_id: string
-          completed_at: string | null
-          created_at: string | null
           id: string
-          progress: number | null
-          tier: number | null
           user_id: string
+          achievement_type_id: string
+          progress: number | null
+          completed_at: string | null
+          tier: number | null
+          created_at: string | null
         }
         Insert: {
-          achievement_type_id: string
-          completed_at?: string | null
-          created_at?: string | null
           id?: string
-          progress?: number | null
-          tier?: number | null
           user_id: string
+          achievement_type_id: string
+          progress?: number | null
+          completed_at?: string | null
+          tier?: number | null
+          created_at?: string | null
         }
         Update: {
-          achievement_type_id?: string
-          completed_at?: string | null
-          created_at?: string | null
           id?: string
-          progress?: number | null
-          tier?: number | null
           user_id?: string
+          achievement_type_id?: string
+          progress?: number | null
+          completed_at?: string | null
+          tier?: number | null
+          created_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_achievements_achievement_type_id_fkey"
-            columns: ["achievement_type_id"]
-            isOneToOne: false
-            referencedRelation: "achievement_types"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_email_preferences: {
         Row: {
-          achievement_notifications: boolean | null
-          created_at: string | null
-          new_votes: boolean | null
-          poll_milestones: boolean | null
-          updated_at: string | null
           user_id: string
           weekly_summary: boolean | null
+          poll_milestones: boolean | null
+          new_votes: boolean | null
+          achievement_notifications: boolean | null
+          created_at: string | null
+          updated_at: string | null
         }
         Insert: {
-          achievement_notifications?: boolean | null
-          created_at?: string | null
-          new_votes?: boolean | null
-          poll_milestones?: boolean | null
-          updated_at?: string | null
           user_id: string
           weekly_summary?: boolean | null
-        }
-        Update: {
+          poll_milestones?: boolean | null
+          new_votes?: boolean | null
           achievement_notifications?: boolean | null
           created_at?: string | null
-          new_votes?: boolean | null
-          poll_milestones?: boolean | null
           updated_at?: string | null
+        }
+        Update: {
           user_id?: string
           weekly_summary?: boolean | null
+          poll_milestones?: boolean | null
+          new_votes?: boolean | null
+          achievement_notifications?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       user_stats: {
         Row: {
-          consecutive_days: number | null
-          last_activity_date: string | null
-          level: number | null
-          polls_created: number | null
-          total_points: number | null
-          updated_at: string | null
           user_id: string
-          votes_cast: number | null
+          polls_created: number | null
           votes_received: number | null
+          votes_cast: number | null
+          consecutive_days: number | null
+          total_points: number | null
+          level: number | null
+          last_activity_date: string | null
+          updated_at: string | null
         }
         Insert: {
-          consecutive_days?: number | null
-          last_activity_date?: string | null
-          level?: number | null
-          polls_created?: number | null
-          total_points?: number | null
-          updated_at?: string | null
           user_id: string
-          votes_cast?: number | null
+          polls_created?: number | null
           votes_received?: number | null
+          votes_cast?: number | null
+          consecutive_days?: number | null
+          total_points?: number | null
+          level?: number | null
+          last_activity_date?: string | null
+          updated_at?: string | null
         }
         Update: {
-          consecutive_days?: number | null
-          last_activity_date?: string | null
-          level?: number | null
-          polls_created?: number | null
-          total_points?: number | null
-          updated_at?: string | null
           user_id?: string
-          votes_cast?: number | null
+          polls_created?: number | null
           votes_received?: number | null
+          votes_cast?: number | null
+          consecutive_days?: number | null
+          total_points?: number | null
+          level?: number | null
+          last_activity_date?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
       user_variant_assignments: {
         Row: {
-          assigned_at: string | null
-          experiment_id: string
           id: string
+          experiment_id: string
           user_id: string | null
+          voter_fingerprint: string | null
           variant_id: string
+          assigned_at: string | null
           voted: boolean | null
           voted_at: string | null
-          voter_fingerprint: string | null
         }
         Insert: {
-          assigned_at?: string | null
-          experiment_id: string
           id?: string
+          experiment_id: string
           user_id?: string | null
+          voter_fingerprint?: string | null
           variant_id: string
+          assigned_at?: string | null
           voted?: boolean | null
           voted_at?: string | null
-          voter_fingerprint?: string | null
         }
         Update: {
-          assigned_at?: string | null
-          experiment_id?: string
           id?: string
+          experiment_id?: string
           user_id?: string | null
+          voter_fingerprint?: string | null
           variant_id?: string
+          assigned_at?: string | null
           voted?: boolean | null
           voted_at?: string | null
-          voter_fingerprint?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_variant_assignments_experiment_id_fkey"
-            columns: ["experiment_id"]
-            isOneToOne: false
-            referencedRelation: "ab_experiments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_variant_assignments_variant_id_fkey"
-            columns: ["variant_id"]
-            isOneToOne: false
-            referencedRelation: "poll_variants"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       vote_edits: {
         Row: {
-          edited_at: string | null
           id: string
-          new_options: Json
           original_vote_id: string
           previous_options: Json
+          new_options: Json
+          edited_at: string | null
           user_id: string | null
-          voter_fingerprint: string | null
           voter_ip: string | null
+          voter_fingerprint: string | null
         }
         Insert: {
-          edited_at?: string | null
           id?: string
-          new_options: Json
           original_vote_id: string
           previous_options: Json
+          new_options: Json
+          edited_at?: string | null
           user_id?: string | null
-          voter_fingerprint?: string | null
           voter_ip?: string | null
+          voter_fingerprint?: string | null
         }
         Update: {
-          edited_at?: string | null
           id?: string
-          new_options?: Json
           original_vote_id?: string
           previous_options?: Json
+          new_options?: Json
+          edited_at?: string | null
           user_id?: string | null
-          voter_fingerprint?: string | null
           voter_ip?: string | null
+          voter_fingerprint?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "vote_edits_original_vote_id_fkey"
-            columns: ["original_vote_id"]
-            isOneToOne: false
-            referencedRelation: "votes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       votes: {
         Row: {
-          created_at: string | null
           id: string
-          options: Json | null
           poll_id: string
           user_id: string | null
+          voter_ip: string | null
           voter_fingerprint: string | null
-          voter_ip: unknown | null
+          created_at: string | null
+          options: Json | null
+          answers: Json | null
         }
         Insert: {
-          created_at?: string | null
           id?: string
-          options?: Json | null
           poll_id: string
           user_id?: string | null
+          voter_ip?: string | null
           voter_fingerprint?: string | null
-          voter_ip?: unknown | null
+          created_at?: string | null
+          options?: Json | null
+          answers?: Json | null
         }
         Update: {
-          created_at?: string | null
           id?: string
-          options?: Json | null
           poll_id?: string
           user_id?: string | null
+          voter_ip?: string | null
           voter_fingerprint?: string | null
-          voter_ip?: unknown | null
+          created_at?: string | null
+          options?: Json | null
+          answers?: Json | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "votes_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      webhooks: {
+        Row: {
+          id: string
+          user_id: string
+          team_id: string | null
+          url: string
+          events: string
+          secret: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          team_id?: string | null
+          url: string
+          events?: string
+          secret: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          team_id?: string | null
+          url?: string
+          events?: string
+          secret?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          created_at?: string | null
+        }
+        Relationships: []
       }
     }
     Views: {
-      [_ in never]: never
     }
     Functions: {
-      assign_variant: {
-        Args: {
-          experiment_uuid: string
-          fingerprint?: string
-          user_uuid?: string
-        }
-        Returns: string
-      }
-      generate_unique_username: {
-        Args: { base_name?: string }
-        Returns: string
-      }
-      get_demo_poll_results: {
-        Args: { poll_uuid: string }
-        Returns: {
-          option_id: string
-          option_text: string
-          vote_count: number
-        }[]
-      }
-      get_poll_results: {
-        Args: { poll_uuid: string }
-        Returns: {
-          option_id: string
-          option_order: number
-          option_text: string
-          vote_count: number
-        }[]
-      }
-      get_random_demo_poll: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          category: string
-          description: string
-          id: string
-          options: Json
-          question: string
-        }[]
-      }
-      poll_code_exists: {
-        Args: { poll_code: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
