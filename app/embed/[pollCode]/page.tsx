@@ -288,7 +288,7 @@ export default function PollEmbedPage() {
             allOptionIds.push(...selected);
             break;
           case "rating_scale":
-            answers[q.id] = { rating: qAnswer.rating };
+            answers[q.id] = { value: qAnswer.rating };
             break;
           case "ranked_choice":
             allOptionIds.push(...(qAnswer.rankings as string[] || []));

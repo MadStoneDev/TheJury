@@ -7,7 +7,7 @@ export default async function TeamPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) redirect("/login");
+  if (!user) redirect("/auth/login");
 
   // Check subscription tier
   const { data: profile } = await supabase

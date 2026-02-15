@@ -136,12 +136,17 @@ export const updateProfile = async (
   updates: Partial<Profile>,
 ): Promise<boolean> => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .update(updates)
-      .eq("id", userId);
+      .eq("id", userId)
+      .select();
 
     if (error) throw error;
+    if (!data || data.length === 0) {
+      console.error("updateProfile: No rows updated (check RLS policies)");
+      return false;
+    }
     return true;
   } catch (error) {
     console.error("Error updating profile:", error);
@@ -767,12 +772,16 @@ export const duplicatePoll = async (
             question_type: q.question_type,
             allow_multiple: q.allow_multiple,
             settings: q.settings,
-            options: q.options.map((opt) => ({ text: opt.text })),
+            options: q.options.map((opt) => ({
+              text: opt.text,
+              ...(opt.image_url ? { image_url: opt.image_url } : {}),
+            })),
           }))
         : [];
 
     const fallbackOptions = (original.options || []).map((opt) => ({
       text: opt.text,
+      ...(opt.image_url ? { image_url: opt.image_url } : {}),
     }));
 
     const newPollId = await createPoll(

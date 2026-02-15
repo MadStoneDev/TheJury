@@ -282,7 +282,7 @@ export default function PollAnswerPage() {
             allOptionIds.push(...selected);
             break;
           case "rating_scale":
-            answers[q.id] = { rating: qAnswer.rating };
+            answers[q.id] = { value: qAnswer.rating };
             break;
           case "ranked_choice":
             // Rankings are stored in answers, option IDs in flat array

@@ -59,23 +59,53 @@ export function exportQuestionResultsToCSV(
     // Question section header
     lines.push("");
     lines.push(
-      `# Question ${qr.question_order}: ${escapeCsvField(qr.question_text)}`,
+      `# Question ${qr.question_order}: ${escapeCsvField(qr.question_text)} (${qr.question_type})`,
     );
-    lines.push("Option,Votes,Percentage");
 
-    let questionTotal = 0;
-    for (const result of qr.results) {
-      const percentage =
-        totalVoters > 0
-          ? ((result.vote_count / totalVoters) * 100).toFixed(1)
-          : "0.0";
-      lines.push(
-        `${escapeCsvField(result.option_text)},${result.vote_count},${percentage}%`,
-      );
-      questionTotal += result.vote_count;
+    const qType = qr.question_type || "multiple_choice";
+
+    if (qType === "rating_scale" && qr.ratingData) {
+      lines.push("Metric,Value");
+      lines.push(`Average Rating,${qr.ratingData.average.toFixed(2)}`);
+      lines.push(`Total Ratings,${qr.ratingData.totalRatings}`);
+      lines.push(`Scale Min,${qr.ratingData.min}`);
+      lines.push(`Scale Max,${qr.ratingData.max}`);
+      lines.push("");
+      lines.push("Rating,Count");
+      for (let i = qr.ratingData.min; i <= qr.ratingData.max; i++) {
+        lines.push(`${i},${qr.ratingData.distribution[i] || 0}`);
+      }
+    } else if (qType === "ranked_choice" && qr.rankedData) {
+      lines.push("Option,Average Position,First Place Votes");
+      for (const ranked of qr.rankedData) {
+        lines.push(
+          `${escapeCsvField(ranked.option_text)},${ranked.avg_position.toFixed(2)},${ranked.first_place_count}`,
+        );
+      }
+    } else if (qType === "open_ended" && qr.openEndedData) {
+      lines.push(`# Total Responses: ${qr.openEndedData.totalResponses}`);
+      lines.push("Response");
+      for (const response of qr.openEndedData.responses) {
+        lines.push(escapeCsvField(response));
+      }
+    } else {
+      // Standard option-based types (multiple_choice, image_choice, reaction)
+      lines.push("Option,Votes,Percentage");
+
+      let questionTotal = 0;
+      for (const result of qr.results) {
+        const percentage =
+          totalVoters > 0
+            ? ((result.vote_count / totalVoters) * 100).toFixed(1)
+            : "0.0";
+        lines.push(
+          `${escapeCsvField(result.option_text)},${result.vote_count},${percentage}%`,
+        );
+        questionTotal += result.vote_count;
+      }
+
+      lines.push(`Subtotal,${questionTotal},`);
     }
-
-    lines.push(`Subtotal,${questionTotal},`);
   }
 
   downloadCsv(lines.join("\n"), pollCode);

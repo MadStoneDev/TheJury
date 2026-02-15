@@ -71,7 +71,7 @@ export default function UpgradeModal({
               plan
             </p>
             <p className="text-xs text-muted-foreground">
-              Starting at A${tier.priceMonthly}/month
+              Starting at ${tier.priceMonthly}/month
             </p>
           </div>
 
