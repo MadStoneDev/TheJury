@@ -1,7 +1,7 @@
 // /embed/[pollCode]/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import { IconCheck, IconLoader2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
@@ -18,6 +18,7 @@ import type { Poll, PollQuestion, PollResult, QuestionResult } from "@/lib/supab
 import { supabase } from "@/lib/supabase";
 import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
 import { hashPassword } from "@/lib/passwordUtils";
+import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 
 export default function PollEmbedPage() {
   const params = useParams();
@@ -53,6 +54,25 @@ export default function PollEmbedPage() {
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const cachedUserRef = useRef<{ id: string } | null>(null);
+
+  // Realtime: auto-refresh when new votes arrive
+  const refreshResults = useCallback(async () => {
+    if (!poll) return;
+    const [qResults, { count: voterCount }] = await Promise.all([
+      getPollResultsByQuestion(poll.id),
+      supabase
+        .from("votes")
+        .select("*", { count: "exact", head: true })
+        .eq("poll_id", poll.id),
+    ]);
+    setQuestionResults(qResults);
+    setTotalVoters(voterCount || 0);
+  }, [poll]);
+
+  useRealtimeVotes({
+    pollId: poll?.id ?? null,
+    onNewVote: refreshResults,
+  });
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =

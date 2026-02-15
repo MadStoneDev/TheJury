@@ -1,7 +1,7 @@
 // answer/[pollCode]/page.tsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -34,6 +34,8 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
 import PasswordGate from "@/components/PasswordGate";
+import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
+import { useRealtimePollState } from "@/hooks/useRealtimePollState";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -57,7 +59,41 @@ export default function PollAnswerPage() {
   const [totalVoters, setTotalVoters] = useState(0);
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
   const [abVariant, setAbVariant] = useState<ABVariantData | null>(null);
+  const [liveState, setLiveState] = useState<string | null>(null);
   const cachedUserRef = useRef<{ id: string } | null>(null);
+
+  // Realtime: auto-refresh results when new votes arrive
+  const refreshResults = useCallback(async () => {
+    if (!poll) return;
+    const [qResults, { count: voterCount }] = await Promise.all([
+      getPollResultsByQuestion(poll.id),
+      supabase
+        .from("votes")
+        .select("*", { count: "exact", head: true })
+        .eq("poll_id", poll.id),
+    ]);
+    setQuestionResults(qResults);
+    setTotalVoters(voterCount || 0);
+  }, [poll]);
+
+  useRealtimeVotes({
+    pollId: poll?.id ?? null,
+    onNewVote: refreshResults,
+  });
+
+  // Realtime: respond to presenter state changes when live_mode is active
+  useRealtimePollState({
+    pollId: poll?.id ?? null,
+    enabled: !!poll?.live_mode,
+    onStateChange: (update) => {
+      if (update.live_state) {
+        setLiveState(update.live_state);
+      }
+      if (update.is_active === false) {
+        setLiveState("closed");
+      }
+    },
+  });
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -115,6 +151,11 @@ export default function PollAnswerPage() {
         }
 
         setPoll(pollData);
+
+        // Track live state if live mode
+        if (pollData.live_mode && pollData.live_state) {
+          setLiveState(pollData.live_state);
+        }
 
         // Fetch user once — reuse throughout
         const user = await getCurrentUser();
@@ -545,9 +586,20 @@ export default function PollAnswerPage() {
           <div className="rounded-2xl border border-emerald-500/20 bg-card shadow-xl shadow-emerald-500/5 p-6 sm:p-8">
             {/* Header */}
             <div className="text-center mb-8">
-              <span className="inline-block text-xs text-muted-foreground font-mono bg-muted px-3 py-1 rounded-full mb-4">
-                {pollCode}
-              </span>
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="inline-block text-xs text-muted-foreground font-mono bg-muted px-3 py-1 rounded-full">
+                  {pollCode}
+                </span>
+                {poll.live_mode && (
+                  <span className="inline-flex items-center gap-1.5 bg-red-500/10 text-red-500 px-2.5 py-1 rounded-full text-xs font-semibold">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                    </span>
+                    LIVE
+                  </span>
+                )}
+              </div>
               <h1 className="text-2xl sm:text-3xl font-display text-foreground mb-2">
                 {abVariant ? abVariant.question_text : poll.question}
               </h1>
@@ -561,7 +613,42 @@ export default function PollAnswerPage() {
             </div>
 
             <AnimatePresence mode="wait">
-              {hasVotedFlag ? (
+              {/* Live mode overlays */}
+              {poll.live_mode && liveState === "closed" ? (
+                <motion.div
+                  key="live-closed"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <IconCheck className="w-7 h-7 text-muted-foreground" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground mb-1">
+                    Poll Closed
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    The presenter has closed this poll.
+                  </p>
+                </motion.div>
+              ) : poll.live_mode && liveState === "results_hidden" && hasVotedFlag ? (
+                <motion.div
+                  key="live-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12"
+                >
+                  <div className="w-14 h-14 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
+                    <IconLoader2 className="w-7 h-7 text-amber-500 animate-spin" />
+                  </div>
+                  <h2 className="text-lg font-semibold text-foreground mb-1">
+                    Waiting for results...
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    The presenter will reveal results shortly.
+                  </p>
+                </motion.div>
+              ) : hasVotedFlag ? (
                 /* Results View */
                 <motion.div
                   key="results"

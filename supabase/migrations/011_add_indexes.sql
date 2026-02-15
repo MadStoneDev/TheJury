@@ -15,11 +15,20 @@ CREATE INDEX IF NOT EXISTS idx_votes_poll_user ON votes(poll_id, user_id) WHERE 
 -- votes: poll_id + fingerprint composite (anonymous vote duplicate check)
 CREATE INDEX IF NOT EXISTS idx_votes_poll_fingerprint ON votes(poll_id, voter_fingerprint) WHERE voter_fingerprint IS NOT NULL;
 
--- api_keys: key_hash lookups (API auth)
-CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
-
 -- poll_questions: poll_id lookups
 CREATE INDEX IF NOT EXISTS idx_poll_questions_poll_id ON poll_questions(poll_id);
 
+-- Indexes for tables that may not exist yet (created in migrations 009/010)
+-- api_keys: key_hash lookups (API auth)
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'api_keys') THEN
+    CREATE INDEX IF NOT EXISTS idx_api_keys_hash ON api_keys(key_hash);
+  END IF;
+END $$;
+
 -- webhooks: user_id + is_active (webhook dispatch)
-CREATE INDEX IF NOT EXISTS idx_webhooks_user_active ON webhooks(user_id, is_active) WHERE is_active = true;
+DO $$ BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'webhooks') THEN
+    CREATE INDEX IF NOT EXISTS idx_webhooks_user_active ON webhooks(user_id, is_active) WHERE is_active = true;
+  END IF;
+END $$;

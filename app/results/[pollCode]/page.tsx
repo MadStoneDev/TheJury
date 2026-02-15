@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { QuestionTypeResults } from "@/components/question-types";
 import { BarChart } from "@/components/charts";
 import type { ChartDataItem } from "@/components/charts";
+import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 
 export default function PublicResultsPage() {
   const params = useParams();
@@ -26,6 +27,25 @@ export default function PublicResultsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
+
+  // Realtime: auto-refresh when new votes arrive
+  const refreshResults = useCallback(async () => {
+    if (!poll) return;
+    const [qResults, { count: voterCount }] = await Promise.all([
+      getPollResultsByQuestion(poll.id),
+      supabase
+        .from("votes")
+        .select("*", { count: "exact", head: true })
+        .eq("poll_id", poll.id),
+    ]);
+    setQuestionResults(qResults);
+    setTotalVoters(voterCount || 0);
+  }, [poll]);
+
+  useRealtimeVotes({
+    pollId: poll?.id ?? null,
+    onNewVote: refreshResults,
+  });
 
   const isMultiQuestion = questionResults.length > 1;
 

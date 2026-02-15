@@ -51,6 +51,9 @@ export interface Poll {
   end_date?: string;
   created_at: string;
   updated_at: string;
+  live_mode?: boolean;
+  live_state?: string;
+  live_current_question?: number;
   options?: PollOption[];
   questions?: PollQuestion[];
   total_votes?: number;
@@ -1220,6 +1223,31 @@ export const updateEmbedSettings = async (
     return true;
   } catch (error) {
     console.error("Error updating embed settings:", error);
+    return false;
+  }
+};
+
+// ─── Live Poll State ─────────────────────────────────────────
+
+export const updatePollLiveState = async (
+  pollId: string,
+  updates: {
+    live_mode?: boolean;
+    live_state?: string;
+    live_current_question?: number;
+    is_active?: boolean;
+  },
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("polls")
+      .update(updates)
+      .eq("id", pollId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error updating poll live state:", error);
     return false;
   }
 };

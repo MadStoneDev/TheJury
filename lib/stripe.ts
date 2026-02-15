@@ -41,6 +41,7 @@ export interface TierConfig {
   teamWorkspace: boolean;
   abTesting: boolean;
   apiAccess: boolean;
+  presenterMode: boolean;
 }
 
 export const TIERS: Record<TierName, TierConfig> = {
@@ -74,6 +75,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     teamWorkspace: false,
     abTesting: false,
     apiAccess: false,
+    presenterMode: false,
   },
   pro: {
     name: "Pro",
@@ -105,6 +107,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     teamWorkspace: false,
     abTesting: false,
     apiAccess: false,
+    presenterMode: true,
   },
   team: {
     name: "Team",
@@ -136,6 +139,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     teamWorkspace: true,
     abTesting: true,
     apiAccess: true,
+    presenterMode: true,
   },
 };
 

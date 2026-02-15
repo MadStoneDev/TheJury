@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion } from "motion/react";
@@ -39,6 +39,7 @@ import type { ChartType, ChartDataItem } from "@/components/charts";
 import type { EmbedTheme } from "@/components/EmbedThemeEditor";
 import { DEFAULT_EMBED_THEME } from "@/components/EmbedThemeEditor";
 import { updateEmbedSettings } from "@/lib/supabaseHelpers";
+import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 
 // Lazy-load heavy tier-gated components
 const AnalyticsDashboard = dynamic(() => import("@/components/analytics/AnalyticsDashboard"), { ssr: false });
@@ -62,6 +63,25 @@ export default function PollResultsPage() {
   const [chartType, setChartType] = useState<ChartType>("bar");
   const [embedTheme, setEmbedTheme] = useState<EmbedTheme>(DEFAULT_EMBED_THEME);
   const [embedThemeLoaded, setEmbedThemeLoaded] = useState(false);
+
+  // Realtime: auto-refresh when new votes arrive
+  const refreshResults = useCallback(async () => {
+    if (!poll) return;
+    const [qResults, { count: voterCount }] = await Promise.all([
+      getPollResultsByQuestion(poll.id),
+      supabase
+        .from("votes")
+        .select("*", { count: "exact", head: true })
+        .eq("poll_id", poll.id),
+    ]);
+    setQuestionResults(qResults);
+    setTotalVoters(voterCount || 0);
+  }, [poll]);
+
+  useRealtimeVotes({
+    pollId: poll?.id ?? null,
+    onNewVote: refreshResults,
+  });
 
   const isMultiQuestion = questionResults.length > 1;
 

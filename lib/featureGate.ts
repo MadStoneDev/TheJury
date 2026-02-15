@@ -81,6 +81,7 @@ export const FEATURE_LABELS: Record<Feature, string> = {
   teamWorkspace: "Team Workspace",
   abTesting: "A/B Testing",
   apiAccess: "API Access",
+  presenterMode: "Presenter Mode",
 };
 
 /**
@@ -110,4 +111,5 @@ export const FEATURE_DESCRIPTIONS: Record<Feature, string> = {
   teamWorkspace: "Collaborate with your team on polls in a shared workspace.",
   abTesting: "Test different poll variants to optimise engagement.",
   apiAccess: "Integrate polls into your own applications with our API.",
+  presenterMode: "Present polls live with real-time vote animations and QR audience join.",
 };

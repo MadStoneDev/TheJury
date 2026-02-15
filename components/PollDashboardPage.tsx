@@ -23,6 +23,7 @@ import {
   IconShare,
   IconCopy as IconCopyFiles,
   IconClock,
+  IconPresentation,
 } from "@tabler/icons-react";
 import {
   getUserPolls,
@@ -41,7 +42,7 @@ import type { StatusFilter, SortOption } from "@/components/DashboardControls";
 import Pagination from "@/components/Pagination";
 import ShareModal from "@/components/ShareModal";
 import UpgradeModal from "@/components/UpgradeModal";
-import { getFeatureLimit } from "@/lib/featureGate";
+import { getFeatureLimit, canUseFeature } from "@/lib/featureGate";
 import type { TierName } from "@/lib/stripe";
 import { formatDateShort } from "@/lib/dateUtils";
 
@@ -587,6 +588,21 @@ export default function PollDashboardPage() {
                           </TooltipTrigger>
                           <TooltipContent>See analytics</TooltipContent>
                         </Tooltip>
+
+                        {/* Present (Pro/Team) */}
+                        {canUseFeature(userTier, "presenterMode") && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Link
+                                href={`/present/${poll.code}`}
+                                className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors"
+                              >
+                                <IconPresentation size={18} />
+                              </Link>
+                            </TooltipTrigger>
+                            <TooltipContent>Present live</TooltipContent>
+                          </Tooltip>
+                        )}
 
                         {/* Edit */}
                         <Tooltip>
