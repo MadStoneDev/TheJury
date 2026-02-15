@@ -46,6 +46,7 @@ export interface Poll {
   has_time_limit: boolean;
   show_results_to_voters?: boolean;
   password_hash?: string | null;
+  embed_settings?: Record<string, unknown> | null;
   start_date?: string;
   end_date?: string;
   created_at: string;
@@ -1200,6 +1201,26 @@ export const generateFingerprint = (): string => {
       Math.random().toString(36).substring(2, 15) +
       Math.random().toString(36).substring(2, 15)
     );
+  }
+};
+
+// ─── Embed Settings ──────────────────────────────────────────
+
+export const updateEmbedSettings = async (
+  pollId: string,
+  embedSettings: Record<string, unknown>,
+): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from("polls")
+      .update({ embed_settings: embedSettings })
+      .eq("id", pollId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error updating embed settings:", error);
+    return false;
   }
 };
 

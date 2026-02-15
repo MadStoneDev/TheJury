@@ -61,8 +61,8 @@ export async function POST(request: Request) {
         .eq("id", user.id);
     }
 
-    const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const appUrl = origin;
+    // Use canonical app URL — never trust user-provided origin for redirect targets
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || "http://localhost:3000";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

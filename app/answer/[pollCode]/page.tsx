@@ -1,10 +1,9 @@
 // answer/[pollCode]/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import confetti from "canvas-confetti";
 import {
   IconCheck,
   IconLoader2,
@@ -58,6 +57,7 @@ export default function PollAnswerPage() {
   const [totalVoters, setTotalVoters] = useState(0);
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
   const [abVariant, setAbVariant] = useState<ABVariantData | null>(null);
+  const cachedUserRef = useRef<{ id: string } | null>(null);
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -116,10 +116,13 @@ export default function PollAnswerPage() {
 
         setPoll(pollData);
 
+        // Fetch user once — reuse throughout
+        const user = await getCurrentUser();
+        cachedUserRef.current = user;
+
         // Check for A/B experiment
         const abExp = await getABExperiment(pollData.id);
         if (abExp && abExp.variants.length >= 2) {
-          const user = await getCurrentUser();
           const fp = !user ? generateFingerprint() : undefined;
           const assigned = await assignVariant(
             abExp.experiment.id,
@@ -132,17 +135,17 @@ export default function PollAnswerPage() {
           }
         }
 
-        const qResults = await getPollResultsByQuestion(pollData.id);
+        // Fetch results and vote count in parallel
+        const [qResults, { count: voterCount }] = await Promise.all([
+          getPollResultsByQuestion(pollData.id),
+          supabase
+            .from("votes")
+            .select("*", { count: "exact", head: true })
+            .eq("poll_id", pollData.id),
+        ]);
         setQuestionResults(qResults);
-
-        const { count: voterCount } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", pollData.id);
-
         setTotalVoters(voterCount || 0);
 
-        const user = await getCurrentUser();
         let voted = false;
         let userVotes: string[] = [];
 
@@ -203,7 +206,8 @@ export default function PollAnswerPage() {
     }
   };
 
-  const fireConfetti = () => {
+  const fireConfetti = async () => {
+    const confetti = (await import("canvas-confetti")).default;
     confetti({
       particleCount: 100,
       spread: 80,
@@ -219,7 +223,7 @@ export default function PollAnswerPage() {
     setVoteError(null);
 
     try {
-      const user = await getCurrentUser();
+      const user = cachedUserRef.current;
       const fingerprint = !user ? generateFingerprint() : undefined;
 
       // Collect option IDs and structured answers

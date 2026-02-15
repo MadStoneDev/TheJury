@@ -25,28 +25,24 @@ export default async function ProfileRoute() {
     redirect("/auth/login");
   }
 
-  // Count user's polls
-  const { count: pollCount } = await supabase
-    .from("polls")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  // Fetch subscription info
-  const { data: subData } = await supabase
-    .from("profiles")
-    .select("subscription_tier, subscription_status, current_period_end")
-    .eq("id", user.id)
-    .single();
+  // Fetch poll count and subscription info in parallel (profile already has sub data)
+  const [{ count: pollCount }] = await Promise.all([
+    supabase
+      .from("polls")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id),
+  ]);
 
   return (
     <ProfilePage
       profile={profile}
+      userId={user.id}
       email={user.email || ""}
       memberSince={user.created_at}
       pollCount={pollCount || 0}
-      subscriptionTier={(subData?.subscription_tier as TierName) || "free"}
-      subscriptionStatus={subData?.subscription_status || null}
-      currentPeriodEnd={subData?.current_period_end || null}
+      subscriptionTier={(profile.subscription_tier as TierName) || "free"}
+      subscriptionStatus={profile.subscription_status || null}
+      currentPeriodEnd={profile.current_period_end || null}
     />
   );
 }

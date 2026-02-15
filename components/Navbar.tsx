@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { getCurrentUser, signOut } from "@/lib/supabaseHelpers";
+import { getCurrentUser, signOut, getProfile } from "@/lib/supabaseHelpers";
 import type { User } from "@supabase/supabase-js";
 import {
   IconCurrencyDollar,
@@ -16,6 +16,7 @@ import {
   IconPower,
   IconSun,
   IconUser,
+  IconUsersGroup,
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [userTier, setUserTier] = useState<string>("free");
   const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
@@ -53,6 +55,12 @@ export const Navbar = () => {
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
+        if (currentUser) {
+          const profile = await getProfile(currentUser.id);
+          if (profile?.subscription_tier) {
+            setUserTier(profile.subscription_tier);
+          }
+        }
       } catch (error) {
         console.error("Error checking user:", error);
       } finally {
@@ -82,6 +90,7 @@ export const Navbar = () => {
     { href: "/templates", label: "Templates", icon: IconTemplate, show: true },
     { href: "/dashboard", label: "Dashboard", icon: IconDashboard, show: !!user },
     { href: "/create", label: "Create Poll", icon: IconPlus, show: !!user },
+    { href: "/team", label: "Team", icon: IconUsersGroup, show: !!user && userTier === "team" },
   ];
 
   return (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import {
   IconArrowLeft,
@@ -32,10 +33,17 @@ import { Button } from "@/components/ui/button";
 import { canUseFeature } from "@/lib/featureGate";
 import type { Feature } from "@/lib/featureGate";
 import type { TierName } from "@/lib/stripe";
+import { formatDateFull } from "@/lib/dateUtils";
 import { BarChart, PieChart, ChartSelector } from "@/components/charts";
 import type { ChartType, ChartDataItem } from "@/components/charts";
-import AnalyticsDashboard from "@/components/analytics/AnalyticsDashboard";
-import { ABTestResults } from "@/components/ab-testing";
+import type { EmbedTheme } from "@/components/EmbedThemeEditor";
+import { DEFAULT_EMBED_THEME } from "@/components/EmbedThemeEditor";
+import { updateEmbedSettings } from "@/lib/supabaseHelpers";
+
+// Lazy-load heavy tier-gated components
+const AnalyticsDashboard = dynamic(() => import("@/components/analytics/AnalyticsDashboard"), { ssr: false });
+const ABTestResults = dynamic(() => import("@/components/ab-testing").then((m) => ({ default: m.ABTestResults })), { ssr: false });
+const EmbedThemeEditor = dynamic(() => import("@/components/EmbedThemeEditor"), { ssr: false });
 
 export default function PollResultsPage() {
   const params = useParams();
@@ -52,6 +60,8 @@ export default function PollResultsPage() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeFeature, setUpgradeFeature] = useState<Feature>("csvExport");
   const [chartType, setChartType] = useState<ChartType>("bar");
+  const [embedTheme, setEmbedTheme] = useState<EmbedTheme>(DEFAULT_EMBED_THEME);
+  const [embedThemeLoaded, setEmbedThemeLoaded] = useState(false);
 
   const isMultiQuestion = questionResults.length > 1;
 
@@ -66,15 +76,18 @@ export default function PollResultsPage() {
 
       setIsLoading(true);
       try {
-        const user = await getCurrentUser();
-        const pollData = await getPollByCode(pollCode);
+        // Fetch user and poll in parallel
+        const [user, pollData] = await Promise.all([
+          getCurrentUser(),
+          getPollByCode(pollCode),
+        ]);
         if (!pollData) {
           setError("Poll not found");
           return;
         }
 
         if (user && pollData.user_id === user.id) {
-          // Owner - allowed. Fetch tier.
+          // Owner - allowed. Fetch tier from profile.
           const { data: profile } = await supabase
             .from("profiles")
             .select("subscription_tier")
@@ -90,14 +103,22 @@ export default function PollResultsPage() {
 
         setPoll(pollData);
 
-        const qResults = await getPollResultsByQuestion(pollData.id);
+        // Load embed theme settings
+        const settings = pollData.embed_settings;
+        if (settings && typeof settings === "object") {
+          setEmbedTheme({ ...DEFAULT_EMBED_THEME, ...(settings as Partial<EmbedTheme>) });
+        }
+        setEmbedThemeLoaded(true);
+
+        // Fetch results and vote count in parallel
+        const [qResults, { count: voterCount }] = await Promise.all([
+          getPollResultsByQuestion(pollData.id),
+          supabase
+            .from("votes")
+            .select("*", { count: "exact", head: true })
+            .eq("poll_id", pollData.id),
+        ]);
         setQuestionResults(qResults);
-
-        const { count: voterCount } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", pollData.id);
-
         setTotalVoters(voterCount || 0);
       } catch (err) {
         console.error("Error loading poll results:", err);
@@ -147,16 +168,7 @@ export default function PollResultsPage() {
     toast.success("CSV exported!");
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  const formatDate = formatDateFull;
 
   if (isLoading) {
     return <ResultsSkeleton />;
@@ -492,6 +504,30 @@ export default function PollResultsPage() {
             Analytics
           </h3>
           <AnalyticsDashboard pollId={poll.id} totalVoters={totalVoters} />
+        </motion.div>
+      )}
+
+      {/* Embed Theme Editor (Pro/Team) */}
+      {canUseFeature(userTier, "customEmbedThemes") && embedThemeLoaded && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-6 rounded-2xl border bg-card p-6"
+        >
+          <h3 className="text-lg font-semibold text-foreground mb-4">
+            Embed Theme
+          </h3>
+          <EmbedThemeEditor
+            theme={embedTheme}
+            onChange={async (newTheme) => {
+              setEmbedTheme(newTheme);
+              if (poll) {
+                await updateEmbedSettings(poll.id, { ...newTheme });
+                toast.success("Embed theme saved!");
+              }
+            }}
+          />
         </motion.div>
       )}
 

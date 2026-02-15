@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import confetti from "canvas-confetti";
+// canvas-confetti is dynamically imported at call site for bundle optimization
 import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import { generateFingerprint } from "@/lib/supabaseHelpers";
 import { safeJsonParse } from "@/lib/jsonUtils";
@@ -114,7 +114,8 @@ const DemoPollWidget: React.FC = () => {
     loadDemoPoll();
   }, [voterFingerprint, loadDemoPoll]);
 
-  const fireConfetti = () => {
+  const fireConfetti = async () => {
+    const confetti = (await import("canvas-confetti")).default;
     confetti({
       particleCount: 80,
       spread: 70,

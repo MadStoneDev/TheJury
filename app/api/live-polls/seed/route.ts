@@ -6,15 +6,9 @@ function isAuthorized(request: Request): boolean {
   const secret = process.env.SEED_SECRET;
   if (!secret) return false;
 
-  // Check Authorization header
+  // Check Authorization header only (never accept secrets via query params)
   const authHeader = request.headers.get("authorization");
-  if (authHeader === `Bearer ${secret}`) return true;
-
-  // Check query param
-  const { searchParams } = new URL(request.url);
-  if (searchParams.get("secret") === secret) return true;
-
-  return false;
+  return authHeader === `Bearer ${secret}`;
 }
 
 export async function POST(request: Request) {

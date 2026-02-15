@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import confetti from "canvas-confetti";
+// canvas-confetti is dynamically imported at call site for bundle optimization
 import {
   IconPlus,
   IconX,
@@ -873,12 +873,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
 
       setShowSuccess(true);
 
-      confetti({
-        particleCount: 100,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
-      });
+      import("canvas-confetti").then((m) =>
+        m.default({
+          particleCount: 100,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
+        }),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -1037,10 +1039,20 @@ export default function PollForm({ pollCode }: PollFormProps) {
                   variant="outline"
                   size="sm"
                   className="mt-3 gap-1.5"
-                  onClick={() => setAiModalOpen(true)}
+                  onClick={() => {
+                    if (canUseFeature(userTier, "aiGeneration")) {
+                      setAiModalOpen(true);
+                    } else {
+                      setUpgradeFeature("aiGeneration");
+                      setUpgradeModalOpen(true);
+                    }
+                  }}
                 >
                   <IconSparkles size={14} className="text-emerald-500" />
                   Generate with AI
+                  {!canUseFeature(userTier, "aiGeneration") && (
+                    <IconLock size={12} className="text-muted-foreground" />
+                  )}
                 </Button>
               )}
               {isEditing && (

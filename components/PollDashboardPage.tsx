@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
@@ -30,7 +30,6 @@ import {
   togglePollStatus,
   getCurrentUser,
   duplicatePoll,
-  getActivePollCount,
   getProfile,
 } from "@/lib/supabaseHelpers";
 import { toast } from "sonner";
@@ -44,6 +43,7 @@ import ShareModal from "@/components/ShareModal";
 import UpgradeModal from "@/components/UpgradeModal";
 import { getFeatureLimit } from "@/lib/featureGate";
 import type { TierName } from "@/lib/stripe";
+import { formatDateShort } from "@/lib/dateUtils";
 
 const POLLS_PER_PAGE = 10;
 
@@ -70,8 +70,11 @@ export default function PollDashboardPage() {
 
   // Tier & active poll limit state
   const [userTier, setUserTier] = useState<TierName>("free");
-  const [activePollCount, setActivePollCount] = useState(0);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const cachedUserIdRef = useRef<string | null>(null);
+
+  // Derive active poll count from already-fetched polls
+  const activePollCount = useMemo(() => polls.filter((p) => p.is_active).length, [polls]);
 
   // Show checkout success toast
   useEffect(() => {
@@ -90,16 +93,15 @@ export default function PollDashboardPage() {
           router.push("/auth/login");
           return;
         }
+        cachedUserIdRef.current = user.id;
 
-        const userPolls = await getUserPolls(user.id);
+        // Fetch polls and profile in parallel
+        const [userPolls, profile] = await Promise.all([
+          getUserPolls(user.id),
+          getProfile(user.id),
+        ]);
         setPolls(userPolls);
-
-        // Load tier info and active poll count
-        const profile = await getProfile(user.id);
-        const tier = (profile?.subscription_tier as TierName) || "free";
-        setUserTier(tier);
-        const count = await getActivePollCount(user.id);
-        setActivePollCount(count);
+        setUserTier((profile?.subscription_tier as TierName) || "free");
       } catch (err) {
         console.error("Error loading polls:", err);
         setError("Failed to load polls");
@@ -176,8 +178,6 @@ export default function PollDashboardPage() {
             p.id === pollId ? { ...p, is_active: !p.is_active } : p,
           ),
         );
-        // Update active count
-        setActivePollCount((prev) => (wasActive ? prev - 1 : prev + 1));
         toast.success(wasActive ? "Poll deactivated" : "Poll activated");
       } else if (result.error) {
         // Hit the active poll limit — show upgrade modal
@@ -212,12 +212,11 @@ export default function PollDashboardPage() {
 
   const handleDuplicatePoll = async (pollId: string) => {
     try {
-      const user = await getCurrentUser();
-      if (!user) {
+      if (!cachedUserIdRef.current) {
         toast.error("Not authenticated");
         return;
       }
-      const newCode = await duplicatePoll(pollId, user.id);
+      const newCode = await duplicatePoll(pollId, cachedUserIdRef.current);
       if (newCode) {
         toast.success("Poll duplicated!");
         router.push(`/edit/${newCode}`);
@@ -230,13 +229,7 @@ export default function PollDashboardPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = formatDateShort;
 
   if (isLoading) {
     return <DashboardSkeleton />;

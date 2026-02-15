@@ -1,7 +1,8 @@
 // /embed/[pollCode]/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { IconCheck, IconLoader2, IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import {
@@ -40,9 +41,18 @@ export default function PollEmbedPage() {
   const [totalVoters, setTotalVoters] = useState(0);
   const [targetOrigin, setTargetOrigin] = useState("*");
   const [ownerTier, setOwnerTier] = useState<string>("free");
+  const [embedTheme, setEmbedTheme] = useState<{
+    primaryColor?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    borderRadius?: number;
+    fontFamily?: string;
+    customLogoUrl?: string;
+  } | null>(null);
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const cachedUserRef = useRef<{ id: string } | null>(null);
 
   // Build questions array — use poll.questions if available, else synthesize from poll.options
   const questions: PollQuestion[] =
@@ -140,27 +150,40 @@ export default function PollEmbedPage() {
 
         setPoll(pollData);
 
-        // Fetch poll owner's subscription tier for branding
+        // Fetch poll owner's subscription tier for branding + custom logo
         const { data: ownerProfile } = await supabase
           .from("profiles")
-          .select("subscription_tier")
+          .select("subscription_tier, brand_logo_url")
           .eq("id", pollData.user_id)
           .single();
         if (ownerProfile?.subscription_tier) {
           setOwnerTier(ownerProfile.subscription_tier);
         }
 
-        const qResults = await getPollResultsByQuestion(pollData.id);
+        // Load embed theme settings
+        const embedSettings = pollData.embed_settings;
+        if (embedSettings && typeof embedSettings === "object" && ownerProfile?.subscription_tier !== "free") {
+          const theme = embedSettings as typeof embedTheme;
+          // Attach custom logo if Team tier
+          if (ownerProfile?.subscription_tier === "team" && ownerProfile?.brand_logo_url) {
+            theme!.customLogoUrl = ownerProfile.brand_logo_url;
+          }
+          setEmbedTheme(theme);
+        }
+
+        // Fetch results, vote count, and user in parallel
+        const [qResults, { count: voterCount }, user] = await Promise.all([
+          getPollResultsByQuestion(pollData.id),
+          supabase
+            .from("votes")
+            .select("*", { count: "exact", head: true })
+            .eq("poll_id", pollData.id),
+          getCurrentUser(),
+        ]);
         setQuestionResults(qResults);
-
-        const { count: voterCount } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", pollData.id);
-
         setTotalVoters(voterCount || 0);
+        cachedUserRef.current = user;
 
-        const user = await getCurrentUser();
         let voted = false;
         let userVotes: string[] = [];
 
@@ -228,7 +251,7 @@ export default function PollEmbedPage() {
     setVoteError(null);
 
     try {
-      const user = await getCurrentUser();
+      const user = cachedUserRef.current;
       const fingerprint = !user ? generateFingerprint() : undefined;
 
       const allOptionIds: string[] = [];
@@ -491,16 +514,18 @@ export default function PollEmbedPage() {
       onClick={() => handleOptionToggle(option.id)}
       className={`w-full flex items-center p-3 border-2 rounded-lg text-left transition-all ${
         isSelected
-          ? "border-emerald-500 bg-emerald-500/5"
-          : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5"
+          ? primaryColor ? "" : "border-emerald-500 bg-emerald-500/5"
+          : primaryColor ? "border-border" : "border-border hover:border-emerald-500/50 hover:bg-emerald-500/5"
       }`}
+      style={isSelected && primaryColor ? { borderColor: primaryColor, backgroundColor: `${primaryColor}0d` } : undefined}
     >
       <div
         className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all mr-2.5 ${
           isSelected
-            ? "border-emerald-500 bg-emerald-500"
+            ? primaryColor ? "" : "border-emerald-500 bg-emerald-500"
             : "border-muted-foreground/30"
         }`}
+        style={isSelected && primaryColor ? { borderColor: primaryColor, backgroundColor: primaryColor } : undefined}
       >
         {isSelected && (
           <IconCheck className="w-2.5 h-2.5 text-white" />
@@ -512,11 +537,27 @@ export default function PollEmbedPage() {
     </button>
   );
 
+  // Validate CSS color values to prevent injection
+  const isValidColor = (c: string) => /^#[0-9a-fA-F]{3,8}$/.test(c) || /^(rgb|hsl)a?\([^)]+\)$/.test(c);
+  const allowedFonts = ["Outfit", "Inter", "DM Sans", "Roboto", "System Default"];
+
+  // Build custom theme style
+  const themeStyle: React.CSSProperties = embedTheme
+    ? {
+        ...(embedTheme.backgroundColor && isValidColor(embedTheme.backgroundColor) ? { backgroundColor: embedTheme.backgroundColor } : {}),
+        ...(embedTheme.textColor && isValidColor(embedTheme.textColor) ? { color: embedTheme.textColor } : {}),
+        ...(embedTheme.borderRadius != null ? { borderRadius: `${Math.min(Math.max(Number(embedTheme.borderRadius) || 0, 0), 24)}px` } : {}),
+        ...(embedTheme.fontFamily && allowedFonts.includes(embedTheme.fontFamily) && embedTheme.fontFamily !== "System Default" ? { fontFamily: embedTheme.fontFamily } : {}),
+      }
+    : {};
+
+  const primaryColor = embedTheme?.primaryColor && isValidColor(embedTheme.primaryColor) ? embedTheme.primaryColor : undefined;
+
   return (
-    <div className="bg-background p-4 font-sans">
+    <div className={embedTheme ? "p-4" : "bg-background p-4 font-sans"} style={themeStyle}>
       {/* Compact poll header */}
       <div className="mb-4">
-        <h2 className="text-lg font-display text-foreground mb-1">
+        <h2 className="text-lg font-display mb-1" style={embedTheme?.textColor ? { color: embedTheme.textColor } : {}}>
           {poll.question}
         </h2>
         {poll.description && (
@@ -533,8 +574,8 @@ export default function PollEmbedPage() {
         /* Compact Results View */
         <div className="space-y-2.5">
           <div className="flex items-center justify-center gap-2 mb-3">
-            <div className="w-6 h-6 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <IconCheck size={14} className="text-emerald-500" />
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center ${primaryColor ? "" : "bg-emerald-500/10"}`} style={primaryColor ? { backgroundColor: `${primaryColor}1a` } : undefined}>
+              <IconCheck size={14} className={primaryColor ? "" : "text-emerald-500"} style={primaryColor ? { color: primaryColor } : undefined} />
             </div>
             <p className="text-sm text-muted-foreground">
               Thanks for voting!
@@ -590,9 +631,10 @@ export default function PollEmbedPage() {
                 </div>
                 <div className="h-1 bg-muted rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                    className={`h-full rounded-full transition-all duration-300 ${primaryColor ? "" : "bg-emerald-500"}`}
                     style={{
                       width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+                      ...(primaryColor ? { backgroundColor: primaryColor } : {}),
                     }}
                   />
                 </div>
@@ -625,7 +667,8 @@ export default function PollEmbedPage() {
                       )
                     }
                     disabled={!currentQuestionHasSelection}
-                    className="flex items-center gap-0.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                    className={`flex items-center gap-0.5 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${primaryColor ? "" : "bg-emerald-500 hover:bg-emerald-600"}`}
+                    style={primaryColor ? { backgroundColor: primaryColor } : undefined}
                   >
                     Next
                     <IconChevronRight size={14} />
@@ -634,7 +677,8 @@ export default function PollEmbedPage() {
                   <button
                     onClick={handleVote}
                     disabled={!allQuestionsAnswered || isSubmitting}
-                    className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-6 py-1.5 rounded-lg text-sm font-medium transition-colors shadow-glow-emerald"
+                    className={`disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-6 py-1.5 rounded-lg text-sm font-medium transition-colors ${primaryColor ? "" : "bg-emerald-500 hover:bg-emerald-600 shadow-glow-emerald"}`}
+                    style={primaryColor ? { backgroundColor: primaryColor } : undefined}
                   >
                     {isSubmitting ? "Voting..." : "Vote"}
                   </button>
@@ -661,7 +705,8 @@ export default function PollEmbedPage() {
                 <button
                   onClick={handleVote}
                   disabled={!allQuestionsAnswered || isSubmitting}
-                  className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors shadow-glow-emerald"
+                  className={`disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-medium transition-colors ${primaryColor ? "" : "bg-emerald-500 hover:bg-emerald-600 shadow-glow-emerald"}`}
+                  style={primaryColor ? { backgroundColor: primaryColor } : undefined}
                 >
                   {isSubmitting ? "Voting..." : "Vote"}
                 </button>
@@ -671,8 +716,8 @@ export default function PollEmbedPage() {
         </div>
       )}
 
-      {/* Compact footer — only shown for free tier */}
-      {ownerTier === "free" && (
+      {/* Compact footer — branding for free tier, custom logo for Team */}
+      {ownerTier === "free" ? (
         <div className="text-center mt-4 pt-3 border-t border-border">
           <a
             href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
@@ -683,7 +728,18 @@ export default function PollEmbedPage() {
             Powered by TheJury
           </a>
         </div>
-      )}
+      ) : embedTheme?.customLogoUrl ? (
+        <div className="text-center mt-4 pt-3 border-t border-border">
+          <Image
+            src={embedTheme.customLogoUrl}
+            alt="Brand logo"
+            width={120}
+            height={24}
+            className="h-6 w-auto mx-auto object-contain"
+            unoptimized
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

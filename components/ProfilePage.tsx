@@ -6,7 +6,6 @@ import { IconCheck, IconLoader2, IconMail, IconCalendar, IconChartBar } from "@t
 import {
   updateProfile,
   checkUsernameAvailable,
-  getCurrentUser,
 } from "@/lib/supabaseHelpers";
 import { profileUpdateSchema } from "@/lib/validations";
 import { toast } from "sonner";
@@ -17,9 +16,15 @@ import {
 } from "@/components/motion";
 import type { Profile } from "@/lib/supabaseHelpers";
 import type { TierName } from "@/lib/stripe";
+import { formatDateLong } from "@/lib/dateUtils";
+import { canUseFeature } from "@/lib/featureGate";
+import WebhookManager from "@/components/webhooks/WebhookManager";
+import APIKeyManager from "@/components/api/APIKeyManager";
+import CustomDomainSetup from "@/components/domains/CustomDomainSetup";
 
 interface ProfilePageProps {
   profile: Profile;
+  userId: string;
   email: string;
   memberSince: string;
   pollCount: number;
@@ -36,6 +41,7 @@ const tierBadgeStyles: Record<TierName, string> = {
 
 export default function ProfilePage({
   profile,
+  userId,
   email,
   memberSince,
   pollCount,
@@ -69,8 +75,7 @@ export default function ProfilePage({
       setUsernameStatus("checking");
       setUsernameError("");
 
-      const user = await getCurrentUser();
-      const available = await checkUsernameAvailable(value, user?.id);
+      const available = await checkUsernameAvailable(value, userId);
 
       if (available) {
         setUsernameStatus("available");
@@ -80,7 +85,7 @@ export default function ProfilePage({
         setUsernameError("Username is already taken");
       }
     },
-    [profile.username],
+    [profile.username, userId],
   );
 
   const handleSave = async () => {
@@ -96,13 +101,7 @@ export default function ProfilePage({
 
     setIsSaving(true);
     try {
-      const user = await getCurrentUser();
-      if (!user) {
-        toast.error("Not authenticated");
-        return;
-      }
-
-      const success = await updateProfile(user.id, { username });
+      const success = await updateProfile(userId, { username });
       if (success) {
         toast.success("Profile updated!");
         setUsernameStatus("idle");
@@ -133,13 +132,7 @@ export default function ProfilePage({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = formatDateLong;
 
   const initial = (profile.username || email || "?")[0].toUpperCase();
 
@@ -381,6 +374,42 @@ export default function ProfilePage({
                 </div>
               </div>
             </StaggerItem>
+
+            {/* Webhooks (Team) */}
+            {canUseFeature(subscriptionTier, "webhooks") && (
+              <StaggerItem>
+                <div className="rounded-2xl bg-card border border-border p-6">
+                  <h2 className="text-lg font-semibold text-foreground mb-6">
+                    Webhooks
+                  </h2>
+                  <WebhookManager />
+                </div>
+              </StaggerItem>
+            )}
+
+            {/* API Keys (Team) */}
+            {canUseFeature(subscriptionTier, "apiAccess") && (
+              <StaggerItem>
+                <div className="rounded-2xl bg-card border border-border p-6">
+                  <h2 className="text-lg font-semibold text-foreground mb-6">
+                    API Keys
+                  </h2>
+                  <APIKeyManager />
+                </div>
+              </StaggerItem>
+            )}
+
+            {/* Custom Domains (Team) */}
+            {canUseFeature(subscriptionTier, "customDomains") && (
+              <StaggerItem>
+                <div className="rounded-2xl bg-card border border-border p-6">
+                  <h2 className="text-lg font-semibold text-foreground mb-6">
+                    Custom Domains
+                  </h2>
+                  <CustomDomainSetup />
+                </div>
+              </StaggerItem>
+            )}
           </div>
         </StaggerContainer>
       </div>

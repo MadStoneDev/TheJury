@@ -1,4 +1,5 @@
 // utils/usernameGenerator.ts
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { checkUsernameAvailable } from "@/lib/supabaseHelpers";
 
 const FANTASY_NOUNS = [
@@ -158,7 +159,7 @@ export const generateUniqueFantasyUsername = async (): Promise<string> => {
 };
 
 export const generateUniqueFantasyUsernameServer = async (
-  supabase: any,
+  supabase: SupabaseClient,
 ): Promise<string> => {
   let attempts = 0;
   const maxAttempts = 100;
