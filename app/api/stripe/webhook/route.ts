@@ -230,6 +230,33 @@ export async function POST(request: Request) {
         break;
       }
 
+      case "invoice.paid": {
+        // Safety net: confirm subscription is active after successful payment.
+        // Period end is already updated by customer.subscription.updated on renewal.
+        const invoice = event.data.object as Stripe.Invoice;
+        const customerId =
+          typeof invoice.customer === "string"
+            ? invoice.customer
+            : invoice.customer?.id;
+
+        if (customerId) {
+          const userId = await resolveUserId(
+            supabase,
+            stripe,
+            customerId,
+          );
+
+          if (userId) {
+            await supabase
+              .from("profiles")
+              .update({ subscription_status: "active" })
+              .eq("id", userId);
+          }
+        }
+
+        break;
+      }
+
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId =
@@ -250,6 +277,62 @@ export async function POST(request: Request) {
               .update({ subscription_status: "past_due" })
               .eq("id", userId);
           }
+        }
+
+        break;
+      }
+
+      case "customer.subscription.paused": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId =
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer?.id;
+
+        const userId = await resolveUserId(
+          supabase,
+          stripe,
+          customerId ?? null,
+        );
+
+        if (userId) {
+          await supabase
+            .from("profiles")
+            .update({ subscription_status: "paused" })
+            .eq("id", userId);
+        }
+
+        break;
+      }
+
+      case "customer.subscription.resumed": {
+        const subscription = event.data.object as Stripe.Subscription;
+        const subItem = subscription.items.data[0];
+        const priceId = subItem?.price.id;
+        const tier = priceId ? getTierByPriceId(priceId) : "free";
+        const customerId =
+          typeof subscription.customer === "string"
+            ? subscription.customer
+            : subscription.customer?.id;
+        const periodEnd = subItem?.current_period_end;
+
+        const userId = await resolveUserId(
+          supabase,
+          stripe,
+          customerId ?? null,
+        );
+
+        if (userId) {
+          await supabase
+            .from("profiles")
+            .update({
+              subscription_tier: tier,
+              subscription_status: subscription.status,
+              current_period_end: periodEnd
+                ? new Date(periodEnd * 1000).toISOString()
+                : null,
+            })
+            .eq("id", userId);
         }
 
         break;
