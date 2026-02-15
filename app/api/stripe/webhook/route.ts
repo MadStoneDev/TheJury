@@ -38,9 +38,13 @@ async function resolveUserId(
   if (profile?.id) return profile.id;
 
   // 3. Stripe customer metadata
-  const customer = await stripe.customers.retrieve(customerId);
-  if (!customer.deleted && customer.metadata?.userId) {
-    return customer.metadata.userId;
+  try {
+    const customer = await stripe.customers.retrieve(customerId);
+    if (!customer.deleted && customer.metadata?.userId) {
+      return customer.metadata.userId;
+    }
+  } catch (err) {
+    console.error("resolveUserId: Failed to retrieve Stripe customer", customerId, err);
   }
 
   return null;
@@ -81,9 +85,15 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.mode !== "subscription" || !session.subscription) break;
 
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string,
-        );
+        let subscription: Stripe.Subscription;
+        try {
+          subscription = await stripe.subscriptions.retrieve(
+            session.subscription as string,
+          );
+        } catch (err) {
+          console.error("Webhook: Failed to retrieve subscription", session.subscription, err);
+          break;
+        }
         const subItem = subscription.items.data[0];
         const priceId = subItem?.price.id;
         const tier = priceId ? getTierByPriceId(priceId) : "free";
@@ -250,7 +260,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Webhook error:", error);
     return NextResponse.json(
-      { error: "Webhook handler failed" },
+      { error: "Webhook handler failed", details: error instanceof Error ? error.message : String(error) },
       { status: 500 },
     );
   }
