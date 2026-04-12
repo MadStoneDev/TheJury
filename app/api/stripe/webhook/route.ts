@@ -80,6 +80,24 @@ export async function POST(request: Request) {
 
     const supabase = createServiceClient();
 
+    // Idempotency: skip if we've already processed this event.
+    // INSERT first; if it conflicts (duplicate event_id), treat as already-processed.
+    const { error: idempError } = await supabase
+      .from("stripe_webhook_events")
+      .insert({ event_id: event.id, event_type: event.type });
+
+    if (idempError) {
+      if (idempError.code === "23505") {
+        // Already processed — ack success so Stripe stops retrying.
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+      console.error("Webhook idempotency insert failed:", idempError);
+      return NextResponse.json(
+        { error: "Failed to record event" },
+        { status: 500 },
+      );
+    }
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -343,7 +361,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Webhook error:", error);
     return NextResponse.json(
-      { error: "Webhook handler failed", details: error instanceof Error ? error.message : String(error) },
+      { error: "Webhook handler failed" },
       { status: 500 },
     );
   }

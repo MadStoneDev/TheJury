@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
-import dns from "dns";
-import { promisify } from "util";
+import { uuidSchema } from "@/lib/validations";
+import { Resolver } from "dns/promises";
 
-const resolveTxt = promisify(dns.resolveTxt);
+const DNS_TIMEOUT_MS = 5000;
 
 export async function POST(request: Request) {
   try {
@@ -23,9 +23,10 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { domainId } = body;
 
-    if (!domainId || typeof domainId !== "string") {
+    const idResult = uuidSchema.safeParse(domainId);
+    if (!idResult.success) {
       return NextResponse.json(
-        { error: "domainId is required" },
+        { error: "domainId must be a valid UUID" },
         { status: 400 },
       );
     }
@@ -67,7 +68,16 @@ export async function POST(request: Request) {
     const txtHost = `_thejury-verify.${domain.domain}`;
 
     try {
-      const records = await resolveTxt(txtHost);
+      const resolver = new Resolver({ timeout: DNS_TIMEOUT_MS, tries: 1 });
+      const records = await Promise.race<string[][]>([
+        resolver.resolveTxt(txtHost),
+        new Promise<string[][]>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("DNS timeout")),
+            DNS_TIMEOUT_MS,
+          ),
+        ),
+      ]);
       // records is an array of arrays of strings — flatten
       const flatRecords = records.flat();
 

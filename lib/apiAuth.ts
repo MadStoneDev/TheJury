@@ -61,12 +61,16 @@ export async function validateApiKey(
       return null;
     }
 
-    // Update last_used_at (fire-and-forget)
-    supabase
+    // Update last_used_at (fire-and-forget; log failures so tracking breakage is visible)
+    void supabase
       .from("api_keys")
       .update({ last_used_at: new Date().toISOString() })
       .eq("id", apiKey.id)
-      .then(() => {});
+      .then(({ error: updateErr }) => {
+        if (updateErr) {
+          console.error("[apiAuth] Failed to update last_used_at:", updateErr);
+        }
+      });
 
     return {
       userId: apiKey.user_id,

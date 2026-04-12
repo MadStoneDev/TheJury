@@ -60,30 +60,22 @@ export async function POST(request: Request) {
 
     let successCount = 0;
     let skippedCount = 0;
-    const results = [];
+    let errorCount = 0;
 
-    // Insert each poll individually to handle duplicates gracefully
     for (const poll of additionalPolls) {
       try {
-        // First check if poll already exists
         const { data: existing } = await supabase
           .from("demo_polls")
-          .select("id, question")
+          .select("id")
           .eq("question", poll.question)
           .single();
 
         if (existing) {
           skippedCount++;
-          results.push({
-            question: poll.question,
-            status: "skipped",
-            reason: "already exists",
-          });
           continue;
         }
 
-        // Insert the new poll
-        const { data: inserted, error: insertError } = await supabase
+        const { error: insertError } = await supabase
           .from("demo_polls")
           .insert({
             question: poll.question,
@@ -92,42 +84,29 @@ export async function POST(request: Request) {
             category: poll.category,
             display_order: poll.display_order,
             is_active: true,
-          })
-          .select("id, question")
-          .single();
+          });
 
         if (insertError) {
           if (insertError.code === "23505") {
             skippedCount++;
-            results.push({
-              question: poll.question,
-              status: "skipped",
-              reason: "duplicate detected during insert",
-            });
           } else {
-            throw insertError;
+            errorCount++;
+            console.error("[seed] Insert error:", insertError);
           }
         } else {
           successCount++;
-          results.push({
-            question: poll.question,
-            status: "inserted",
-            id: inserted.id,
-          });
         }
       } catch (error) {
-        results.push({
-          question: poll.question,
-          status: "error",
-          error: (error as Error).message,
-        });
+        errorCount++;
+        console.error("[seed] Unexpected error:", error);
       }
     }
 
     return NextResponse.json({
       success: true,
-      message: `Seeding completed: ${successCount} inserted, ${skippedCount} skipped`,
-      details: results,
+      inserted: successCount,
+      skipped: skippedCount,
+      errors: errorCount,
     });
   } catch (error) {
     console.error("Error in seed route:", error);
@@ -160,7 +139,6 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
-      polls: data,
       count: data.length,
     });
   } catch (error) {

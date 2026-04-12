@@ -39,8 +39,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Use canonical app URL — never trust user-provided origin for redirect targets
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get("origin") || "http://localhost:3000";
+    // Canonical app URL only — no request-header fallbacks (they are spoofable).
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    if (!appUrl) {
+      console.error("Stripe portal: NEXT_PUBLIC_APP_URL is not configured");
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 },
+      );
+    }
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,

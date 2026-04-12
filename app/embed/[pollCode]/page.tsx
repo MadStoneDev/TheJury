@@ -40,7 +40,8 @@ export default function PollEmbedPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justVotedFor, setJustVotedFor] = useState<string[]>([]);
   const [totalVoters, setTotalVoters] = useState(0);
-  const [targetOrigin, setTargetOrigin] = useState("*");
+  // Default to empty string — skip postMessage until we know the parent origin.
+  const [targetOrigin, setTargetOrigin] = useState("");
   const [ownerTier, setOwnerTier] = useState<string>("free");
   const [embedTheme, setEmbedTheme] = useState<{
     primaryColor?: string;
@@ -96,27 +97,31 @@ export default function PollEmbedPage() {
   const isMultiQuestion = questions.length > 1;
   const currentQuestion = questions[currentQuestionIndex];
 
-  // Determine target origin for postMessage
+  // Determine target origin for postMessage.
+  // We only post to a concrete parent origin (http/https). If none can be determined,
+  // targetOrigin stays at its default and we will NOT broadcast with "*".
   useEffect(() => {
+    const extractOrigin = (raw: string): string | null => {
+      try {
+        const url = new URL(raw);
+        if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+        return url.origin;
+      } catch {
+        return null;
+      }
+    };
+
     const searchParams = new URLSearchParams(window.location.search);
     const originParam = searchParams.get("origin");
-    if (originParam) {
-      try {
-        const url = new URL(originParam);
-        setTargetOrigin(url.origin);
-        return;
-      } catch {
-        // invalid URL, fall through
-      }
+    const fromParam = originParam ? extractOrigin(originParam) : null;
+    if (fromParam) {
+      setTargetOrigin(fromParam);
+      return;
     }
+
     if (document.referrer) {
-      try {
-        const url = new URL(document.referrer);
-        setTargetOrigin(url.origin);
-        return;
-      } catch {
-        // invalid referrer, fall through
-      }
+      const fromRef = extractOrigin(document.referrer);
+      if (fromRef) setTargetOrigin(fromRef);
     }
   }, []);
 
@@ -124,7 +129,8 @@ export default function PollEmbedPage() {
   useEffect(() => {
     const resizeIframe = () => {
       const height = document.documentElement.scrollHeight;
-      if (window.parent !== window) {
+      // Only post to a concrete origin — never broadcast with "*".
+      if (window.parent !== window && targetOrigin) {
         window.parent.postMessage(
           { type: "resize", height: height },
           targetOrigin,

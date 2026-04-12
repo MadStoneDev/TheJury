@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12"
   }
@@ -18,7 +16,7 @@ export type Database = {
         Row: {
           id: string
           poll_id: string
-          name: string
+          name: string | null
           is_active: boolean | null
           traffic_split: number | null
           created_at: string | null
@@ -26,7 +24,7 @@ export type Database = {
         Insert: {
           id?: string
           poll_id: string
-          name: string
+          name?: string | null
           is_active?: boolean | null
           traffic_split?: number | null
           created_at?: string | null
@@ -34,7 +32,7 @@ export type Database = {
         Update: {
           id?: string
           poll_id?: string
-          name?: string
+          name?: string | null
           is_active?: boolean | null
           traffic_split?: number | null
           created_at?: string | null
@@ -44,10 +42,10 @@ export type Database = {
       achievement_types: {
         Row: {
           id: string
-          name: string
+          name: string | null
           description: string
-          icon: string
-          category: string
+          icon: string | null
+          category: string | null
           target_value: number | null
           is_repeatable: boolean | null
           points: number | null
@@ -55,10 +53,10 @@ export type Database = {
         }
         Insert: {
           id?: string
-          name: string
+          name?: string | null
           description: string
-          icon: string
-          category: string
+          icon?: string | null
+          category?: string | null
           target_value?: number | null
           is_repeatable?: boolean | null
           points?: number | null
@@ -66,10 +64,10 @@ export type Database = {
         }
         Update: {
           id?: string
-          name?: string
+          name?: string | null
           description?: string
-          icon?: string
-          category?: string
+          icon?: string | null
+          category?: string | null
           target_value?: number | null
           is_repeatable?: boolean | null
           points?: number | null
@@ -111,7 +109,7 @@ export type Database = {
           name: string
           key_hash: string
           key_prefix: string
-          scopes: string
+          scopes: string[]
           last_used_at: string | null
           expires_at: string | null
           created_at: string | null
@@ -122,7 +120,7 @@ export type Database = {
           name: string
           key_hash: string
           key_prefix: string
-          scopes?: string
+          scopes?: string[]
           last_used_at?: string | null
           expires_at?: string | null
           created_at?: string | null
@@ -133,7 +131,7 @@ export type Database = {
           name?: string
           key_hash?: string
           key_prefix?: string
-          scopes?: string
+          scopes?: string[]
           last_used_at?: string | null
           expires_at?: string | null
           created_at?: string | null
@@ -208,21 +206,21 @@ export type Database = {
           id: string
           demo_poll_id: string
           selected_options: Json
-          voter_fingerprint: string
+          voter_fingerprint: string | null
           voted_at: string | null
         }
         Insert: {
           id?: string
           demo_poll_id: string
           selected_options: Json
-          voter_fingerprint: string
+          voter_fingerprint?: string | null
           voted_at?: string | null
         }
         Update: {
           id?: string
           demo_poll_id?: string
           selected_options?: Json
-          voter_fingerprint?: string
+          voter_fingerprint?: string | null
           voted_at?: string | null
         }
         Relationships: []
@@ -231,7 +229,7 @@ export type Database = {
         Row: {
           id: string
           poll_id: string
-          domain: string
+          domain: string | null
           embed_type: string | null
           first_seen: string | null
           last_seen: string | null
@@ -241,7 +239,7 @@ export type Database = {
         Insert: {
           id?: string
           poll_id: string
-          domain: string
+          domain?: string | null
           embed_type?: string | null
           first_seen?: string | null
           last_seen?: string | null
@@ -251,7 +249,7 @@ export type Database = {
         Update: {
           id?: string
           poll_id?: string
-          domain?: string
+          domain?: string | null
           embed_type?: string | null
           first_seen?: string | null
           last_seen?: string | null
@@ -357,7 +355,7 @@ export type Database = {
         Row: {
           id: string
           experiment_id: string
-          variant_name: string
+          variant_name: string | null
           question: string
           description: string | null
           created_at: string | null
@@ -365,7 +363,7 @@ export type Database = {
         Insert: {
           id?: string
           experiment_id: string
-          variant_name: string
+          variant_name?: string | null
           question: string
           description?: string | null
           created_at?: string | null
@@ -373,7 +371,7 @@ export type Database = {
         Update: {
           id?: string
           experiment_id?: string
-          variant_name?: string
+          variant_name?: string | null
           question?: string
           description?: string | null
           created_at?: string | null
@@ -383,7 +381,7 @@ export type Database = {
       polls: {
         Row: {
           id: string
-          code: string
+          code: string | null
           user_id: string
           question: string
           description: string | null
@@ -406,7 +404,7 @@ export type Database = {
         }
         Insert: {
           id?: string
-          code: string
+          code?: string | null
           user_id: string
           question: string
           description?: string | null
@@ -429,7 +427,7 @@ export type Database = {
         }
         Update: {
           id?: string
-          code?: string
+          code?: string | null
           user_id?: string
           question?: string
           description?: string | null
@@ -491,6 +489,24 @@ export type Database = {
           subscription_status?: string | null
           subscription_id?: string | null
           current_period_end?: string | null
+        }
+        Relationships: []
+      }
+      stripe_webhook_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          received_at: string
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          received_at?: string
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          received_at?: string
         }
         Relationships: []
       }
@@ -752,7 +768,7 @@ export type Database = {
           user_id: string
           team_id: string | null
           url: string
-          events: string
+          events: string[]
           secret: string
           is_active: boolean | null
           last_triggered_at: string | null
@@ -763,7 +779,7 @@ export type Database = {
           user_id: string
           team_id?: string | null
           url: string
-          events?: string
+          events?: string[]
           secret: string
           is_active?: boolean | null
           last_triggered_at?: string | null
@@ -774,7 +790,7 @@ export type Database = {
           user_id?: string
           team_id?: string | null
           url?: string
-          events?: string
+          events?: string[]
           secret?: string
           is_active?: boolean | null
           last_triggered_at?: string | null
@@ -786,7 +802,17 @@ export type Database = {
     Views: {
     }
     Functions: {
-      [_ in never]: never
+      assign_variant: {
+        Args: {
+          experiment_uuid: string
+        }
+        Returns: string
+      }
+      generate_unique_username: {
+        Args: {
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

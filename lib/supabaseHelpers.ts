@@ -1,6 +1,26 @@
 // lib/supabaseHelpers.ts
 import { supabase } from "./supabase";
 
+/**
+ * Safely extract the first `count` value from a Supabase aggregate embed
+ * (e.g. `votes(count)` returns `[{ count: N }]` or sometimes an object).
+ */
+function extractCount(input: unknown): number | null {
+  if (Array.isArray(input)) {
+    const first = input[0];
+    if (first && typeof first === "object" && "count" in first) {
+      const c = (first as { count: unknown }).count;
+      return typeof c === "number" ? c : null;
+    }
+    return null;
+  }
+  if (input && typeof input === "object" && "count" in input) {
+    const c = (input as { count: unknown }).count;
+    return typeof c === "number" ? c : null;
+  }
+  return null;
+}
+
 // Types
 export interface Profile {
   id: string;
@@ -210,6 +230,7 @@ export const createPoll = async (
   options: { text: string }[],
   questions?: QuestionInput[],
 ): Promise<string | null> => {
+  let createdPollId: string | null = null;
   try {
     const { data: poll, error: pollError } = await supabase
       .from("polls")
@@ -218,6 +239,7 @@ export const createPoll = async (
       .single();
 
     if (pollError) throw pollError;
+    createdPollId = poll.id;
 
     if (questions && questions.length > 0) {
       // Multi-question mode: create poll_questions with nested options
@@ -287,6 +309,22 @@ export const createPoll = async (
     return poll.id;
   } catch (error) {
     console.error("Error creating poll:", error);
+    // Best-effort rollback so partial/orphaned rows don't accumulate.
+    // poll_questions and poll_options are FK ON DELETE CASCADE from polls,
+    // so removing the poll row cleans up anything inserted before failure.
+    if (createdPollId) {
+      const { error: rollbackErr } = await supabase
+        .from("polls")
+        .delete()
+        .eq("id", createdPollId);
+      if (rollbackErr) {
+        console.error(
+          "Error rolling back partial poll creation:",
+          createdPollId,
+          rollbackErr,
+        );
+      }
+    }
     return null;
   }
 };
@@ -640,9 +678,9 @@ export const getUserPolls = async (userId: string): Promise<Poll[]> => {
       }
 
       const totalVotes =
-        (poll.votes as unknown as { count: number }[])?.[0]?.count ?? 0;
+        extractCount(poll.votes) ?? 0;
       const questionCount =
-        (poll.poll_questions as unknown as { count: number }[])?.[0]?.count ?? 1;
+        extractCount(poll.poll_questions) ?? 1;
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { votes: _votes, poll_questions: _pq, ...rest } = poll;
@@ -745,6 +783,25 @@ export const duplicatePoll = async (
   try {
     const original = await getPollById(pollId);
     if (!original) return null;
+
+    // Authorization: user must own the poll, OR (if it's a team poll) be a team member.
+    if (original.user_id !== userId) {
+      const originalRow = await supabase
+        .from("polls")
+        .select("team_id")
+        .eq("id", pollId)
+        .single();
+      const teamId = (originalRow.data as { team_id: string | null } | null)?.team_id;
+      if (!teamId) return null;
+
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("user_id")
+        .eq("team_id", teamId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!membership) return null;
+    }
 
     // Generate new code (dynamic import to avoid circular deps)
     const { generateUniquePollCode } = await import(
@@ -913,8 +970,15 @@ export const getPollResultsByQuestion = async (
         selected.forEach((optionId: string) => {
           voteCounts[optionId] = (voteCounts[optionId] || 0) + 1;
         });
-      } catch {
-        // skip malformed vote
+      } catch (err) {
+        console.error(
+          "[supabaseHelpers] Malformed vote.options (poll",
+          pollId,
+          "):",
+          err,
+          "raw:",
+          vote.options,
+        );
       }
     });
 
@@ -1218,14 +1282,52 @@ export const generateFingerprint = (): string => {
 
 // ─── Embed Settings ──────────────────────────────────────────
 
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+const ALLOWED_FONT_FAMILIES = new Set([
+  "Outfit",
+  "Inter",
+  "DM Sans",
+  "Roboto",
+  "System Default",
+]);
+
+function sanitizeEmbedSettings(
+  raw: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  const colorKeys = ["primaryColor", "backgroundColor", "textColor"] as const;
+  for (const key of colorKeys) {
+    const v = raw[key];
+    if (typeof v === "string" && HEX_COLOR_RE.test(v)) {
+      out[key] = v;
+    }
+  }
+  if (
+    typeof raw.borderRadius === "number" &&
+    Number.isFinite(raw.borderRadius) &&
+    raw.borderRadius >= 0 &&
+    raw.borderRadius <= 64
+  ) {
+    out.borderRadius = raw.borderRadius;
+  }
+  if (
+    typeof raw.fontFamily === "string" &&
+    ALLOWED_FONT_FAMILIES.has(raw.fontFamily)
+  ) {
+    out.fontFamily = raw.fontFamily;
+  }
+  return out;
+}
+
 export const updateEmbedSettings = async (
   pollId: string,
   embedSettings: Record<string, unknown>,
 ): Promise<boolean> => {
   try {
+    const sanitized = sanitizeEmbedSettings(embedSettings);
     const { error } = await supabase
       .from("polls")
-      .update({ embed_settings: embedSettings })
+      .update({ embed_settings: sanitized })
       .eq("id", pollId);
 
     if (error) throw error;

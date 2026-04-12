@@ -25,6 +25,18 @@ export async function GET(request: Request) {
       );
     }
 
+    // Per-user limit on top of per-IP — stolen keys can rotate IPs.
+    const { success: userAllowed } = rateLimit(
+      `api-v1-polls:user:${auth.userId}`,
+      { maxTokens: 60, interval: 60 },
+    );
+    if (!userAllowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 },
+      );
+    }
+
     if (!auth.scopes.includes("polls:read")) {
       return NextResponse.json(
         { error: "Insufficient scope. Required: polls:read" },
@@ -60,8 +72,13 @@ export async function GET(request: Request) {
     }
 
     const formatted = (polls || []).map((poll) => {
+      const votesField = poll.votes;
       const totalVotes =
-        (poll.votes as unknown as { count: number }[])?.[0]?.count ?? 0;
+        Array.isArray(votesField) &&
+        votesField[0] &&
+        typeof (votesField[0] as { count?: unknown }).count === "number"
+          ? (votesField[0] as { count: number }).count
+          : 0;
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { votes: _v, ...rest } = poll;
       return { ...rest, total_votes: totalVotes };
@@ -96,6 +113,17 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Invalid or missing API key" },
         { status: 401 },
+      );
+    }
+
+    const { success: userAllowed } = rateLimit(
+      `api-v1-polls-create:user:${auth.userId}`,
+      { maxTokens: 20, interval: 60 },
+    );
+    if (!userAllowed) {
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429 },
       );
     }
 

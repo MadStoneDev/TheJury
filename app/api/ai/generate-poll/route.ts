@@ -14,10 +14,10 @@ interface GeneratedQuestion {
 export async function POST(request: Request) {
   try {
     const ip = getIPFromRequest(request);
-    const { success: allowed } = rateLimit(`ai-generate:${ip}`, {
+    const { success: ipAllowed } = rateLimit(`ai-generate:${ip}`, {
       maxTokens: 20,
     });
-    if (!allowed) {
+    if (!ipAllowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
         { status: 429 },
@@ -33,6 +33,18 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "You must be logged in" },
         { status: 401 },
+      );
+    }
+
+    // Per-user rate limit (prevents auth'd users bypassing IP limit via multiple networks).
+    const { success: userAllowed } = rateLimit(`ai-generate:user:${user.id}`, {
+      maxTokens: 20,
+      interval: 60,
+    });
+    if (!userAllowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
       );
     }
 
@@ -86,6 +98,19 @@ export async function POST(request: Request) {
     // Generate poll using rule-based approach (no external AI API dependency)
     const generated = generatePollFromPrompt(prompt.trim());
 
+    // Reject low-confidence results: if we fell back to the generic default
+    // AND the prompt doesn't look like a well-formed question, tell the user
+    // to rephrase rather than silently returning a useless poll.
+    if (generated.matchedIntent === "default" && prompt.trim().length < 15) {
+      return NextResponse.json(
+        {
+          error:
+            "Couldn't confidently generate a poll from that prompt. Try being more specific (e.g. 'team feedback survey for Q2').",
+        },
+        { status: 422 },
+      );
+    }
+
     // Track usage
     const { data: existingUsage } = await supabase
       .from("ai_poll_usage")
@@ -131,6 +156,13 @@ function generatePollFromPrompt(prompt: string): {
   title: string;
   description: string;
   questions: GeneratedQuestion[];
+  matchedIntent:
+    | "feedback"
+    | "food"
+    | "event"
+    | "team"
+    | "preference"
+    | "default";
 } {
   const lower = prompt.toLowerCase();
 
@@ -172,6 +204,7 @@ function generatePollFromPrompt(prompt: string): {
   if (isFeedback) {
     return {
       title,
+      matchedIntent: "feedback" as const,
       description: "Share your honest feedback to help us improve",
       questions: [
         {
@@ -205,6 +238,7 @@ function generatePollFromPrompt(prompt: string): {
   if (isFood) {
     return {
       title,
+      matchedIntent: "food" as const,
       description: "Vote for your preferred option",
       questions: [
         {
@@ -227,6 +261,7 @@ function generatePollFromPrompt(prompt: string): {
   if (isEvent) {
     return {
       title,
+      matchedIntent: "event" as const,
       description: "Help us find the best time for everyone",
       questions: [
         {
@@ -258,6 +293,7 @@ function generatePollFromPrompt(prompt: string): {
   if (isTeam) {
     return {
       title,
+      matchedIntent: "team" as const,
       description: "Anonymous team feedback survey",
       questions: [
         {
@@ -291,6 +327,7 @@ function generatePollFromPrompt(prompt: string): {
   if (isPreference) {
     return {
       title,
+      matchedIntent: "preference" as const,
       description: "Cast your vote and see what others think",
       questions: [
         {
@@ -311,6 +348,7 @@ function generatePollFromPrompt(prompt: string): {
   // Default: create a simple poll from the prompt
   return {
     title,
+    matchedIntent: "default" as const,
     description: "Share your opinion",
     questions: [
       {
