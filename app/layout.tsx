@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     url: defaultUrl,
     images: [
       {
-        url: "thejury-opengraph.jpg",
-        width: 1200,
-        height: 630,
-        alt: "TheJury - Polling Platform",
+        url: "thejury-og.png",
+        width: 1920,
+        height: 1080,
+        alt: "TheJury — twelve opinions, one answer.",
       },
     ],
   },
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "TheJury - Polling Platform",
     description: "Create and participate in polls with TheJury",
-    images: ["thejury-opengraph.jpg"],
+    images: ["thejury-og.png"],
   },
 };
 
