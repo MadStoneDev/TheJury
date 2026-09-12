@@ -10,6 +10,11 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        // Small-phone breakpoint used by the dashboard (grids stay single/2-col
+        // below this). Was referenced via `xs:` but never defined.
+        xs: "480px",
+      },
       fontFamily: {
         display: ["var(--font-display)", "serif"],
         sans: ["var(--font-outfit-sans)", "system-ui", "sans-serif"],
