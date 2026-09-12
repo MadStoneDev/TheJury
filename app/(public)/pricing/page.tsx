@@ -7,6 +7,14 @@ import {
   type TierName,
 } from "@/lib/stripe";
 import PricingCards from "@/components/PricingCards";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing — Free & Pro | TheJury",
+  description:
+    "Start free with unlimited polls and votes. Upgrade to Pro (A$9/mo, A$90/yr, or A$199 lifetime) for every question type, branded embeds and no branding.",
+  alternates: { canonical: "/pricing" },
+};
 
 export default async function PricingPage() {
   const supabase = await createClient();

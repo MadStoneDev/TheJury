@@ -47,3 +47,6 @@ next-env.d.ts
 # Nested app deps (e.g. discord bot)
 apps/**/node_modules
 apps/**/dist
+
+# Lighthouse CI output
+.lighthouse

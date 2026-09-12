@@ -1,6 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import type { TierName } from "@/lib/stripe";
 import TemplateCards from "@/components/TemplateCards";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Poll templates | TheJury",
+  description:
+    "Start from a pre-built poll template — feedback surveys, team retros, event RSVPs, quizzes and more — and customise it in seconds.",
+  alternates: { canonical: "/templates" },
+};
 
 export default async function TemplatesPage() {
   const supabase = await createClient();

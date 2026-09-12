@@ -10,10 +10,18 @@ import {
   Sparkles,
   Download,
 } from "lucide-react";
+import type { Metadata } from "next";
 import Hero from "@/components/home/Hero";
 import { IconTile, type Accent } from "@/components/design/IconTile";
 import { PricingTeaser } from "@/components/design/PricingTeaser";
 import { CtaBand } from "@/components/design/CtaBand";
+
+export const metadata: Metadata = {
+  title: "TheJury — Create a poll, let your group decide",
+  description:
+    "Make a poll in fifteen seconds and share a link or code. Ranked choice, ratings, reactions and live results — no spreadsheets, no group-chat chaos.",
+  alternates: { canonical: "/" },
+};
 
 const audiences: {
   icon: typeof Gamepad2;
