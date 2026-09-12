@@ -16,7 +16,7 @@ export type Database = {
         Row: {
           id: string
           poll_id: string
-          name: string | null
+          name: string
           is_active: boolean | null
           traffic_split: number | null
           created_at: string | null
@@ -24,7 +24,7 @@ export type Database = {
         Insert: {
           id?: string
           poll_id: string
-          name?: string | null
+          name: string
           is_active?: boolean | null
           traffic_split?: number | null
           created_at?: string | null
@@ -32,20 +32,28 @@ export type Database = {
         Update: {
           id?: string
           poll_id?: string
-          name?: string | null
+          name?: string
           is_active?: boolean | null
           traffic_split?: number | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ab_experiments_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       achievement_types: {
         Row: {
           id: string
-          name: string | null
+          name: string
           description: string
-          icon: string | null
-          category: string | null
+          icon: string
+          category: string
           target_value: number | null
           is_repeatable: boolean | null
           points: number | null
@@ -53,10 +61,10 @@ export type Database = {
         }
         Insert: {
           id?: string
-          name?: string | null
+          name: string
           description: string
-          icon?: string | null
-          category?: string | null
+          icon: string
+          category: string
           target_value?: number | null
           is_repeatable?: boolean | null
           points?: number | null
@@ -64,10 +72,10 @@ export type Database = {
         }
         Update: {
           id?: string
-          name?: string | null
+          name?: string
           description?: string
-          icon?: string | null
-          category?: string | null
+          icon?: string
+          category?: string
           target_value?: number | null
           is_repeatable?: boolean | null
           points?: number | null
@@ -100,7 +108,15 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ai_poll_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       api_keys: {
         Row: {
@@ -136,7 +152,15 @@ export type Database = {
           expires_at?: string | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_domains: {
         Row: {
@@ -166,7 +190,15 @@ export type Database = {
           verified_at?: string | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "custom_domains_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       demo_polls: {
         Row: {
@@ -206,30 +238,129 @@ export type Database = {
           id: string
           demo_poll_id: string
           selected_options: Json
-          voter_fingerprint: string | null
+          voter_fingerprint: string
           voted_at: string | null
         }
         Insert: {
           id?: string
           demo_poll_id: string
           selected_options: Json
-          voter_fingerprint?: string | null
+          voter_fingerprint: string
           voted_at?: string | null
         }
         Update: {
           id?: string
           demo_poll_id?: string
           selected_options?: Json
-          voter_fingerprint?: string | null
+          voter_fingerprint?: string
           voted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "demo_votes_demo_poll_id_fkey"
+            columns: ["demo_poll_id"]
+            isOneToOne: false
+            referencedRelation: "demo_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discord_link_codes: {
+        Row: {
+          code: string
+          guild_id: string
+          guild_name: string | null
+          created_at: string | null
+          expires_at: string
+          claimed: boolean
+        }
+        Insert: {
+          code: string
+          guild_id: string
+          guild_name?: string | null
+          created_at?: string | null
+          expires_at: string
+          claimed?: boolean
+        }
+        Update: {
+          code?: string
+          guild_id?: string
+          guild_name?: string | null
+          created_at?: string | null
+          expires_at?: string
+          claimed?: boolean
+        }
         Relationships: []
+      }
+      discord_links: {
+        Row: {
+          guild_id: string
+          guild_name: string | null
+          user_id: string
+          created_at: string | null
+        }
+        Insert: {
+          guild_id: string
+          guild_name?: string | null
+          user_id: string
+          created_at?: string | null
+        }
+        Update: {
+          guild_id?: string
+          guild_name?: string | null
+          user_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discord_links_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      discord_poll_messages: {
+        Row: {
+          id: string
+          poll_id: string
+          guild_id: string
+          channel_id: string
+          message_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          guild_id: string
+          channel_id: string
+          message_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          guild_id?: string
+          channel_id?: string
+          message_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discord_poll_messages_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_embeds: {
         Row: {
           id: string
           poll_id: string
-          domain: string | null
+          domain: string
           embed_type: string | null
           first_seen: string | null
           last_seen: string | null
@@ -239,7 +370,7 @@ export type Database = {
         Insert: {
           id?: string
           poll_id: string
-          domain?: string | null
+          domain: string
           embed_type?: string | null
           first_seen?: string | null
           last_seen?: string | null
@@ -249,14 +380,22 @@ export type Database = {
         Update: {
           id?: string
           poll_id?: string
-          domain?: string | null
+          domain?: string
           embed_type?: string | null
           first_seen?: string | null
           last_seen?: string | null
           total_views?: number | null
           total_votes?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_embeds_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_options: {
         Row: {
@@ -267,6 +406,7 @@ export type Database = {
           created_at: string | null
           question_id: string | null
           image_url: string | null
+          is_correct: boolean | null
         }
         Insert: {
           id?: string
@@ -276,6 +416,7 @@ export type Database = {
           created_at?: string | null
           question_id?: string | null
           image_url?: string | null
+          is_correct?: boolean | null
         }
         Update: {
           id?: string
@@ -285,8 +426,24 @@ export type Database = {
           created_at?: string | null
           question_id?: string | null
           image_url?: string | null
+          is_correct?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_options_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_options_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "poll_questions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_questions: {
         Row: {
@@ -298,6 +455,7 @@ export type Database = {
           allow_multiple: boolean | null
           settings: Json | null
           created_at: string | null
+          time_limit_seconds: number | null
         }
         Insert: {
           id?: string
@@ -308,6 +466,7 @@ export type Database = {
           allow_multiple?: boolean | null
           settings?: Json | null
           created_at?: string | null
+          time_limit_seconds?: number | null
         }
         Update: {
           id?: string
@@ -318,8 +477,17 @@ export type Database = {
           allow_multiple?: boolean | null
           settings?: Json | null
           created_at?: string | null
+          time_limit_seconds?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_questions_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_responses: {
         Row: {
@@ -349,39 +517,72 @@ export type Database = {
           response_text?: string
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_responses_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_responses_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "poll_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_responses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       poll_variants: {
         Row: {
           id: string
           experiment_id: string
-          variant_name: string | null
-          question: string
+          name: string
+          question_text: string
           description: string | null
           created_at: string | null
+          weight: number
         }
         Insert: {
           id?: string
           experiment_id: string
-          variant_name?: string | null
-          question: string
+          name: string
+          question_text: string
           description?: string | null
           created_at?: string | null
+          weight?: number
         }
         Update: {
           id?: string
           experiment_id?: string
-          variant_name?: string | null
-          question?: string
+          name?: string
+          question_text?: string
           description?: string | null
           created_at?: string | null
+          weight?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "poll_variants_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "ab_experiments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       polls: {
         Row: {
           id: string
-          code: string | null
+          code: string
           user_id: string
           question: string
           description: string | null
@@ -401,10 +602,11 @@ export type Database = {
           live_state: string | null
           live_current_question: number | null
           team_id: string | null
+          quiz_mode: boolean | null
         }
         Insert: {
           id?: string
-          code?: string | null
+          code: string
           user_id: string
           question: string
           description?: string | null
@@ -424,10 +626,11 @@ export type Database = {
           live_state?: string | null
           live_current_question?: number | null
           team_id?: string | null
+          quiz_mode?: boolean | null
         }
         Update: {
           id?: string
-          code?: string | null
+          code?: string
           user_id?: string
           question?: string
           description?: string | null
@@ -447,8 +650,17 @@ export type Database = {
           live_state?: string | null
           live_current_question?: number | null
           team_id?: string | null
+          quiz_mode?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "polls_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -463,6 +675,7 @@ export type Database = {
           subscription_status: string | null
           subscription_id: string | null
           current_period_end: string | null
+          role: number
         }
         Insert: {
           id: string
@@ -476,6 +689,7 @@ export type Database = {
           subscription_status?: string | null
           subscription_id?: string | null
           current_period_end?: string | null
+          role?: number
         }
         Update: {
           id?: string
@@ -489,8 +703,145 @@ export type Database = {
           subscription_status?: string | null
           subscription_id?: string | null
           current_period_end?: string | null
+          role?: number
         }
         Relationships: []
+      }
+      quiz_participants: {
+        Row: {
+          id: string
+          poll_id: string
+          user_id: string | null
+          voter_fingerprint: string | null
+          nickname: string
+          score: number
+          correct_count: number
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          user_id?: string | null
+          voter_fingerprint?: string | null
+          nickname: string
+          score?: number
+          correct_count?: number
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          user_id?: string | null
+          voter_fingerprint?: string | null
+          nickname?: string
+          score?: number
+          correct_count?: number
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_participants_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_items: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          status: string
+          sort_order: number
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          status?: string
+          sort_order?: number
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          status?: string
+          sort_order?: number
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      roadmap_suggestions: {
+        Row: {
+          id: string
+          user_id: string
+          body: string
+          is_read: boolean
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          body: string
+          is_read?: boolean
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          body?: string
+          is_read?: boolean
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roadmap_votes: {
+        Row: {
+          id: string
+          item_id: string
+          voter_key: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          voter_key: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          voter_key?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "roadmap_votes_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "roadmap_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stripe_webhook_events: {
         Row: {
@@ -541,7 +892,22 @@ export type Database = {
           invited_at?: string | null
           joined_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teams: {
         Row: {
@@ -565,7 +931,15 @@ export type Database = {
           created_at?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
@@ -595,7 +969,15 @@ export type Database = {
           tier?: number | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_type_id_fkey"
+            columns: ["achievement_type_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_types"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_email_preferences: {
         Row: {
@@ -694,7 +1076,22 @@ export type Database = {
           voted?: boolean | null
           voted_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_variant_assignments_experiment_id_fkey"
+            columns: ["experiment_id"]
+            isOneToOne: false
+            referencedRelation: "ab_experiments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_variant_assignments_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "poll_variants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vote_edits: {
         Row: {
@@ -727,7 +1124,15 @@ export type Database = {
           voter_ip?: string | null
           voter_fingerprint?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vote_edits_original_vote_id_fkey"
+            columns: ["original_vote_id"]
+            isOneToOne: false
+            referencedRelation: "votes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       votes: {
         Row: {
@@ -760,7 +1165,15 @@ export type Database = {
           options?: Json | null
           answers?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhooks: {
         Row: {
@@ -796,20 +1209,48 @@ export type Database = {
           last_triggered_at?: string | null
           created_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhooks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
+      public_profiles: {
+        Row: {
+          id: string | null
+          username: string | null
+          avatar_url: string | null
+          subscription_tier: string | null
+          brand_logo_url: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       assign_variant: {
         Args: {
           experiment_uuid: string
+          user_uuid: string
+          fingerprint: string
         }
         Returns: string
       }
       generate_unique_username: {
         Args: {
+          base_name: string
         }
         Returns: string
       }
