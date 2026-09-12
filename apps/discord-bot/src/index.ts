@@ -24,7 +24,7 @@ import {
   setPollActive,
 } from "./db";
 import { buildPollMessage } from "./pollMessage";
-import { parseCloseHours, nextFridays } from "./commands";
+import { parseCloseHours, nextFridayOptions } from "./commands";
 import { trackBotInstalled } from "./analytics";
 import { startTopggAutopost } from "./topgg";
 
@@ -71,7 +71,11 @@ async function postPoll(
   userId: string,
   title: string,
   optionTexts: string[],
-  opts: { allowMultiple: boolean; closeHours?: number },
+  opts: {
+    allowMultiple: boolean;
+    closeHours?: number;
+    settings?: Record<string, unknown>;
+  },
 ) {
   if (optionTexts.length < 2 || optionTexts.length > 20) {
     await i.reply({
@@ -184,11 +188,21 @@ async function handleCreateModal(i: ModalSubmitInteraction) {
 async function handleSchedule(i: ChatInputCommandInteraction, userId: string) {
   const title = i.options.getString("title", true);
   const datesInput = i.options.getString("dates");
-  const dates = datesInput
-    ? datesInput.split(",").map((s) => s.trim()).filter(Boolean)
-    : nextFridays(4);
+
+  let optionTexts: string[];
+  let settings: Record<string, unknown> | undefined;
+  if (datesInput) {
+    // Custom free-text dates — no calendar invite (we can't reliably parse them).
+    optionTexts = [...new Set(datesInput.split(",").map((s) => s.trim()).filter(Boolean))];
+  } else {
+    // Auto Fridays carry real dates so the web can build a calendar invite.
+    const fridays = nextFridayOptions(4);
+    optionTexts = fridays.map((f) => f.label);
+    settings = { scheduleDates: fridays.map((f) => f.date) };
+  }
+
   // Scheduling is availability: multi-select on.
-  await postPoll(i, userId, title, [...new Set(dates)], { allowMultiple: true });
+  await postPoll(i, userId, title, optionTexts, { allowMultiple: true, settings });
 }
 
 async function handleSetActive(

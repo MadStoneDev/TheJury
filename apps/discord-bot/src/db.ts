@@ -71,7 +71,11 @@ export async function createPoll(
   userId: string,
   title: string,
   optionTexts: string[],
-  opts: { allowMultiple: boolean; closeHours?: number },
+  opts: {
+    allowMultiple: boolean;
+    closeHours?: number;
+    settings?: Record<string, unknown>;
+  },
 ): Promise<CreatedPoll> {
   const code = await generateUniquePollCode();
   const endDate = opts.closeHours
@@ -103,6 +107,7 @@ export async function createPoll(
       question_type: "multiple_choice",
       question_order: 1,
       allow_multiple: opts.allowMultiple,
+      settings: opts.settings ?? {},
     })
     .select("id")
     .single();

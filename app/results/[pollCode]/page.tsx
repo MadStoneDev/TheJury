@@ -18,6 +18,7 @@ import { BarChart } from "@/components/charts";
 import type { ChartDataItem } from "@/components/charts";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { pluralize } from "@/lib/utils";
+import { CalendarButton } from "@/components/CalendarButton";
 
 export default function PublicResultsPage() {
   const params = useParams();
@@ -172,6 +173,11 @@ export default function PublicResultsPage() {
                     </span>
                   )}
                 </div>
+              </div>
+
+              {/* Add-to-calendar (scheduling polls only) */}
+              <div className="mb-6">
+                <CalendarButton pollCode={pollCode} />
               </div>
 
               {/* Results */}

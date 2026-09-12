@@ -62,21 +62,26 @@ export function parseCloseHours(input: string | null): number | undefined {
   return m[2].toLowerCase() === "d" ? n * 24 : n;
 }
 
-/** The next `count` Fridays as short labels, e.g. "Fri 19 Sep". */
-export function nextFridays(count: number): string[] {
-  const out: string[] = [];
+/**
+ * The next `count` Fridays as { label, date } — label for display, date as
+ * YYYY-MM-DD (local) so the web can build a calendar invite from the winner.
+ */
+export function nextFridayOptions(count: number): { label: string; date: string }[] {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const out: { label: string; date: string }[] = [];
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   while (out.length < count) {
     d.setDate(d.getDate() + 1);
     if (d.getDay() === 5) {
-      out.push(
-        d.toLocaleDateString("en-AU", {
+      out.push({
+        label: d.toLocaleDateString("en-AU", {
           weekday: "short",
           day: "numeric",
           month: "short",
         }),
-      );
+        date: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+      });
     }
   }
   return out;
