@@ -9,7 +9,7 @@ export function Footer() {
       <footer className="relative border-t border-border bg-muted/50 dark:bg-slate-950/80">
         <div className="dots-bg absolute inset-0 pointer-events-none opacity-50" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-8">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <Link
@@ -52,6 +52,39 @@ export function Footer() {
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Dashboard
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Use cases */}
+            <div>
+              <h4 className="text-sm font-semibold text-foreground mb-4">
+                Use cases
+              </h4>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link
+                    href="/for/gaming-groups"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Gaming groups
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/for/teams"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Teams
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/for/creators"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Creators
                   </Link>
                 </li>
               </ul>
