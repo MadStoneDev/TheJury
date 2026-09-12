@@ -10,6 +10,7 @@ import {
   IconCurrencyDollar,
   IconDashboard,
   IconTemplate,
+  IconLayoutGrid,
   IconMenu2,
   IconMoon,
   IconPlus,
@@ -80,6 +81,7 @@ export const Navbar = () => {
   const navLinks = [
     { href: "/pricing", label: "Pricing", icon: IconCurrencyDollar, show: true },
     { href: "/templates", label: "Templates", icon: IconTemplate, show: true },
+    { href: "/for/gaming-groups", label: "Use cases", icon: IconLayoutGrid, show: !user },
     { href: "/dashboard", label: "Dashboard", icon: IconDashboard, show: !!user },
     { href: "/create", label: "Create Poll", icon: IconPlus, show: !!user },
   ];

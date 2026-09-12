@@ -1,272 +1,186 @@
-import {
-  IconUsers,
-  IconCode,
-  IconShare,
-  IconArrowRight,
-  IconGavel,
-  IconClock,
-  IconBolt,
-} from "@tabler/icons-react";
 import Link from "next/link";
-import Hero from "@/components/home/Hero";
-import { Button } from "@/components/ui/button";
-import { ScrollReveal, StaggerContainer, StaggerItem, HoverCard } from "@/components/motion";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { getLandingStats } from "@/lib/landingStats.server";
+  Gamepad2,
+  Users,
+  Radio,
+  Layers,
+  BarChart3,
+  Code,
+  Lock,
+  Sparkles,
+  Download,
+} from "lucide-react";
+import Hero from "@/components/home/Hero";
+import { IconTile, type Accent } from "@/components/design/IconTile";
+import { PricingTeaser } from "@/components/design/PricingTeaser";
+import { CtaBand } from "@/components/design/CtaBand";
 
-// --- Data ---
-
-const features = [
+const audiences: {
+  icon: typeof Gamepad2;
+  accent: Accent;
+  title: string;
+  body: string;
+  link: string;
+  href: string;
+}[] = [
   {
-    icon: IconGavel,
-    title: "Ask Your Question",
-    description: "Create a poll in under 30 seconds. It's that easy!",
-    span: "md:col-span-2",
+    icon: Gamepad2,
+    accent: "gaming",
+    title: "Gaming groups",
+    body: "Find a session night, pick the campaign, vote straight from Discord.",
+    link: "For gaming groups →",
+    href: "/for/gaming-groups",
   },
   {
-    icon: IconUsers,
-    title: "Get Responses",
-    description: "Track votes and responses from one simple dashboard.",
-    span: "md:col-span-1",
+    icon: Users,
+    accent: "teams",
+    title: "Small teams",
+    body: "Settle lunch, retros and anonymous feedback without another meeting.",
+    link: "For teams →",
+    href: "/for/teams",
   },
   {
-    icon: IconClock,
-    title: "Schedule Polls",
-    description: "Set start and end times for time-sensitive polls.",
-    span: "md:col-span-1",
-  },
-  {
-    icon: IconCode,
-    title: "Embed Anywhere",
-    description: "Drop polls into your blog, stream overlay, or team site.",
-    span: "md:col-span-1",
-  },
-  {
-    icon: IconShare,
-    title: "Share Everywhere",
-    description: "Discord, WhatsApp, social media, or anywhere you like.",
-    span: "md:col-span-1",
-  },
-  {
-    icon: IconBolt,
-    title: "Real-Time Results",
-    description: "Watch votes come in live as your audience responds.",
-    span: "md:col-span-2",
+    icon: Radio,
+    accent: "creators",
+    title: "Creators",
+    body: "Overlay a poll on your stream and let the audience steer the next hour.",
+    link: "For creators →",
+    href: "/for/creators",
   },
 ];
 
-const howItWorks = [
+const steps = [
   {
-    step: 1,
-    title: "Ask Your Question",
-    description:
-      "Type your question and add options. Which strategy to use? Planning an event? The power is yours.",
+    n: "01",
+    title: "Write the question",
+    body: "Type it, or let AI draft the options for you. Multiple choice, ranked, rating or reactions.",
   },
   {
-    step: 2,
-    title: "Share With People",
-    description:
-      "Drop the link in group chats, Discord, social media, or embed it on your website.",
+    n: "02",
+    title: "Share the code",
+    body: "A link, a QR code, a six-character code or an embed. Voters never need an account.",
   },
   {
-    step: 3,
-    title: "Get Your Answer",
-    description:
-      "See the results in real-time from your dashboard. Find out which response won.",
+    n: "03",
+    title: "Watch it land",
+    body: "Results update live, chart however you like, and export to CSV when you're done.",
   },
 ];
 
-const faqs = [
-  {
-    question: "How quickly can I create a poll?",
-    answer:
-      "Less than 30 seconds! Just type your question, add some options, and share the link. TheJury has gone back to basics, focusing only on what's most important.",
-  },
-  {
-    question: "Can I schedule when my poll opens and closes?",
-    answer:
-      "You sure can! When creating your poll, just set a starting and end date. The poll will only be available within that time. You don't even need both dates.",
-  },
-  {
-    question: "How do I share my poll with my friends?",
-    answer:
-      "Send them the link, share it on social media, drop it in your Discord server, or embed it on your website. TheJury polls work everywhere.",
-  },
-  {
-    question: "Can I watch responses come in real-time?",
-    answer:
-      "Absolutely! Go to your dashboard and see votes come as people respond. You can also choose whether voters see current results or wait until everyone's voted.",
-  },
-  {
-    question: "Is there a limit to how many people can vote?",
-    answer:
-      "Nope! TheJury handles any crowd size you throw at it, or any crowd you throw the poll at. Either way, it works!",
-  },
-  {
-    question: "Can I embed polls on my website or stream?",
-    answer:
-      "For sure! Get an embed code and drop it anywhere - your blog, Twitch overlay, team website, you name it. Fully customizable to match your vibe.",
-  },
+const features: { icon: typeof Layers; title: string; body: string }[] = [
+  { icon: Layers, title: "Five question types", body: "Choice, rating, ranked choice, image options and reactions." },
+  { icon: BarChart3, title: "Live results", body: "Bar, pie or donut, updating the moment a vote lands." },
+  { icon: Code, title: "Embed anywhere", body: "Drop a themed iframe into a wiki, site or stream overlay." },
+  { icon: Lock, title: "Private polls", body: "Password protection, time limits and anonymous responses." },
+  { icon: Sparkles, title: "AI drafting", body: "Describe the decision and get a poll with sensible options." },
+  { icon: Download, title: "CSV export", body: "Take every response with you, per question or per voter." },
 ];
 
-// --- Page ---
-
-export default async function HomePage() {
-  const stats = await getLandingStats();
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen">
-      <Hero stats={stats} />
+    <div className="bg-jury-base">
+      <Hero />
 
-      {/* Features — Bento Grid */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-                Everything you need to get{" "}
-                <span className="gradient-text">consensus</span>
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                From casual polls to serious team decisions
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <StaggerContainer className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {features.map((feature) => (
-              <StaggerItem key={feature.title} className={feature.span}>
-                <HoverCard className="h-full">
-                  <div className="h-full rounded-2xl border bg-card p-6 transition-shadow hover:shadow-md">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 text-white mb-4">
-                      <feature.icon className="w-6 h-6" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2">
-                      {feature.title}
-                    </h3>
-                    <p className="text-muted-foreground text-sm">
-                      {feature.description}
-                    </p>
-                  </div>
-                </HoverCard>
-              </StaggerItem>
+      {/* Who it's for */}
+      <section className="border-t border-jury-border-subtle bg-jury-base">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-14 lg:py-[72px]">
+          <h2 className="font-display text-3xl text-jury-text sm:text-[34px]">
+            Who it&apos;s for
+          </h2>
+          <p className="mt-2 text-[15px] text-jury-muted sm:text-[17px]">
+            Three ways people use TheJury every week.
+          </p>
+          <div className="mt-8 grid gap-5 sm:grid-cols-3">
+            {audiences.map((a) => (
+              <Link
+                key={a.title}
+                href={a.href}
+                className="group rounded-xl border border-jury-border bg-jury-surface p-6 transition hover:border-white/[0.12]"
+              >
+                <IconTile icon={a.icon} accent={a.accent} />
+                <h3 className="mt-4 text-[19px] font-semibold text-jury-text">
+                  {a.title}
+                </h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-jury-muted">
+                  {a.body}
+                </p>
+                <span
+                  className={`mt-4 inline-block text-[14px] font-medium ${
+                    a.accent === "gaming"
+                      ? "text-gaming-text"
+                      : a.accent === "teams"
+                        ? "text-teams-text"
+                        : "text-creators-text"
+                  }`}
+                >
+                  {a.link}
+                </span>
+              </Link>
             ))}
-          </StaggerContainer>
+          </div>
         </div>
       </section>
 
-      {/* How It Works — Timeline */}
-      <section id="how-it-works" className="py-20 lg:py-28 bg-muted/50 dark:bg-slate-950/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-                From question to answer in{" "}
-                <span className="gradient-text">three steps</span>
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Ask your question, share with people, and get results
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <StaggerContainer className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
-            {howItWorks.map((item) => (
-              <StaggerItem key={item.step}>
-                <div className="text-center">
-                  <div className="relative mx-auto mb-6">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-400 text-white flex items-center justify-center text-xl font-bold mx-auto shadow-glow-emerald">
-                      {item.step}
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
+      {/* How it works */}
+      <section id="how-it-works" className="border-t border-jury-border-subtle bg-jury-alt">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-14 lg:py-[72px]">
+          <h2 className="font-display text-3xl text-jury-text sm:text-[34px]">
+            How it works
+          </h2>
+          <div className="mt-8 grid gap-8 sm:grid-cols-3 sm:gap-6">
+            {steps.map((s) => (
+              <div key={s.n} className="border-l border-jury-border-subtle pl-5">
+                <div className="text-[13px] font-bold uppercase tracking-[0.12em] text-jury-emerald">
+                  Step {s.n}
                 </div>
-              </StaggerItem>
+                <h3 className="mt-3 text-[20px] font-semibold text-jury-text">
+                  {s.title}
+                </h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-jury-muted">
+                  {s.body}
+                </p>
+              </div>
             ))}
-          </StaggerContainer>
+          </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section className="py-20 lg:py-28">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ScrollReveal>
-            <div className="text-center mb-14">
-              <h2 className="text-3xl sm:text-4xl font-display text-foreground mb-3">
-                Frequently asked <span className="gradient-text">questions</span>
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Common questions on using TheJury for your polls
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal>
-            <Accordion type="single" collapsible className="space-y-3">
-              {faqs.map((faq, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`faq-${i}`}
-                  className="rounded-xl border bg-card px-6 data-[state=open]:border-emerald-500/50 transition-colors"
-                >
-                  <AccordionTrigger className="text-left font-semibold text-foreground hover:no-underline py-5">
-                    {faq.question}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground leading-relaxed pb-5">
-                    {faq.answer}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </ScrollReveal>
+      {/* Features */}
+      <section className="border-t border-jury-border-subtle bg-jury-base">
+        <div className="mx-auto max-w-6xl px-5 py-16 sm:px-14 lg:py-[72px]">
+          <h2 className="font-display text-3xl text-jury-text sm:text-[34px]">
+            Everything in the box
+          </h2>
+          <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+            {features.map((f) => (
+              <div
+                key={f.title}
+                className="rounded-xl border border-jury-border bg-jury-surface p-5 sm:p-6"
+              >
+                <IconTile
+                  icon={f.icon}
+                  className="h-[38px] w-[38px]"
+                  iconSize={19}
+                />
+                <h3 className="mt-4 text-[14px] font-semibold text-jury-text sm:text-[17px]">
+                  {f.title}
+                </h3>
+                <p className="mt-2 text-[13px] leading-relaxed text-jury-muted sm:text-[15px]">
+                  {f.body}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="relative py-20 lg:py-28 overflow-hidden">
-        <div className="absolute inset-0 animated-gradient-bg" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <ScrollReveal>
-            <h2 className="text-3xl sm:text-4xl font-display text-white mb-4">
-              Ready to settle the debate?
-            </h2>
-            <p className="text-lg text-white/80 mb-8 max-w-xl mx-auto">
-              Join TheJury for free and start making group decisions the easy
-              way.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/create">
-                <Button
-                  size="xl"
-                  className="bg-white text-emerald-700 hover:bg-white/90 shadow-lg gap-2"
-                >
-                  Make Your First Poll
-                  <IconArrowRight className="w-5 h-5" />
-                </Button>
-              </Link>
-              <Link href="/auth/sign-up">
-                <Button
-                  variant="outline"
-                  size="xl"
-                  className="border-white/40 text-white hover:bg-white/10"
-                >
-                  Join the Community
-                </Button>
-              </Link>
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
+      <PricingTeaser />
+
+      <CtaBand
+        title={'Stop asking "so what are we doing?"'}
+        body="One link, one minute, and the group has actually decided. Your first poll is live before the chat finishes arguing."
+        cta={{ label: "Create your first poll", href: "/create" }}
+      />
     </div>
   );
 }
