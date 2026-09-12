@@ -43,6 +43,7 @@ import Pagination from "@/components/Pagination";
 import ShareModal from "@/components/ShareModal";
 import UpgradeModal from "@/components/UpgradeModal";
 import { getFeatureLimit, canUseFeature } from "@/lib/featureGate";
+import { pluralize } from "@/lib/utils";
 import type { TierName } from "@/lib/stripe";
 import { formatDateShort } from "@/lib/dateUtils";
 
@@ -393,7 +394,7 @@ export default function PollDashboardPage() {
         {/* Filtered count */}
         {polls.length > 0 && isFiltered && (
           <p className="text-sm text-muted-foreground mb-4">
-            {filteredPolls.length} of {polls.length} polls
+            {filteredPolls.length} of {pluralize(polls.length, "poll")}
           </p>
         )}
 
@@ -539,10 +540,10 @@ export default function PollDashboardPage() {
                               {poll.code}
                             </span>
                           </span>
-                          <span>{poll.total_votes || 0} votes</span>
+                          <span>{pluralize(poll.total_votes || 0, "vote")}</span>
                           {(poll.question_count || 1) > 1 && (
                             <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
-                              {poll.question_count} questions
+                              {pluralize(poll.question_count || 0, "question")}
                             </span>
                           )}
                           <span>Created {formatDate(poll.created_at)}</span>

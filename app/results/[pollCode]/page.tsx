@@ -17,6 +17,7 @@ import { QuestionTypeResults } from "@/components/question-types";
 import { BarChart } from "@/components/charts";
 import type { ChartDataItem } from "@/components/charts";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
+import { pluralize } from "@/lib/utils";
 
 export default function PublicResultsPage() {
   const params = useParams();
@@ -167,7 +168,7 @@ export default function PublicResultsPage() {
                   </span>
                   {isMultiQuestion && (
                     <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full text-xs font-medium">
-                      {questionResults.length} questions
+                      {pluralize(questionResults.length, "question")}
                     </span>
                   )}
                 </div>

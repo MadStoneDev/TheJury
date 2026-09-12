@@ -40,6 +40,7 @@ import type { EmbedTheme } from "@/components/EmbedThemeEditor";
 import { DEFAULT_EMBED_THEME } from "@/components/EmbedThemeEditor";
 import { updateEmbedSettings } from "@/lib/supabaseHelpers";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
+import { pluralize } from "@/lib/utils";
 
 // Lazy-load heavy tier-gated components
 const AnalyticsDashboard = dynamic(() => import("@/components/analytics/AnalyticsDashboard"), { ssr: false });
@@ -295,7 +296,7 @@ export default function PollResultsPage() {
                 </span>
                 {isMultiQuestion && (
                   <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
-                    {questionResults.length} questions
+                    {pluralize(questionResults.length, "question")}
                   </span>
                 )}
                 <span>Created {formatDate(poll.created_at)}</span>
