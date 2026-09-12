@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# SupaTypes config (contains server credentials)
+.supatypes.json
+
+# Nested app deps (e.g. discord bot)
+apps/**/node_modules
+apps/**/dist
