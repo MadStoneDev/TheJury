@@ -16,6 +16,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/for/creators",
     "/terms",
     "/privacy",
+    "/roadmap",
   ];
 
   return routes.map((path) => ({

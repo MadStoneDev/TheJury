@@ -54,6 +54,14 @@ export function Footer() {
                     Dashboard
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/roadmap"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Roadmap
+                  </Link>
+                </li>
               </ul>
             </div>
 
