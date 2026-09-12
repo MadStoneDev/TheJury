@@ -6,7 +6,11 @@ import { EYEBROW, FILL_BTN } from "../accents";
 interface Cta {
   label: string;
   href: string;
+  external?: boolean;
 }
+
+const extProps = (cta: Cta) =>
+  cta.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
 interface UseCaseHeroProps {
   eyebrow: string;
@@ -46,6 +50,7 @@ export function UseCaseHero({
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href={primaryCta.href}
+              {...extProps(primaryCta)}
               className={`inline-flex h-11 items-center justify-center rounded-full px-6 text-[15px] font-semibold transition ${FILL_BTN[accent]}`}
             >
               {primaryCta.label}
@@ -53,6 +58,7 @@ export function UseCaseHero({
             {secondaryCta && (
               <Link
                 href={secondaryCta.href}
+                {...extProps(secondaryCta)}
                 className="inline-flex h-11 items-center justify-center rounded-full border border-jury-border-strong px-6 text-[15px] font-medium text-jury-body transition hover:border-white/25"
               >
                 {secondaryCta.label}

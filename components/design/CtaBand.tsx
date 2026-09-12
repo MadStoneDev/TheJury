@@ -15,11 +15,20 @@ const FILL: Record<Accent, string> = {
   creators: "bg-creators text-creators-on hover:brightness-110",
 };
 
+interface Cta {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+const extProps = (cta: Cta) =>
+  cta.external ? { target: "_blank", rel: "noopener noreferrer" } : {};
+
 interface CtaBandProps {
   title: string;
   body: string;
-  cta: { label: string; href: string };
-  secondaryCta?: { label: string; href: string };
+  cta: Cta;
+  secondaryCta?: Cta;
   accent?: Accent;
 }
 
@@ -53,6 +62,7 @@ export function CtaBand({
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
             href={cta.href}
+            {...extProps(cta)}
             className={`inline-flex h-11 items-center justify-center rounded-full px-6 text-[15px] font-semibold transition ${FILL[accent]}`}
           >
             {cta.label}
@@ -60,6 +70,7 @@ export function CtaBand({
           {secondaryCta && (
             <Link
               href={secondaryCta.href}
+              {...extProps(secondaryCta)}
               className="inline-flex h-11 items-center justify-center rounded-full border border-jury-border-strong px-6 text-[15px] font-medium text-jury-body transition hover:border-white/25"
             >
               {secondaryCta.label}

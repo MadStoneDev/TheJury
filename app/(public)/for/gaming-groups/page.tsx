@@ -3,6 +3,7 @@ import { UseCaseHero } from "@/components/design/useCase/UseCaseHero";
 import { FeatureRow } from "@/components/design/useCase/FeatureRow";
 import { PricingTeaser } from "@/components/design/PricingTeaser";
 import { CtaBand } from "@/components/design/CtaBand";
+import { DISCORD_INSTALL_URL } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "D&D session scheduling poll & Discord scheduling poll | TheJury",
@@ -249,7 +250,7 @@ export default function GamingGroupsPage() {
         eyebrow="For D&D parties & Discord servers"
         title="Find a night everyone can make."
         lead="Stop scrolling back through 200 messages to work out who's free. Post the dates, let the party tick what works, and lock the session in."
-        primaryCta={{ label: "Add to Discord", href: "#discord" }}
+        primaryCta={{ label: "Add to Discord", href: DISCORD_INSTALL_URL, external: true }}
         secondaryCta={{ label: "Create a poll", href: "/create" }}
         visual={<HeroDatePoll />}
       />
@@ -307,7 +308,7 @@ export default function GamingGroupsPage() {
         accent={ACCENT}
         title="Get the party on the same night"
         body="Add the bot to your server, post one poll, and have Session 12 in the calendar before anyone rolls initiative on the group chat."
-        cta={{ label: "Add to Discord", href: "#discord" }}
+        cta={{ label: "Add to Discord", href: DISCORD_INSTALL_URL, external: true }}
         secondaryCta={{ label: "Create a poll", href: "/create" }}
       />
     </>
