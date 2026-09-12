@@ -21,6 +21,18 @@ export async function POST(request: Request) {
 
     const additionalPolls = [
       {
+        question: "What are we queuing up tonight?",
+        description: "Squad's in — pick the vibe for game night",
+        options: [
+          { id: "1", text: "Ranked grind" },
+          { id: "2", text: "Chill co-op" },
+          { id: "3", text: "Party games" },
+          { id: "4", text: "Something new" },
+        ],
+        category: "gaming",
+        display_order: 1,
+      },
+      {
         question: "What's your preferred programming language?",
         description: "For building web applications",
         options: [

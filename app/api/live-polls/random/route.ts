@@ -42,9 +42,16 @@ export async function GET(request: Request) {
       );
     }
 
+    // Prefer gaming/community polls so the hero demo suits our audience;
+    // fall back to the full set if none are seeded yet.
+    const onBrand = polls.filter(
+      (p) => p.category === "gaming" || p.category === "community",
+    );
+    const pool = onBrand.length > 0 ? onBrand : polls;
+
     // Randomly select a poll
-    const randomIndex = Math.floor(Math.random() * polls.length);
-    const selectedPoll = polls[randomIndex];
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    const selectedPoll = pool[randomIndex];
 
     return NextResponse.json(selectedPoll);
   } catch (error) {
