@@ -87,32 +87,52 @@ async function postPoll(
   await saveMessageRef(poll.pollId, i.guildId!, i.channelId!, sent.id);
 }
 
-// /jury create opens a modal for the question + options; the toggles (multi,
-// close) come from the slash options and ride along in the modal's customId.
-async function handleCreate(i: ChatInputCommandInteraction) {
-  const closeHours = parseCloseHours(i.options.getString("close"));
-  const multi = i.options.getBoolean("multi") ?? false;
+// /jury create opens a single modal: question, options (one per line), and
+// optional "allow multiple?" + "auto-close after" text fields.
+function textRow(input: TextInputBuilder) {
+  return new ActionRowBuilder<TextInputBuilder>().addComponents(input);
+}
 
+async function handleCreate(i: ChatInputCommandInteraction) {
   const modal = new ModalBuilder()
-    .setCustomId(`jurycreate:${multi ? 1 : 0}:${closeHours ?? ""}`)
+    .setCustomId("jurycreate")
     .setTitle("Create a poll")
     .addComponents(
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
+      textRow(
         new TextInputBuilder()
           .setCustomId("q")
           .setLabel("Question")
           .setStyle(TextInputStyle.Short)
           .setRequired(true)
-          .setMaxLength(300),
+          .setMaxLength(300)
+          .setPlaceholder("What are we playing tonight?"),
       ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
+      textRow(
         new TextInputBuilder()
           .setCustomId("opts")
           .setLabel("Options — one per line (2–20)")
           .setStyle(TextInputStyle.Paragraph)
           .setRequired(true)
           .setMaxLength(1500)
-          .setPlaceholder("Fri 19 Sep\nFri 26 Sep\nFri 3 Oct"),
+          .setPlaceholder("Ranked grind\nChill co-op\nParty games\nSomething new"),
+      ),
+      textRow(
+        new TextInputBuilder()
+          .setCustomId("multi")
+          .setLabel("Allow multiple answers?")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setMaxLength(5)
+          .setPlaceholder("yes / no (default: no)"),
+      ),
+      textRow(
+        new TextInputBuilder()
+          .setCustomId("close")
+          .setLabel("Auto-close after (Pro)")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(false)
+          .setMaxLength(10)
+          .setPlaceholder("e.g. 2h, 24h, 7d — leave blank for none"),
       ),
     );
 
@@ -133,16 +153,15 @@ async function handleCreateModal(i: ModalSubmitInteraction) {
     return;
   }
 
-  const [, multiStr, closeStr] = i.customId.split(":");
-  const allowMultiple = multiStr === "1";
-  let closeHours = closeStr ? Number(closeStr) : undefined;
-
   const question = i.fields.getTextInputValue("q").trim();
   const optionTexts = i.fields
     .getTextInputValue("opts")
     .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
+  const multiRaw = i.fields.getTextInputValue("multi").trim().toLowerCase();
+  const allowMultiple = ["y", "yes", "true", "1", "on"].includes(multiRaw);
+  let closeHours = parseCloseHours(i.fields.getTextInputValue("close") || null);
 
   // Auto-close (scheduling) is Pro. On Free, post without a deadline + nudge.
   let nudgeUpgrade = false;
@@ -217,7 +236,7 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await handleVote(interaction);
       return;
     }
-    if (interaction.isModalSubmit() && interaction.customId.startsWith("jurycreate:")) {
+    if (interaction.isModalSubmit() && interaction.customId === "jurycreate") {
       await handleCreateModal(interaction);
       return;
     }
