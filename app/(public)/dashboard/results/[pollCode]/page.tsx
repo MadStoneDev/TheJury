@@ -528,17 +528,14 @@ export default function PollResultsPage() {
         </motion.div>
       )}
 
-      {/* Embed Theme Editor (Pro/Team) */}
+      {/* Embed Theme Editor (Pro) — the editor renders its own "Embed Theme" header */}
       {canUseFeature(userTier, "customEmbedThemes") && embedThemeLoaded && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="mt-6 rounded-2xl border bg-card p-6"
+          className="mt-6"
         >
-          <h3 className="text-lg font-semibold text-foreground mb-4">
-            Embed Theme
-          </h3>
           <EmbedThemeEditor
             theme={embedTheme}
             onChange={async (newTheme) => {
