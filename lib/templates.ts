@@ -377,6 +377,90 @@ export const TEMPLATES: PollTemplate[] = [
       },
     ],
   },
+  // --- GAMING TEMPLATES ---
+  {
+    id: "game-night",
+    name: "Game Night",
+    description: "Let the squad pick what you're playing tonight",
+    category: "fun",
+    minTier: "free",
+    icon: "gamepad",
+    questions: [
+      {
+        question_text: "What are we playing tonight?",
+        question_type: "multiple_choice",
+        allow_multiple: false,
+        settings: {},
+        options: [
+          { text: "Ranked grind" },
+          { text: "Chill co-op" },
+          { text: "Party games" },
+          { text: "Something new" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "session-scheduling",
+    name: "Session Scheduling",
+    description: "Find a night everyone can make (tick all that work)",
+    category: "events",
+    minTier: "free",
+    icon: "calendar",
+    questions: [
+      {
+        question_text: "Which nights can you make this week?",
+        question_type: "multiple_choice",
+        allow_multiple: true,
+        settings: {},
+        options: [
+          { text: "Friday" },
+          { text: "Saturday" },
+          { text: "Sunday" },
+          { text: "Weeknight" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "rate-the-session",
+    name: "Rate the Session",
+    description: "A quick temperature check after tonight's session",
+    category: "feedback",
+    minTier: "free",
+    icon: "star",
+    questions: [
+      {
+        question_text: "How was tonight's session?",
+        question_type: "rating_scale",
+        allow_multiple: false,
+        settings: { min: 1, max: 5, labels: { 1: "Rough", 5: "Legendary" } },
+        options: [],
+      },
+    ],
+  },
+  {
+    id: "next-campaign",
+    name: "Next Campaign",
+    description: "Rank what the group plays next — ranked choice ends the stalemate",
+    category: "fun",
+    minTier: "pro",
+    icon: "dice",
+    questions: [
+      {
+        question_text: "What should we run next?",
+        question_type: "ranked_choice",
+        allow_multiple: false,
+        settings: {},
+        options: [
+          { text: "Curse of Strahd" },
+          { text: "Blades in the Dark" },
+          { text: "Delta Green one-shot" },
+          { text: "Something homebrew" },
+        ],
+      },
+    ],
+  },
 ];
 
 export function getTemplateById(id: string): PollTemplate | undefined {

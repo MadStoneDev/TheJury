@@ -17,6 +17,9 @@ import {
   Briefcase,
   RefreshCw,
   Search,
+  Gamepad2,
+  Star,
+  Dices,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -42,6 +45,9 @@ const ICONS: Record<string, LucideIcon> = {
   briefcase: Briefcase,
   refresh: RefreshCw,
   search: Search,
+  gamepad: Gamepad2,
+  star: Star,
+  dice: Dices,
 };
 
 interface TemplateCardsProps {
