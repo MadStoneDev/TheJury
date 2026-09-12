@@ -18,11 +18,17 @@ import {
 } from "./db";
 import { buildPollMessage } from "./pollMessage";
 import { parseCloseHours, nextFridays } from "./commands";
+import { trackBotInstalled } from "./analytics";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, (c) => {
   console.log(`TheJury bot online as ${c.user.tag}`);
+});
+
+// Track installs (the bot joining a new server).
+client.on(Events.GuildCreate, (guild) => {
+  void trackBotInstalled(guild.id);
 });
 
 async function handleLink(i: ChatInputCommandInteraction) {

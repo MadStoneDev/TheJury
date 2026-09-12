@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { IconCheck, IconLoader2 } from "@tabler/icons-react";
 import { generateFingerprint } from "@/lib/supabaseHelpers";
 import { safeJsonParse } from "@/lib/jsonUtils";
+import { track } from "@/lib/analytics";
 
 interface LivePoll {
   id: string;
@@ -137,6 +138,7 @@ const DemoPollWidget: React.FC = () => {
       setSelectedOption(optionId);
       setHasVoted(true);
       fireConfetti();
+      track("vote_cast", { demo: true });
       try {
         const pollResults = await livePollAPI.getLivePollResults(demoPoll.id);
         setResults(pollResults || []);

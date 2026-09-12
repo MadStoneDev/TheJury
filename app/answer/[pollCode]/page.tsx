@@ -36,6 +36,7 @@ import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-ty
 import PasswordGate from "@/components/PasswordGate";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { useRealtimePollState } from "@/hooks/useRealtimePollState";
+import { track } from "@/lib/analytics";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -331,6 +332,7 @@ export default function PollAnswerPage() {
       setJustVotedFor([...allOptionIds]);
       setHasVotedFlag(true);
       fireConfetti();
+      track("vote_cast", { poll_code: pollCode });
       toast.success("Vote submitted!");
     } catch (err) {
       console.error("Error submitting vote:", err);

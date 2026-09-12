@@ -20,6 +20,7 @@ import {
   IconLock,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { canUseFeature } from "@/lib/featureGate";
 import type { TierName } from "@/lib/stripe";
@@ -47,11 +48,12 @@ export default function ShareModal({
       await navigator.clipboard.writeText(pollUrl);
       setCopied(true);
       toast.success("Link copied!");
+      track("poll_shared", { method: "copy_link", poll_code: pollCode });
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error("Failed to copy link");
     }
-  }, [pollUrl]);
+  }, [pollUrl, pollCode]);
 
   const handleDownloadQR = useCallback(() => {
     const svg = qrRef.current?.querySelector("svg");

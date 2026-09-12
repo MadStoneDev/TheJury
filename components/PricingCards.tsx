@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 import type { TierName, TierConfig } from "@/lib/stripe";
 
 type Currency = "AUD" | "USD" | "EUR";
@@ -95,6 +96,7 @@ export default function PricingCards({
       return;
     }
     if (!priceId) return;
+    track("upgrade_clicked", { plan: key, billing: annual ? "annual" : "monthly" });
     setLoading(key);
     try {
       const res = await fetch("/api/stripe/checkout", {

@@ -24,6 +24,7 @@ import {
   getProfile,
 } from "@/lib/supabaseHelpers";
 import { createPollAction, updatePollAction } from "@/app/actions/polls";
+import { track } from "@/lib/analytics";
 import {
   DndContext,
   closestCenter,
@@ -785,6 +786,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
           throw new Error(result.error);
         }
         setGeneratedPollCode(result.data!.code);
+        track("poll_created", { questions: questionsInput.length });
       } else {
         const result = await updatePollAction(pollId, {
           question: pollTitle,
