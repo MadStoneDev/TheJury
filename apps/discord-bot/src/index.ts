@@ -11,6 +11,7 @@ import {
   createLinkCode,
   createPoll,
   getGuildUserId,
+  getAccountTier,
   getCounts,
   getPollByCode,
   recordVote,
@@ -19,11 +20,13 @@ import {
 import { buildPollMessage } from "./pollMessage";
 import { parseCloseHours, nextFridays } from "./commands";
 import { trackBotInstalled } from "./analytics";
+import { startTopggAutopost } from "./topgg";
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 client.once(Events.ClientReady, (c) => {
   console.log(`TheJury bot online as ${c.user.tag}`);
+  startTopggAutopost(c);
 });
 
 // Track installs (the bot joining a new server).
@@ -86,9 +89,25 @@ async function handleCreate(i: ChatInputCommandInteraction, userId: string) {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
-  const closeHours = parseCloseHours(i.options.getString("close"));
+  let closeHours = parseCloseHours(i.options.getString("close"));
   const allowMultiple = i.options.getBoolean("multi") ?? false;
+
+  // Auto-close (scheduling) is a Pro feature. On Free, post without the
+  // deadline and nudge to upgrade rather than failing the command.
+  let nudgeUpgrade = false;
+  if (closeHours !== undefined && (await getAccountTier(userId)) === "free") {
+    closeHours = undefined;
+    nudgeUpgrade = true;
+  }
+
   await postPoll(i, userId, title, [...new Set(optionTexts)], { allowMultiple, closeHours });
+
+  if (nudgeUpgrade) {
+    await i.followUp({
+      flags: MessageFlags.Ephemeral,
+      content: `⏱️ Auto-closing polls is a Pro feature — I posted this one without a deadline. Upgrade at ${config.theJuryUrl}/pricing to schedule closes.`,
+    });
+  }
 }
 
 async function handleSchedule(i: ChatInputCommandInteraction, userId: string) {

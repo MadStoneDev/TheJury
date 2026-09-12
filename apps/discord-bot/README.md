@@ -78,3 +78,26 @@ Before listing at https://top.gg:
 - Verified bots (75+ servers) can request the verified badge; larger bots need
   message-content intent justification — this bot does **not** use message
   content, which simplifies verification.
+
+## Suggested top.gg listing copy
+
+**Short description**
+> Create polls and find a night everyone can make — vote in one tap, results update live. `/jury create`, `/jury schedule`, `/jury results`.
+
+**Long description (paste into the listing):**
+> **TheJury** brings quick, no-account polls into your server.
+>
+> • `/jury create` — a poll with a vote button per option; results update in the message as people vote.
+> • `/jury schedule` — find a session night; proposes the next Fridays or your own dates (multi-select availability).
+> • `/jury results <code>` — check the tally any time.
+> • `/jury link` — connect the server to a free TheJury account so polls also show up on thejury.app, with a "View full results" link on every poll.
+>
+> No privileged intents, no account needed to vote. Free to use.
+
+**Tags:** `Utility`, `Productivity`, `Polls`
+**Prefix:** `/` (slash commands)
+**Website:** https://thejury.app
+**Support server / invite:** add your own.
+
+**Server-count stats (optional):** set `TOPGG_TOKEN` (from your bot's top.gg
+page → Webhooks/API) and the bot posts `server_count` every 30 minutes.

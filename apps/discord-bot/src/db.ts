@@ -32,6 +32,16 @@ export async function getGuildUserId(guildId: string): Promise<string | null> {
   return data?.user_id ?? null;
 }
 
+/** The linked account's subscription tier (defaults to "free"). */
+export async function getAccountTier(userId: string): Promise<string> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("subscription_tier")
+    .eq("id", userId)
+    .maybeSingle();
+  return data?.subscription_tier ?? "free";
+}
+
 /** Create a short-lived link code for /jury link (valid 15 minutes). */
 export async function createLinkCode(
   guildId: string,
