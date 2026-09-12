@@ -12,4 +12,7 @@ export const config = {
   supabaseUrl: required("SUPABASE_URL"),
   supabaseServiceRoleKey: required("SUPABASE_SERVICE_ROLE_KEY"),
   theJuryUrl: (process.env.THEJURY_URL || "https://thejury.app").replace(/\/$/, ""),
+  // Optional: register slash commands to this one guild for instant testing.
+  // Leave unset in production to register globally.
+  discordTestGuildId: process.env.DISCORD_TEST_GUILD_ID?.trim() || undefined,
 };
