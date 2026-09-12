@@ -87,9 +87,9 @@ export const TIERS: Record<TierName, TierConfig> = {
     priceIdAnnual: null, // resolved at runtime via getProAnnualPriceId()
     priceIdLifetime: null, // resolved at runtime via getProLifetimePriceId()
     priceMonthly: 9,
-    priceAnnualMonthly: 6,
-    priceAnnualTotal: 72,
-    priceLifetime: 179, // one-off
+    priceAnnualMonthly: 7.5, // A$90/yr billed annually
+    priceAnnualTotal: 90,
+    priceLifetime: 199, // one-off
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
