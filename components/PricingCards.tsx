@@ -2,33 +2,68 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { Check, X, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import {
-  StaggerContainer,
-  StaggerItem,
-  HoverCard,
-} from "@/components/motion";
 import type { TierName, TierConfig } from "@/lib/stripe";
 
 type Currency = "AUD" | "USD" | "EUR";
-type BillingPeriod = "monthly" | "annual" | "lifetime";
 
 const CURRENCY_CONFIG: Record<
   Currency,
-  { symbol: string; label: string; rate: number }
+  { symbol: string; rate: number }
 > = {
-  AUD: { symbol: "A$", label: "AUD", rate: 1 },
-  USD: { symbol: "$", label: "USD", rate: 0.63 },
-  EUR: { symbol: "\u20ac", label: "EUR", rate: 0.58 },
+  AUD: { symbol: "A$", rate: 1 },
+  USD: { symbol: "$", rate: 0.63 },
+  EUR: { symbol: "€", rate: 0.58 },
 };
 
-function convertPrice(audPrice: number, currency: Currency): string {
-  if (audPrice === 0) return "0";
-  const converted = audPrice * CURRENCY_CONFIG[currency].rate;
-  return Math.round(converted).toString();
+function convert(aud: number, currency: Currency): string {
+  if (aud === 0) return "0";
+  return String(Math.round(aud * CURRENCY_CONFIG[currency].rate));
 }
+
+const FREE_FEATURES = [
+  "Unlimited votes on every poll",
+  "Unlimited polls, 2 questions each",
+  "Multiple choice & rating questions",
+  "Live results with bar charts",
+  "Share by link, code or QR",
+  "Voting without an account",
+  "3 AI-drafted polls a month",
+  "Results dashboard & history",
+];
+
+const PRO_FEATURES = [
+  "Everything in Free",
+  "Unlimited active polls and questions",
+  "Ranked choice, image, open-ended & reactions",
+  "Branded embeds & stream overlays",
+  "Scheduling, time limits & passwords",
+  "CSV export & pie / donut charts",
+  "Unlimited AI drafting & all templates",
+  "Priority support",
+];
+
+const COMPARE: { name: string; free: string | boolean; pro: string | boolean }[] = [
+  { name: "Active polls", free: "Unlimited", pro: "Unlimited" },
+  { name: "Questions per poll", free: "2", pro: "Unlimited" },
+  { name: "Votes per poll", free: "Unlimited", pro: "Unlimited" },
+  { name: "Multiple choice", free: true, pro: true },
+  { name: "Rating questions", free: true, pro: true },
+  { name: "Ranked choice", free: false, pro: true },
+  { name: "Image options", free: false, pro: true },
+  { name: "Open-ended responses", free: false, pro: true },
+  { name: "Reaction polls", free: false, pro: true },
+  { name: "AI drafting", free: "3 / month", pro: "Unlimited" },
+  { name: "Result charts", free: "Bar", pro: "Bar, pie, donut" },
+  { name: "Share link, code & QR", free: true, pro: true },
+  { name: "Embed polls", free: "Basic", pro: "Branded + overlays" },
+  { name: "Custom embed theme", free: false, pro: true },
+  { name: "Remove TheJury branding", free: false, pro: true },
+  { name: "Scheduling & time limits", free: false, pro: true },
+  { name: "Password protection", free: false, pro: true },
+  { name: "CSV export", free: false, pro: true },
+];
 
 interface PricingCardsProps {
   tiers: Record<TierName, TierConfig>;
@@ -36,357 +71,279 @@ interface PricingCardsProps {
   isLoggedIn: boolean;
 }
 
-interface FeatureItem {
-  label: string;
-  free: string | boolean;
-  pro: string | boolean;
-}
-
-const FEATURES: FeatureItem[] = [
-  { label: "Unlimited polls", free: true, pro: true },
-  { label: "Unlimited votes", free: true, pro: true },
-  { label: "Questions per poll", free: "2", pro: "Unlimited" },
-  { label: "Multiple choice, rating & yes/no", free: true, pro: true },
-  { label: "AI poll generation", free: "3/month", pro: "Unlimited" },
-  { label: "Remove branding", free: false, pro: true },
-  { label: "Ranked choice", free: false, pro: true },
-  { label: "Image options", free: false, pro: true },
-  { label: "Open-ended & reactions", free: false, pro: true },
-  { label: "Poll scheduling", free: false, pro: true },
-  { label: "Password protection", free: false, pro: true },
-  { label: "Custom embed themes", free: false, pro: true },
-  { label: "CSV export", free: false, pro: true },
-  { label: "QR codes", free: false, pro: true },
-  { label: "Poll templates", free: false, pro: true },
-  { label: "Multiple chart types", free: false, pro: true },
-  { label: "Advanced analytics", free: false, pro: true },
-];
-
 export default function PricingCards({
   tiers,
   currentTier,
   isLoggedIn,
 }: PricingCardsProps) {
   const router = useRouter();
-  const [loadingTier, setLoadingTier] = useState<TierName | null>(null);
+  const [annual, setAnnual] = useState(false);
   const [currency, setCurrency] = useState<Currency>("AUD");
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
-  const handleCheckout = async (tier: TierName) => {
+  const pro = tiers.pro;
+  const { symbol } = CURRENCY_CONFIG[currency];
+  const savings = Math.round(
+    ((pro.priceMonthly * 12 - pro.priceAnnualTotal) / (pro.priceMonthly * 12)) *
+      100,
+  );
+
+  const checkout = async (priceId: string | null, key: string) => {
     if (!isLoggedIn) {
       router.push("/auth/sign-up");
       return;
     }
-
-    const priceId =
-      billingPeriod === "lifetime"
-        ? tiers[tier].priceIdLifetime
-        : billingPeriod === "annual"
-          ? tiers[tier].priceIdAnnual
-          : tiers[tier].priceId;
     if (!priceId) return;
-
-    setLoadingTier(tier);
+    setLoading(key);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ priceId }),
       });
-
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error || "Failed to start checkout");
         return;
       }
-
       window.location.href = data.url;
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoadingTier(null);
+      setLoading(null);
     }
   };
 
   const handlePortal = async () => {
-    setLoadingTier(currentTier);
+    setLoading("portal");
     try {
-      const res = await fetch("/api/stripe/portal", {
-        method: "POST",
-      });
-
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
       const data = await res.json();
       if (!res.ok) {
         toast.error(data.error || "Failed to open billing portal");
         return;
       }
-
       window.location.href = data.url;
     } catch {
       toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoadingTier(null);
+      setLoading(null);
     }
   };
 
-  const tierOrder: Array<"free" | "pro"> = ["free", "pro"];
-  const currencies: Currency[] = ["AUD", "USD", "EUR"];
-  const { symbol } = CURRENCY_CONFIG[currency];
+  const segBtn = (active: boolean) =>
+    `px-4 py-1.5 text-[13px] font-medium rounded-full transition ${
+      active
+        ? "bg-jury-emerald text-jury-on-emerald"
+        : "text-jury-muted hover:text-jury-text"
+    }`;
 
-  const getDisplayPrice = (tier: TierConfig): string => {
-    const price =
-      billingPeriod === "lifetime"
-        ? tier.priceLifetime
-        : billingPeriod === "annual"
-          ? tier.priceAnnualMonthly
-          : tier.priceMonthly;
-    return convertPrice(price, currency);
-  };
-
-  const proSavings = Math.round(
-    ((tiers.pro.priceMonthly - tiers.pro.priceAnnualMonthly) /
-      tiers.pro.priceMonthly) *
-      100,
-  );
-
-  const tierDescriptions: Record<"free" | "pro", string> = {
-    free: "Unlimited polls, multiple choice + rating + yes/no",
-    pro: "Everything unlocked — all question types and pro tools",
-  };
+  const proPrice = annual
+    ? convert(pro.priceAnnualTotal, currency)
+    : convert(pro.priceMonthly, currency);
+  const proSuffix = annual ? "/yr" : "/mo";
+  const proNote = annual
+    ? `Billed yearly — ${savings > 0 ? `${savings}% off` : "save"}`
+    : "Billed monthly, cancel any time.";
+  const isProCurrent = currentTier === "pro";
 
   return (
     <div>
-      {/* Billing Period Toggle */}
-      <div className="flex justify-center mb-6">
-        <div className="inline-flex items-center rounded-full bg-muted/50 border border-border p-1">
-          <button
-            onClick={() => setBillingPeriod("monthly")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
-              billingPeriod === "monthly"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
+      {/* Controls */}
+      <div className="mb-6 flex justify-center">
+        <div className="inline-flex items-center rounded-full border border-jury-border bg-jury-surface p-1">
+          <button onClick={() => setAnnual(false)} className={segBtn(!annual)}>
             Monthly
           </button>
-          <button
-            onClick={() => setBillingPeriod("annual")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-1.5 ${
-              billingPeriod === "annual"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
+          <button onClick={() => setAnnual(true)} className={`${segBtn(annual)} flex items-center gap-1.5`}>
             Annual
-            <span
-              className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                billingPeriod === "annual"
-                  ? "bg-white/20 text-white"
-                  : "bg-emerald-500/10 text-emerald-500"
-              }`}
-            >
-              Save {proSavings}%
-            </span>
-          </button>
-          <button
-            onClick={() => setBillingPeriod("lifetime")}
-            className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-1.5 ${
-              billingPeriod === "lifetime"
-                ? "bg-emerald-600 text-white shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            Lifetime
-            <span
-              className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
-                billingPeriod === "lifetime"
-                  ? "bg-white/20 text-white"
-                  : "bg-emerald-500/10 text-emerald-500"
-              }`}
-            >
-              Pay once
+            <span className="text-[11px] font-semibold text-jury-emerald-hi">
+              Save {savings}%
             </span>
           </button>
         </div>
       </div>
-
-      {/* Currency Toggle */}
-      <div className="flex justify-center mb-10">
-        <div className="inline-flex items-center rounded-full bg-muted/50 border border-border p-1">
-          {currencies.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCurrency(c)}
-              className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 ${
-                currency === c
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
+      <div className="mb-12 flex justify-center">
+        <div className="inline-flex items-center rounded-full border border-jury-border bg-jury-surface p-1">
+          {(Object.keys(CURRENCY_CONFIG) as Currency[]).map((c) => (
+            <button key={c} onClick={() => setCurrency(c)} className={segBtn(currency === c)}>
               {CURRENCY_CONFIG[c].symbol} {c}
             </button>
           ))}
         </div>
       </div>
 
-      <StaggerContainer
-        className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start max-w-3xl mx-auto"
-        staggerDelay={0.15}
-      >
-        {tierOrder.map((tierKey) => {
-          const tier = tiers[tierKey];
-          const isCurrent = currentTier === tierKey;
-          const isPopular = tierKey === "pro";
+      {/* Cards */}
+      <div className="mx-auto grid max-w-[960px] gap-6 md:grid-cols-2">
+        {/* Free */}
+        <div className="rounded-xl border border-jury-border bg-jury-surface p-8">
+          <h3 className="text-[17px] font-semibold text-jury-text">Free</h3>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-display text-[44px] leading-none text-jury-text">
+              {symbol}0
+            </span>
+            <span className="text-[14px] text-jury-dim">forever</span>
+          </div>
+          <p className="mt-3 text-[15px] text-jury-muted">
+            Everything you need to settle a group decision.
+          </p>
+          <ul className="mt-6 space-y-3">
+            {FREE_FEATURES.map((f) => (
+              <li key={f} className="flex items-start gap-2.5 text-[15px] text-jury-body">
+                <Check size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-jury-emerald" />
+                {f}
+              </li>
+            ))}
+          </ul>
+          {isLoggedIn && currentTier === "free" ? (
+            <button
+              disabled
+              className="mt-8 h-11 w-full rounded-full border border-jury-border-strong text-[15px] font-medium text-jury-dim"
+            >
+              Current plan
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push(isLoggedIn ? "/dashboard" : "/auth/sign-up")}
+              className="mt-8 h-11 w-full rounded-full border border-jury-border-strong text-[15px] font-medium text-jury-body transition hover:border-white/25"
+            >
+              {isLoggedIn ? "Go to dashboard" : "Get started free"}
+            </button>
+          )}
+        </div>
 
-          return (
-            <StaggerItem key={tierKey}>
-              <HoverCard>
-                <div
-                  className={`relative rounded-2xl bg-card border p-8 flex flex-col transition-shadow duration-300 ${
-                    isPopular
-                      ? "border-emerald-500/50 scale-105 shadow-glow-emerald animate-pulse-glow z-10"
-                      : "border-border"
-                  }`}
-                >
-                  {isPopular && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="bg-gradient-to-r from-emerald-500 to-teal-400 text-white text-sm font-medium px-4 py-1 rounded-full shadow-lg shadow-emerald-500/25">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
+        {/* Pro */}
+        <div
+          className="relative rounded-xl border p-8"
+          style={{
+            borderColor: "rgba(16,185,129,0.45)",
+            background: "#0F1520",
+            boxShadow:
+              "0 0 0 1px rgba(16,185,129,.1), 0 30px 70px -34px rgba(16,185,129,.55)",
+          }}
+        >
+          <span className="absolute -top-[13px] left-[34px] rounded-full bg-jury-emerald px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-jury-on-emerald">
+            Most Popular
+          </span>
+          <h3 className="text-[17px] font-semibold text-jury-text">Pro</h3>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-display text-[44px] leading-none text-jury-emerald-hi">
+              {symbol}{proPrice}
+            </span>
+            <span className="text-[14px] text-jury-dim">{proSuffix}</span>
+          </div>
+          <p className="mt-1 text-[13px] text-jury-dim">{proNote}</p>
 
-                  <div className="mb-6">
-                    <h3 className="text-xl font-bold text-foreground mb-2">
-                      {tier.name}
-                    </h3>
-                    <div className="flex items-baseline">
-                      <span
-                        className={`text-4xl font-bold ${
-                          isPopular ? "gradient-text" : "text-foreground"
-                        }`}
-                      >
-                        {symbol}
-                        {getDisplayPrice(tier)}
-                      </span>
-                      {tier.priceMonthly > 0 && (
-                        <span className="text-muted-foreground ml-1">
-                          {billingPeriod === "lifetime" ? "once" : "/mo"}
-                        </span>
-                      )}
-                    </div>
-                    {tier.priceMonthly > 0 && billingPeriod === "annual" && (
-                      <p className="mt-1 text-xs text-muted-foreground/60">
-                        {symbol}
-                        {convertPrice(tier.priceAnnualTotal, currency)}/year
-                        &mdash; billed annually
-                      </p>
-                    )}
-                    {tier.priceLifetime > 0 && billingPeriod === "lifetime" && (
-                      <p className="mt-1 text-xs text-muted-foreground/60">
-                        One-off payment &mdash; yours forever
-                      </p>
-                    )}
-                    {tier.priceMonthly > 0 &&
-                      currency !== "AUD" && (
-                        <p className="mt-1 text-xs text-muted-foreground/60">
-                          approx. &mdash; charged in AUD
-                        </p>
-                      )}
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {tierDescriptions[tierKey]}
-                    </p>
-                  </div>
+          {/* Lifetime row */}
+          {pro.priceLifetime > 0 && (
+            <div className="mt-4 flex items-center justify-between rounded-[10px] border border-jury-emerald-line bg-jury-emerald-tint px-3.5 py-2.5">
+              <div className="text-[13px]">
+                <span className="font-semibold text-jury-text">
+                  Lifetime — {symbol}{convert(pro.priceLifetime, currency)}
+                </span>
+                <span className="text-jury-muted"> · Pay once, keep Pro forever</span>
+              </div>
+              <button
+                onClick={() => checkout(pro.priceIdLifetime, "lifetime")}
+                disabled={loading !== null}
+                className="shrink-0 rounded-full bg-jury-emerald px-3 py-1 text-[12px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi disabled:opacity-60"
+              >
+                {loading === "lifetime" ? "…" : "Choose"}
+              </button>
+            </div>
+          )}
 
-                  {/* Features */}
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {FEATURES.map((feature) => {
-                      const value = feature[tierKey];
-                      const enabled = value !== false;
-                      const displayText =
-                        typeof value === "string"
-                          ? `${feature.label}: ${value}`
-                          : feature.label;
-                      return (
-                        <li
-                          key={feature.label}
-                          className="flex items-start gap-2"
-                        >
-                          {enabled ? (
-                            <IconCheck
-                              size={18}
-                              className="text-emerald-500 mt-0.5 shrink-0"
-                            />
-                          ) : (
-                            <IconX
-                              size={18}
-                              className="text-muted-foreground/40 mt-0.5 shrink-0"
-                            />
-                          )}
-                          <span
-                            className={`text-sm ${
-                              enabled
-                                ? "text-foreground"
-                                : "text-muted-foreground/60"
-                            }`}
-                          >
-                            {displayText}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
+          <ul className="mt-6 space-y-3">
+            {PRO_FEATURES.map((f) => (
+              <li key={f} className="flex items-start gap-2.5 text-[15px] text-jury-body">
+                <Check size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-jury-emerald" />
+                {f}
+              </li>
+            ))}
+          </ul>
 
-                  {/* CTA */}
-                  {isCurrent ? (
-                    <div className="space-y-2">
-                      <Button variant="outline" className="w-full" disabled>
-                        Current Plan
-                      </Button>
-                      {tierKey !== "free" && (
-                        <button
-                          onClick={handlePortal}
-                          disabled={loadingTier !== null}
-                          className="w-full py-2 text-sm text-emerald-500 hover:text-emerald-400 font-medium transition-colors"
-                        >
-                          {loadingTier === tierKey
-                            ? "Loading..."
-                            : "Manage Billing"}
-                        </button>
-                      )}
-                    </div>
-                  ) : tierKey === "free" ? (
-                    <Button
-                      variant="brand-outline"
-                      size="lg"
-                      className="w-full"
-                      onClick={() =>
-                        isLoggedIn
-                          ? router.push("/dashboard")
-                          : router.push("/auth/sign-up")
-                      }
-                    >
-                      {isLoggedIn ? "Go to Dashboard" : "Get Started"}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant={isPopular ? "brand" : "brand-outline"}
-                      size="lg"
-                      className="w-full"
-                      onClick={() => handleCheckout(tierKey)}
-                      disabled={loadingTier !== null}
-                    >
-                      {loadingTier === tierKey
-                        ? "Redirecting..."
-                        : `Upgrade to ${tier.name}`}
-                    </Button>
-                  )}
-                </div>
-              </HoverCard>
-            </StaggerItem>
-          );
-        })}
-      </StaggerContainer>
+          {isProCurrent ? (
+            <button
+              onClick={handlePortal}
+              disabled={loading !== null}
+              className="mt-8 h-11 w-full rounded-full border border-jury-emerald-line text-[15px] font-medium text-jury-emerald-hi transition hover:bg-jury-emerald-tint"
+            >
+              {loading === "portal" ? "Loading…" : "Manage billing"}
+            </button>
+          ) : (
+            <button
+              onClick={() => checkout(annual ? pro.priceIdAnnual : pro.priceId, "pro")}
+              disabled={loading !== null}
+              className="mt-8 h-11 w-full rounded-full bg-jury-emerald text-[15px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi disabled:opacity-60"
+            >
+              {loading === "pro" ? "Redirecting…" : "Upgrade to Pro"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Compare all features */}
+      <div className="mx-auto mt-8 max-w-[960px]">
+        <div className="overflow-hidden rounded-xl border border-jury-border bg-jury-surface">
+          <button
+            onClick={() => setCompareOpen((o) => !o)}
+            className="flex w-full items-center justify-between px-6 py-5 text-left"
+          >
+            <span>
+              <span className="text-[17px] font-semibold text-jury-text">
+                Compare all features
+              </span>
+              <span className="ml-2 text-[14px] text-jury-dim">
+                Every limit and feature, line by line
+              </span>
+            </span>
+            <ChevronDown
+              size={20}
+              className={`shrink-0 text-jury-muted transition-transform duration-200 ${
+                compareOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+          {compareOpen && (
+            <table className="w-full border-t border-jury-border-subtle text-[14px]">
+              <thead>
+                <tr className="text-[12px] uppercase tracking-[0.06em] text-jury-dim">
+                  <th className="px-6 py-3 text-left font-semibold">Feature</th>
+                  <th className="px-4 py-3 text-left font-semibold">Free</th>
+                  <th className="px-4 py-3 text-left font-semibold">Pro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {COMPARE.map((row) => (
+                  <tr key={row.name} className="border-t border-jury-border-subtle">
+                    <td className="px-6 py-3 text-jury-body">{row.name}</td>
+                    <td className="px-4 py-3 text-jury-muted">
+                      {renderCell(row.free, false)}
+                    </td>
+                    <td className="px-4 py-3 text-jury-emerald-hi">
+                      {renderCell(row.pro, true)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <p className="mt-8 text-center text-[13px] text-jury-dim">
+        Prices shown in {currency}. Cancel any time — your polls stay live on the
+        free tier.
+      </p>
     </div>
   );
+}
+
+function renderCell(v: string | boolean, pro: boolean) {
+  if (v === true)
+    return <Check size={16} strokeWidth={2.2} className={pro ? "text-jury-emerald" : "text-jury-muted"} />;
+  if (v === false)
+    return <X size={16} strokeWidth={2} className="text-jury-faint" />;
+  return v;
 }

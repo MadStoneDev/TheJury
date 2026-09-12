@@ -7,7 +7,6 @@ import {
   type TierName,
 } from "@/lib/stripe";
 import PricingCards from "@/components/PricingCards";
-import { ScrollReveal } from "@/components/motion";
 
 export default async function PricingPage() {
   const supabase = await createClient();
@@ -26,28 +25,24 @@ export default async function PricingPage() {
       .select("subscription_tier")
       .eq("id", user.id)
       .single();
-
     if (profile?.subscription_tier) {
       currentTier = profile.subscription_tier as TierName;
     }
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 sm:py-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <ScrollReveal>
-          <div className="text-center mb-16">
-            <h1 className="text-4xl sm:text-5xl font-display text-foreground mb-4">
-              Simple,{" "}
-              <span className="gradient-text">transparent</span>{" "}
-              pricing
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start free with unlimited polls and votes. Upgrade to Pro for
-              every question type, no branding, and all the pro tools.
-            </p>
-          </div>
-        </ScrollReveal>
+    <div className="min-h-screen bg-jury-base">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:px-14 lg:py-24">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <h1 className="font-display text-[36px] leading-[1.1] text-jury-text sm:text-[52px]">
+            Simple, <span className="text-jury-emerald-hi">transparent</span>{" "}
+            pricing
+          </h1>
+          <p className="mt-4 text-[16px] leading-relaxed text-jury-muted sm:text-[18px]">
+            Start free with unlimited polls and votes. Upgrade when you need every
+            question type, branded embeds and your own branding.
+          </p>
+        </div>
 
         <PricingCards
           tiers={{
@@ -62,10 +57,6 @@ export default async function PricingPage() {
           currentTier={currentTier}
           isLoggedIn={isLoggedIn}
         />
-
-        <p className="text-center text-xs text-muted-foreground mt-8">
-          All prices shown in your selected currency. Billed in AUD.
-        </p>
       </div>
     </div>
   );
