@@ -3,8 +3,13 @@ import {
   Events,
   GatewayIntentBits,
   MessageFlags,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  ActionRowBuilder,
   type ChatInputCommandInteraction,
   type ButtonInteraction,
+  type ModalSubmitInteraction,
 } from "discord.js";
 import { config } from "./config";
 import {
@@ -61,7 +66,7 @@ async function ensureLinked(i: ChatInputCommandInteraction): Promise<string | nu
 }
 
 async function postPoll(
-  i: ChatInputCommandInteraction,
+  i: ChatInputCommandInteraction | ModalSubmitInteraction,
   userId: string,
   title: string,
   optionTexts: string[],
@@ -70,7 +75,7 @@ async function postPoll(
   if (optionTexts.length < 2 || optionTexts.length > 20) {
     await i.reply({
       flags: MessageFlags.Ephemeral,
-      content: "Give me between 2 and 20 comma-separated options.",
+      content: "Give me between 2 and 20 options.",
     });
     return;
   }
@@ -79,21 +84,67 @@ async function postPoll(
   const msg = buildPollMessage(poll.pollId, poll.code, title, counts);
   await i.reply(msg);
   const sent = await i.fetchReply();
-  await saveMessageRef(poll.pollId, i.guildId!, i.channelId, sent.id);
+  await saveMessageRef(poll.pollId, i.guildId!, i.channelId!, sent.id);
 }
 
-async function handleCreate(i: ChatInputCommandInteraction, userId: string) {
-  const question = i.options.getString("question", true);
-  const optionTexts = i.options
-    .getString("options", true)
-    .split(",")
+// /jury create opens a modal for the question + options; the toggles (multi,
+// close) come from the slash options and ride along in the modal's customId.
+async function handleCreate(i: ChatInputCommandInteraction) {
+  const closeHours = parseCloseHours(i.options.getString("close"));
+  const multi = i.options.getBoolean("multi") ?? false;
+
+  const modal = new ModalBuilder()
+    .setCustomId(`jurycreate:${multi ? 1 : 0}:${closeHours ?? ""}`)
+    .setTitle("Create a poll")
+    .addComponents(
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("q")
+          .setLabel("Question")
+          .setStyle(TextInputStyle.Short)
+          .setRequired(true)
+          .setMaxLength(300),
+      ),
+      new ActionRowBuilder<TextInputBuilder>().addComponents(
+        new TextInputBuilder()
+          .setCustomId("opts")
+          .setLabel("Options — one per line (2–20)")
+          .setStyle(TextInputStyle.Paragraph)
+          .setRequired(true)
+          .setMaxLength(1500)
+          .setPlaceholder("Fri 19 Sep\nFri 26 Sep\nFri 3 Oct"),
+      ),
+    );
+
+  await i.showModal(modal);
+}
+
+async function handleCreateModal(i: ModalSubmitInteraction) {
+  if (!i.guildId) {
+    await i.reply({ flags: MessageFlags.Ephemeral, content: "Use this in a server." });
+    return;
+  }
+  const userId = await getGuildUserId(i.guildId);
+  if (!userId) {
+    await i.reply({
+      flags: MessageFlags.Ephemeral,
+      content: "This server isn't linked yet — run `/jury link` first.",
+    });
+    return;
+  }
+
+  const [, multiStr, closeStr] = i.customId.split(":");
+  const allowMultiple = multiStr === "1";
+  let closeHours = closeStr ? Number(closeStr) : undefined;
+
+  const question = i.fields.getTextInputValue("q").trim();
+  const optionTexts = i.fields
+    .getTextInputValue("opts")
+    .split("\n")
     .map((s) => s.trim())
     .filter(Boolean);
-  let closeHours = parseCloseHours(i.options.getString("close"));
-  const allowMultiple = i.options.getBoolean("multi") ?? false;
 
-  // Auto-close (scheduling) is a Pro feature. On Free, post without the
-  // deadline and nudge to upgrade rather than failing the command.
+  // Auto-close (scheduling) is Pro. On Free, post without a deadline + nudge.
   let nudgeUpgrade = false;
   if (closeHours !== undefined && (await getAccountTier(userId)) === "free") {
     closeHours = undefined;
@@ -166,6 +217,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
       await handleVote(interaction);
       return;
     }
+    if (interaction.isModalSubmit() && interaction.customId.startsWith("jurycreate:")) {
+      await handleCreateModal(interaction);
+      return;
+    }
     if (!interaction.isChatInputCommand() || interaction.commandName !== "jury") return;
     if (!interaction.guildId) {
       await interaction.reply({
@@ -181,7 +236,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
     const userId = await ensureLinked(interaction);
     if (!userId) return;
-    if (sub === "create") await handleCreate(interaction, userId);
+    // create shows a modal (no immediate reply); schedule posts directly.
+    if (sub === "create") await handleCreate(interaction);
     else if (sub === "schedule") await handleSchedule(interaction, userId);
   } catch (err) {
     console.error("Interaction error:", err);

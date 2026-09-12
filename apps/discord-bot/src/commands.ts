@@ -6,29 +6,17 @@ export const juryCommand = new SlashCommandBuilder()
   .addSubcommand((s) =>
     s
       .setName("create")
-      .setDescription("Create a poll in this channel")
-      .addStringOption((o) =>
-        o
-          .setName("question")
-          .setDescription("The question you're asking")
-          .setRequired(true),
-      )
-      .addStringOption((o) =>
-        o
-          .setName("options")
-          .setDescription("Comma-separated options (2–20)")
-          .setRequired(true),
-      )
-      .addStringOption((o) =>
-        o
-          .setName("close")
-          .setDescription("Auto-close after e.g. 2h, 24h, 7d (optional)")
-          .setRequired(false),
-      )
+      .setDescription("Create a poll in this channel (opens a form)")
       .addBooleanOption((o) =>
         o
           .setName("multi")
           .setDescription("Allow multiple selections (default: no)")
+          .setRequired(false),
+      )
+      .addStringOption((o) =>
+        o
+          .setName("close")
+          .setDescription("Auto-close after e.g. 2h, 24h, 7d — Pro (optional)")
           .setRequired(false),
       ),
   )

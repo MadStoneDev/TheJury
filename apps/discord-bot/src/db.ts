@@ -178,7 +178,12 @@ export async function recordVote(
       voter_fingerprint: fingerprint,
       options: [optionId],
     });
-    return error ? { ok: false, error: "Failed to record vote." } : { ok: true };
+    // 23505 = another click landed first (the unique index caught the race).
+    // That's fine — their vote is already recorded.
+    if (error && error.code !== "23505") {
+      return { ok: false, error: "Failed to record vote." };
+    }
+    return { ok: true };
   }
 
   let next: string[];
