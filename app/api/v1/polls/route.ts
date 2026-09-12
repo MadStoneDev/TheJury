@@ -164,6 +164,29 @@ export async function POST(request: Request) {
       }
     }
 
+    // Optional scheduling: close_at (ISO string) or closes_in_hours (number).
+    // This is how a partner creates a session-scheduling poll with a deadline.
+    let endDate: string | null = null;
+    if (body.close_at !== undefined && body.close_at !== null) {
+      const d = new Date(body.close_at);
+      if (isNaN(d.getTime()) || d.getTime() <= Date.now()) {
+        return NextResponse.json(
+          { error: "close_at must be a future ISO 8601 timestamp" },
+          { status: 400 },
+        );
+      }
+      endDate = d.toISOString();
+    } else if (body.closes_in_hours !== undefined) {
+      const h = Number(body.closes_in_hours);
+      if (!Number.isFinite(h) || h <= 0 || h > 24 * 365) {
+        return NextResponse.json(
+          { error: "closes_in_hours must be a positive number of hours" },
+          { status: 400 },
+        );
+      }
+      endDate = new Date(Date.now() + h * 3600 * 1000).toISOString();
+    }
+
     const supabase = await createClient();
 
     // Generate unique poll code
@@ -182,11 +205,13 @@ export async function POST(request: Request) {
         description: body.description?.trim() || null,
         allow_multiple: body.allow_multiple ?? false,
         is_active: true,
-        has_time_limit: false,
+        has_time_limit: !!endDate,
         start_date: null,
-        end_date: null,
+        end_date: endDate,
       })
-      .select("id, code, question, description, is_active, allow_multiple, created_at")
+      .select(
+        "id, code, question, description, is_active, allow_multiple, has_time_limit, end_date, created_at",
+      )
       .single();
 
     if (pollError) {

@@ -113,7 +113,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     customDomains: false,
     teamWorkspace: false,
     abTesting: false,
-    apiAccess: false,
+    apiAccess: true, // public API (v1) + per-user keys, e.g. the Tabletop Chronicles integration
     presenterMode: true,
   },
   // Legacy tier, no longer sold or shown in the UI. Kept so existing
