@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#06080D;font-family:Outfit,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#10B981;text-decoration:none}
+a:hover{color:#34D399}
+@keyframes jfade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</helmet>
+<div style="display:flex;gap:56px;align-items:flex-start;padding:48px;background:#06080D">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/ — desktop 1440</div>
+<div data-screen-label="Home desktop" style="width:1440px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 56px;border-bottom:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 26px 'Playfair Display',serif">TheJury</div>
+    <div style="display:flex;gap:36px;font:400 15px Outfit;color:#94A3B8">
+      <span>Pricing</span><span>Templates</span><span>Use cases</span><span>Docs</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:20px">
+      <span style="font:400 15px Outfit;color:#94A3B8">Sign in</span>
+      <span style="background:#10B981;color:#04180F;font:600 14px Outfit;padding:10px 20px;border-radius:999px">Get started</span>
+    </div>
+  </div>
+
+  <div style="padding:88px 56px 72px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:48px 48px">
+    <div style="display:grid;grid-template-columns:1fr 480px;gap:72px;align-items:center">
+      <div>
+        <div style="display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.08);color:#34D399;font:500 13px Outfit;padding:6px 14px;border-radius:999px;margin-bottom:26px">Free to start · no account needed to vote</div>
+        <h1 style="font:700 68px/1.08 'Playfair Display',serif;margin:0 0 22px;letter-spacing:-.01em">Let your <span style="color:#10B981;display:inline-block;animation:jfade .4s ease">{{ rotWord }}</span><br>decide</h1>
+        <p style="font:300 20px/1.6 Outfit;color:#94A3B8;margin:0 0 34px;max-width:520px;text-wrap:pretty">Make a poll in fifteen seconds, share a link or a code, and watch the answers land live. Ranked choice, ratings, reactions — no spreadsheets, no group-chat chaos.</p>
+        <div style="display:flex;gap:14px;align-items:center">
+          <span style="background:#10B981;color:#04180F;font:600 16px Outfit;padding:15px 30px;border-radius:999px">Create a poll</span>
+          <span style="border:1px solid rgba(255,255,255,.14);color:#F8FAFC;font:500 16px Outfit;padding:15px 28px;border-radius:999px">See a live example</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:26px;box-shadow:0 30px 70px -30px rgba(0,0,0,.9)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+          <span style="display:inline-flex;align-items:center;gap:7px;font:500 12px Outfit;color:#34D399"><span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block"></span>LIVE</span>
+          <span style="font:400 12px Outfit;color:#64748B">Code <span style="font-family:ui-monospace,monospace;color:#94A3B8">FRI-42</span></span>
+        </div>
+        <div style="font:600 20px Outfit;margin-bottom:4px">Friday night — what are we playing?</div>
+        <div style="font:300 14px Outfit;color:#64748B;margin-bottom:22px">18 votes · closes in 4h</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="position:relative;border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:14px 16px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:61%;background:rgba(16,185,129,.16)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 15px Outfit"><span>Curse of Strahd</span><span style="color:#10B981">61%</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 16px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:22%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 15px Outfit"><span>Board game night</span><span style="color:#94A3B8">22%</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:14px 16px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:17%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 15px Outfit"><span>Terraria server</span><span style="color:#94A3B8">17%</span></div></div>
+        </div>
+        <div style="margin-top:20px;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 12px Outfit;color:#64748B">Updating in real time</span>
+          <span style="background:rgba(16,185,129,.12);color:#34D399;font:600 13px Outfit;padding:9px 18px;border-radius:999px">Vote</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:72px 56px;border-top:1px solid rgba(255,255,255,.05)">
+    <h2 style="font:700 34px 'Playfair Display',serif;margin:0 0 6px">Who it's for</h2>
+    <p style="font:300 16px Outfit;color:#94A3B8;margin:0 0 34px">Three ways people use TheJury every week.</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:26px">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(139,127,217,.14);display:flex;align-items:center;justify-content:center;margin-bottom:18px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A79BEA" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></div>
+        <div style="font:600 19px Outfit;margin-bottom:8px">Gaming groups</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 18px">Find a session night, pick the campaign, vote straight from Discord.</p>
+        <span style="font:500 14px Outfit;color:#A79BEA">For gaming groups →</span>
+      </div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:26px">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(107,146,217,.14);display:flex;align-items:center;justify-content:center;margin-bottom:18px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8FB0E8" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21v-1a6 6 0 0 1 12 0v1M17 11h5M19.5 8.5v5"></path></svg></div>
+        <div style="font:600 19px Outfit;margin-bottom:8px">Small teams</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 18px">Settle lunch, retros and anonymous feedback without another meeting.</p>
+        <span style="font:500 14px Outfit;color:#8FB0E8">For teams →</span>
+      </div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:26px">
+        <div style="width:42px;height:42px;border-radius:10px;background:rgba(217,159,107,.14);display:flex;align-items:center;justify-content:center;margin-bottom:18px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E0B384" stroke-width="1.8" stroke-linecap="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg></div>
+        <div style="font:600 19px Outfit;margin-bottom:8px">Creators</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 18px">Overlay a poll on your stream and let the audience steer the next hour.</p>
+        <span style="font:500 14px Outfit;color:#E0B384">For creators →</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:72px 56px;border-top:1px solid rgba(255,255,255,.05);background:#0A0E17">
+    <h2 style="font:700 34px 'Playfair Display',serif;margin:0 0 34px">How it works</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div style="padding:26px;border-left:1px solid rgba(255,255,255,.08)">
+        <div style="font:700 13px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:14px">STEP 01</div>
+        <div style="font:600 20px Outfit;margin-bottom:8px">Write the question</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0">Type it, or let AI draft the options for you. Multiple choice, ranked, rating or reactions.</p>
+      </div>
+      <div style="padding:26px;border-left:1px solid rgba(255,255,255,.08)">
+        <div style="font:700 13px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:14px">STEP 02</div>
+        <div style="font:600 20px Outfit;margin-bottom:8px">Share the code</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0">A link, a QR code, a six-character code or an embed. Voters never need an account.</p>
+      </div>
+      <div style="padding:26px;border-left:1px solid rgba(255,255,255,.08)">
+        <div style="font:700 13px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:14px">STEP 03</div>
+        <div style="font:600 20px Outfit;margin-bottom:8px">Watch it land</div>
+        <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0">Results update live, chart however you like, and export to CSV when you're done.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:72px 56px;border-top:1px solid rgba(255,255,255,.05)">
+    <h2 style="font:700 34px 'Playfair Display',serif;margin:0 0 34px">Everything in the box</h2>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M3 3v18h18M7 15v3M12 10v8M17 6v12"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Five question types</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Choice, rating, ranked choice, image options and reactions.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Live results</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Bar, pie or donut, updating the moment a vote lands.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="m8 9-4 3 4 3M16 9l4 3-4 3"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Embed anywhere</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Drop a themed iframe into a wiki, site or stream overlay.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Private polls</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Password protection, time limits and anonymous responses.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">AI drafting</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Describe the decision and get a poll with sensible options.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px"><div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">CSV export</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Take every response with you, per question or per voter.</p></div>
+    </div>
+  </div>
+
+  <div style="padding:72px 56px;border-top:1px solid rgba(255,255,255,.05);background:#0A0E17">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:30px">
+      <div><h2 style="font:700 34px 'Playfair Display',serif;margin:0 0 6px">Simple pricing</h2><p style="font:300 16px Outfit;color:#94A3B8;margin:0">Start free. Upgrade when your polls outgrow it.</p></div>
+      <span style="font:500 15px Outfit;color:#10B981">Compare all features →</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:30px">
+        <div style="font:600 18px Outfit;margin-bottom:10px">Free</div>
+        <div style="font:700 40px 'Playfair Display',serif;margin-bottom:6px">A$0</div>
+        <p style="font:300 14px Outfit;color:#94A3B8;margin:0 0 22px">5 active polls, 2 questions each, unlimited votes.</p>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:13px;border-radius:999px">Get started free</span>
+      </div>
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:30px;box-shadow:0 0 0 1px rgba(16,185,129,.12),0 24px 60px -34px rgba(16,185,129,.5)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font:600 18px Outfit">Pro</span><span style="background:rgba(16,185,129,.14);color:#34D399;font:600 11px Outfit;letter-spacing:.06em;padding:4px 9px;border-radius:999px">MOST POPULAR</span></div>
+        <div style="font:700 40px 'Playfair Display',serif;margin-bottom:6px;color:#10B981">A$15<span style="font:400 16px Outfit;color:#94A3B8"> /mo</span></div>
+        <p style="font:300 14px Outfit;color:#94A3B8;margin:0 0 22px">Unlimited polls, every question type, branded embeds. Lifetime A$79.</p>
+        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:999px">Upgrade to Pro</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:78px 56px;border-top:1px solid rgba(255,255,255,.05);text-align:center;background:radial-gradient(700px 240px at 50% 0%,rgba(16,185,129,.10),transparent 70%)">
+    <h2 style="font:700 42px 'Playfair Display',serif;margin:0 0 14px">Stop asking "so what are we doing?"</h2>
+    <p style="font:300 18px Outfit;color:#94A3B8;margin:0 auto 30px;max-width:560px">One link, one minute, and the group has actually decided. Your first poll is live before the chat finishes arguing.</p>
+    <span style="display:inline-block;background:#10B981;color:#04180F;font:600 16px Outfit;padding:15px 34px;border-radius:999px">Create your first poll</span>
+  </div>
+
+  <div style="padding:38px 56px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center">
+    <div style="font:700 20px 'Playfair Display',serif">TheJury</div>
+    <div style="display:flex;gap:28px;font:300 14px Outfit;color:#64748B"><span>Pricing</span><span>Templates</span><span>Privacy</span><span>Terms</span></div>
+    <div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/ — mobile 375</div>
+<div data-screen-label="Home mobile" style="width:375px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 20px 'Playfair Display',serif">TheJury</div>
+    <div style="display:flex;align-items:center;gap:12px"><span style="background:#10B981;color:#04180F;font:600 12px Outfit;padding:8px 14px;border-radius:999px">Get started</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div>
+  </div>
+  <div style="padding:36px 20px 32px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:40px 40px">
+    <div style="display:inline-flex;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.08);color:#34D399;font:500 11px Outfit;padding:5px 11px;border-radius:999px;margin-bottom:18px">Free to start</div>
+    <h1 style="font:700 38px/1.1 'Playfair Display',serif;margin:0 0 16px">Let your <span style="color:#10B981">{{ rotWord }}</span> decide</h1>
+    <p style="font:300 16px/1.6 Outfit;color:#94A3B8;margin:0 0 24px">Make a poll in fifteen seconds, share a link, watch the answers land live.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:30px">
+      <span style="text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:15px;border-radius:999px">Create a poll</span>
+      <span style="text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:15px;border-radius:999px">See a live example</span>
+    </div>
+    <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><span style="display:inline-flex;align-items:center;gap:6px;font:500 11px Outfit;color:#34D399"><span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>LIVE</span><span style="font:400 11px Outfit;color:#64748B">Code <span style="font-family:ui-monospace,monospace;color:#94A3B8">FRI-42</span></span></div>
+      <div style="font:600 17px Outfit;margin-bottom:2px">Friday night — what are we playing?</div>
+      <div style="font:300 12px Outfit;color:#64748B;margin-bottom:16px">18 votes · closes in 4h</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="position:relative;border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:12px 14px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:61%;background:rgba(16,185,129,.16)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Curse of Strahd</span><span style="color:#10B981">61%</span></div></div>
+        <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:22%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Board game night</span><span style="color:#94A3B8">22%</span></div></div>
+        <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 14px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:17%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Terraria server</span><span style="color:#94A3B8">17%</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding:40px 20px;border-top:1px solid rgba(255,255,255,.05)">
+    <h2 style="font:700 26px 'Playfair Display',serif;margin:0 0 20px">Who it's for</h2>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px"><div style="width:36px;height:36px;border-radius:9px;background:rgba(139,127,217,.14);display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A79BEA" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Gaming groups</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 12px">Session nights, campaign picks, Discord votes.</p><span style="font:500 13px Outfit;color:#A79BEA">For gaming groups →</span></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px"><div style="width:36px;height:36px;border-radius:9px;background:rgba(107,146,217,.14);display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8FB0E8" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="7" r="4"></circle><path d="M2 21v-1a6 6 0 0 1 12 0v1M17 11h5M19.5 8.5v5"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Small teams</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 12px">Lunch, retros and anonymous feedback.</p><span style="font:500 13px Outfit;color:#8FB0E8">For teams →</span></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px"><div style="width:36px;height:36px;border-radius:9px;background:rgba(217,159,107,.14);display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0B384" stroke-width="1.8" stroke-linecap="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg></div><div style="font:600 17px Outfit;margin-bottom:6px">Creators</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 12px">Overlay polls on stream and let chat steer.</p><span style="font:500 13px Outfit;color:#E0B384">For creators →</span></div>
+    </div>
+  </div>
+
+  <div style="padding:40px 20px;border-top:1px solid rgba(255,255,255,.05);background:#0A0E17">
+    <h2 style="font:700 26px 'Playfair Display',serif;margin:0 0 20px">How it works</h2>
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div style="padding-left:16px;border-left:1px solid rgba(255,255,255,.08)"><div style="font:700 11px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:8px">STEP 01</div><div style="font:600 17px Outfit;margin-bottom:4px">Write the question</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Type it, or let AI draft the options.</p></div>
+      <div style="padding-left:16px;border-left:1px solid rgba(255,255,255,.08)"><div style="font:700 11px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:8px">STEP 02</div><div style="font:600 17px Outfit;margin-bottom:4px">Share the code</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Link, QR, code or embed. No accounts.</p></div>
+      <div style="padding-left:16px;border-left:1px solid rgba(255,255,255,.08)"><div style="font:700 11px Outfit;letter-spacing:.12em;color:#10B981;margin-bottom:8px">STEP 03</div><div style="font:600 17px Outfit;margin-bottom:4px">Watch it land</div><p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0">Live results, charts, CSV export.</p></div>
+    </div>
+  </div>
+
+  <div style="padding:40px 20px;border-top:1px solid rgba(255,255,255,.05)">
+    <h2 style="font:700 26px 'Playfair Display',serif;margin:0 0 20px">Everything in the box</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M3 3v18h18M7 15v3M12 10v8M17 6v12"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">5 question types</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Choice, rating, ranked, image, reaction.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">Live results</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Bar, pie or donut, updating instantly.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="m8 9-4 3 4 3M16 9l4 3-4 3"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">Embed anywhere</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Themed iframe for wiki, site or stream.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">Private polls</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Passwords, time limits, anonymity.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">AI drafting</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Describe it, get a poll.</p></div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px"><div style="width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center;margin-bottom:12px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"></path></svg></div><div style="font:600 14px Outfit;margin-bottom:4px">CSV export</div><p style="font:300 12px/1.5 Outfit;color:#94A3B8;margin:0">Every response, yours to keep.</p></div>
+    </div>
+  </div>
+
+  <div style="padding:40px 20px;border-top:1px solid rgba(255,255,255,.05);background:#0A0E17">
+    <h2 style="font:700 26px 'Playfair Display',serif;margin:0 0 18px">Simple pricing</h2>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:22px"><div style="font:600 16px Outfit;margin-bottom:8px">Free</div><div style="font:700 32px 'Playfair Display',serif;margin-bottom:6px">A$0</div><p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 16px">5 active polls, 2 questions each.</p><span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 14px Outfit;padding:12px;border-radius:999px">Get started free</span></div>
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:22px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font:600 16px Outfit">Pro</span><span style="background:rgba(16,185,129,.14);color:#34D399;font:600 10px Outfit;padding:3px 8px;border-radius:999px">MOST POPULAR</span></div><div style="font:700 32px 'Playfair Display',serif;margin-bottom:6px;color:#10B981">A$15<span style="font:400 14px Outfit;color:#94A3B8"> /mo</span></div><p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 16px">Unlimited polls, all question types. Lifetime A$79.</p><span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 14px Outfit;padding:13px;border-radius:999px">Upgrade to Pro</span></div>
+    </div>
+  </div>
+
+  <div style="padding:48px 20px;border-top:1px solid rgba(255,255,255,.05);text-align:center;background:radial-gradient(400px 180px at 50% 0%,rgba(16,185,129,.10),transparent 70%)">
+    <h2 style="font:700 28px/1.2 'Playfair Display',serif;margin:0 0 12px">Stop asking "so what are we doing?"</h2>
+    <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 22px">One link, one minute, and the group has actually decided.</p>
+    <span style="display:block;background:#10B981;color:#04180F;font:600 15px Outfit;padding:15px;border-radius:999px">Create your first poll</span>
+  </div>
+  <div style="padding:24px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 16px 'Playfair Display',serif">TheJury</div><div style="font:300 12px Outfit;color:#475569">© 2026 TheJury</div></div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;words&quot;:{&quot;editor&quot;:null,&quot;default&quot;:[&quot;team&quot;,&quot;friends&quot;,&quot;family&quot;,&quot;community&quot;],&quot;tsType&quot;:&quot;string[]&quot;}}">
+class Component extends DCLogic {
+  state = { i: 0 };
+  componentDidMount() {
+    this.t = setInterval(() => this.setState(s => ({ i: s.i + 1 })), 1800);
+  }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const words = this.props.words ?? ["team", "friends", "family", "community"];
+    return { rotWord: words[this.state.i % words.length] };
+  }
+}
+</script>
+</body>
+</html>

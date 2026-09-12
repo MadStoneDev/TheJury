@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#06080D;font-family:Outfit,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#10B981;text-decoration:none}a:hover{color:#34D399}</style>
+</helmet>
+<div style="display:flex;gap:56px;align-items:flex-start;padding:48px;background:#06080D">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/auth/login — desktop 1440</div>
+<div data-screen-label="Login desktop" style="width:1440px;height:900px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC;display:grid;grid-template-columns:1fr 1fr">
+
+  <div style="background:#07110F;background-image:linear-gradient(rgba(16,185,129,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,.05) 1px,transparent 1px);background-size:48px 48px;padding:56px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 26px 'Playfair Display',serif">TheJury</div>
+    <div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:26px;max-width:420px;box-shadow:0 30px 70px -30px rgba(0,0,0,.9)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="display:inline-flex;align-items:center;gap:7px;font:500 12px Outfit;color:#34D399"><span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block"></span>LIVE</span><span style="font:400 12px Outfit;color:#64748B">Code <span style="font-family:ui-monospace,monospace;color:#94A3B8">PIZZA6</span></span></div>
+        <div style="font:600 19px Outfit;margin-bottom:2px">Which toppings for Friday?</div>
+        <div style="font:300 13px Outfit;color:#64748B;margin-bottom:20px">13 voters · multi-select</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="position:relative;border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:100%;background:rgba(16,185,129,.16)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Mozzarella</span><span style="color:#10B981">13</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:62%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Bacon</span><span style="color:#94A3B8">8</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:46%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Mushrooms</span><span style="color:#94A3B8">6</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:38%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Pineapple</span><span style="color:#94A3B8">5</span></div></div>
+        </div>
+      </div>
+      <p style="font:300 18px/1.6 Outfit;color:#94A3B8;margin:28px 0 0;max-width:420px">This is a real poll someone settled in four minutes — yours takes about the same.</p>
+    </div>
+    <div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div>
+  </div>
+
+  <div style="display:flex;align-items:center;justify-content:center;padding:56px">
+    <div style="width:420px;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:36px">
+      <h1 style="font:700 32px 'Playfair Display',serif;margin:0 0 6px">Login</h1>
+      <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 28px">Enter your email below to login to your account</p>
+      <div style="font:500 14px Outfit;margin-bottom:8px">Email</div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;font:400 15px Outfit;color:#E2E8F0;margin-bottom:20px">richard@haddads.net.au</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font:500 14px Outfit">Password</span><span style="font:400 13px Outfit;color:#94A3B8">Forgot your password?</span></div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;font:600 15px Outfit;color:#E2E8F0;letter-spacing:.16em;margin-bottom:26px">••••••••••••</div>
+      <div style="text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:10px;margin-bottom:20px">Login</div>
+      <div style="text-align:center;font:400 14px Outfit;color:#94A3B8">Don't have an account? <span style="color:#10B981">Sign up</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/auth/login — mobile 375</div>
+<div data-screen-label="Login mobile" style="width:375px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC">
+  <div style="background:#07110F;background-image:linear-gradient(rgba(16,185,129,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,.05) 1px,transparent 1px);background-size:40px 40px;padding:26px 20px 30px;border-bottom:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 20px 'Playfair Display',serif;margin-bottom:22px">TheJury</div>
+    <div style="background:#0F1520;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span style="display:inline-flex;align-items:center;gap:6px;font:500 11px Outfit;color:#34D399"><span style="width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block"></span>LIVE</span><span style="font:400 11px Outfit;color:#64748B">PIZZA6</span></div>
+      <div style="font:600 16px Outfit;margin-bottom:2px">Which toppings for Friday?</div>
+      <div style="font:300 12px Outfit;color:#64748B;margin-bottom:14px">13 voters · multi-select</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="position:relative;border:1px solid rgba(16,185,129,.35);border-radius:9px;padding:11px 13px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:100%;background:rgba(16,185,129,.16)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 13px Outfit"><span>Mozzarella</span><span style="color:#10B981">13</span></div></div>
+        <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:11px 13px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:62%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 13px Outfit"><span>Bacon</span><span style="color:#94A3B8">8</span></div></div>
+        <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:11px 13px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:46%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 13px Outfit"><span>Mushrooms</span><span style="color:#94A3B8">6</span></div></div>
+      </div>
+    </div>
+    <p style="font:300 15px/1.55 Outfit;color:#94A3B8;margin:18px 0 0">A real poll someone settled in four minutes — yours takes about the same.</p>
+  </div>
+  <div style="padding:26px 20px 36px">
+    <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px">
+      <h1 style="font:700 26px 'Playfair Display',serif;margin:0 0 6px">Login</h1>
+      <p style="font:300 14px Outfit;color:#94A3B8;margin:0 0 22px">Enter your email below to login to your account</p>
+      <div style="font:500 13px Outfit;margin-bottom:7px">Email</div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 14px;font:400 14px Outfit;color:#E2E8F0;margin-bottom:16px">richard@haddads.net.au</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><span style="font:500 13px Outfit">Password</span><span style="font:400 12px Outfit;color:#94A3B8">Forgot?</span></div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 14px;font:600 14px Outfit;letter-spacing:.16em;margin-bottom:22px">••••••••••••</div>
+      <div style="text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:10px;margin-bottom:16px">Login</div>
+      <div style="text-align:center;font:400 13px Outfit;color:#94A3B8">Don't have an account? <span style="color:#10B981">Sign up</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/auth/signup — desktop 1440</div>
+<div data-screen-label="Signup desktop" style="width:1440px;height:900px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC;display:grid;grid-template-columns:1fr 1fr">
+  <div style="background:#07110F;background-image:linear-gradient(rgba(16,185,129,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,.05) 1px,transparent 1px);background-size:48px 48px;padding:56px;display:flex;flex-direction:column;justify-content:space-between;border-right:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 26px 'Playfair Display',serif">TheJury</div>
+    <div>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:26px;max-width:420px;box-shadow:0 30px 70px -30px rgba(0,0,0,.9)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><span style="display:inline-flex;align-items:center;gap:7px;font:500 12px Outfit;color:#34D399"><span style="width:7px;height:7px;border-radius:50%;background:#10B981;display:inline-block"></span>LIVE</span><span style="font:400 12px Outfit;color:#64748B">closes in 2h</span></div>
+        <div style="font:600 19px Outfit;margin-bottom:2px">Where's the offsite this year?</div>
+        <div style="font:300 13px Outfit;color:#64748B;margin-bottom:20px">11 voters · one choice each</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="position:relative;border:1px solid rgba(16,185,129,.35);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:55%;background:rgba(16,185,129,.16)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Daylesford</span><span style="color:#10B981">6</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:27%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Lorne</span><span style="color:#94A3B8">3</span></div></div>
+          <div style="position:relative;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:12px 15px;overflow:hidden;background:#0B0F19"><div style="position:absolute;inset:0;width:18%;background:rgba(255,255,255,.06)"></div><div style="position:relative;display:flex;justify-content:space-between;font:500 14px Outfit"><span>Stay in town</span><span style="color:#94A3B8">2</span></div></div>
+        </div>
+      </div>
+      <p style="font:300 18px/1.6 Outfit;color:#94A3B8;margin:28px 0 0;max-width:420px">Five active polls, unlimited votes, no card — that's the free tier, forever.</p>
+    </div>
+    <div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:center;padding:56px">
+    <div style="width:420px;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:36px">
+      <h1 style="font:700 32px 'Playfair Display',serif;margin:0 0 6px">Create your account</h1>
+      <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 28px">Free forever — no card required</p>
+      <div style="font:500 14px Outfit;margin-bottom:8px">Name</div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;font:300 15px Outfit;color:#64748B;margin-bottom:18px">Your name</div>
+      <div style="font:500 14px Outfit;margin-bottom:8px">Email</div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;font:300 15px Outfit;color:#64748B;margin-bottom:18px">you@example.com</div>
+      <div style="font:500 14px Outfit;margin-bottom:8px">Password</div>
+      <div style="background:#0B0F19;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:13px 15px;font:300 15px Outfit;color:#64748B;margin-bottom:26px">At least 8 characters</div>
+      <div style="text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:10px;margin-bottom:20px">Create account</div>
+      <div style="text-align:center;font:400 14px Outfit;color:#94A3B8">Already have an account? <span style="color:#10B981">Login</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div>
+</x-dc>
+</body>
+</html>

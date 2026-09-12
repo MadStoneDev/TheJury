@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#06080D;font-family:Outfit,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#10B981;text-decoration:none}a:hover{color:#34D399}</style>
+</helmet>
+<div style="display:flex;gap:56px;align-items:flex-start;padding:48px;background:#06080D">
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/pricing — desktop 1440</div>
+<div data-screen-label="Pricing desktop" style="width:1440px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 56px;border-bottom:1px solid rgba(255,255,255,.05)">
+    <div style="font:700 26px 'Playfair Display',serif">TheJury</div>
+    <div style="display:flex;gap:36px;font:400 15px Outfit;color:#94A3B8"><span style="color:#10B981">Pricing</span><span>Templates</span><span>Use cases</span><span>Docs</span></div>
+    <div style="display:flex;align-items:center;gap:20px"><span style="font:400 15px Outfit;color:#94A3B8">Sign in</span><span style="background:#10B981;color:#04180F;font:600 14px Outfit;padding:10px 20px;border-radius:999px">Get started</span></div>
+  </div>
+
+  <div style="padding:72px 56px 90px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:48px 48px">
+    <div style="text-align:center;margin-bottom:38px">
+      <h1 style="font:700 54px 'Playfair Display',serif;margin:0 0 14px">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
+      <p style="font:300 19px Outfit;color:#94A3B8;margin:0 auto;max-width:560px">Start free with five active polls. Upgrade when you need unlimited polls, every question type and your own branding.</p>
+    </div>
+
+    <div style="display:flex;justify-content:center;gap:14px;margin-bottom:40px">
+      <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
+        <span onClick="{{ setMonthly }}" style="{{ monthlyTabStyle }}">Monthly</span>
+        <span onClick="{{ setAnnual }}" style="{{ annualTabStyle }}">Annual <span style="font:600 11px Outfit;background:rgba(16,185,129,.16);color:#34D399;padding:2px 7px;border-radius:999px;margin-left:6px">Save 20%</span></span>
+      </div>
+      <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
+        <span onClick="{{ setAUD }}" style="{{ audStyle }}">A$ AUD</span>
+        <span onClick="{{ setUSD }}" style="{{ usdStyle }}">$ USD</span>
+        <span onClick="{{ setEUR }}" style="{{ eurStyle }}">€ EUR</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px;margin:0 auto">
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:34px">
+        <div style="font:600 20px Outfit;margin-bottom:12px">Free</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font:700 46px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 16px Outfit;color:#94A3B8">forever</span></div>
+        <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 26px">Everything you need to settle a group decision.</p>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-bottom:30px">
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited votes on every poll</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>5 active polls, 2 questions each</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Multiple choice &amp; rating questions</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Live results with bar charts</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Voting without an account</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>3 AI-drafted polls a month</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results dashboard &amp; history</span>
+        </div>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:14px;border-radius:999px">Get started free</span>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:34px;box-shadow:0 0 0 1px rgba(16,185,129,.1),0 30px 70px -34px rgba(16,185,129,.55);position:relative">
+        <span style="position:absolute;top:-13px;left:34px;background:#10B981;color:#04180F;font:600 11px Outfit;letter-spacing:.06em;padding:5px 12px;border-radius:999px">MOST POPULAR</span>
+        <div style="font:600 20px Outfit;margin-bottom:12px">Pro</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font:700 46px 'Playfair Display',serif;color:#10B981">{{ proPrice }}</span><span style="font:400 16px Outfit;color:#94A3B8">{{ proSuffix }}</span></div>
+        <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 20px">{{ proNote }}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:10px;padding:13px 16px;margin-bottom:24px">
+          <div><div style="font:600 14px Outfit">Lifetime — {{ lifetimePrice }}</div><div style="font:300 12px Outfit;color:#94A3B8">Pay once, keep Pro forever</div></div>
+          <span style="font:600 13px Outfit;color:#34D399">Choose</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-bottom:30px">
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited active polls and questions</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Ranked choice, image, open-ended &amp; reactions</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Branded embeds &amp; stream overlays</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Scheduling, time limits &amp; passwords</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>CSV export &amp; pie / donut charts</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited AI drafting &amp; all templates</span>
+          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Priority support</span>
+        </div>
+        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:15px;border-radius:999px">Upgrade to Pro</span>
+      </div>
+    </div>
+
+    <div style="max-width:960px;margin:48px auto 0">
+      <div onClick="{{ toggleTable }}" style="display:flex;align-items:center;justify-content:space-between;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px 26px;cursor:pointer">
+        <div><div style="font:600 17px Outfit">Compare all features</div><div style="font:300 13px Outfit;color:#64748B;margin-top:3px">Every limit and feature, line by line</div></div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="{{ chevronStyle }}"><path d="m6 9 6 6 6-6"></path></svg>
+      </div>
+      <sc-if value="{{ tableOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;margin-top:-12px;padding:26px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,.07);font:600 13px Outfit;letter-spacing:.06em;color:#64748B"><span>FEATURE</span><span style="text-align:center">FREE</span><span style="text-align:center;color:#34D399">PRO</span></div>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 14px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="text-align:center;color:#94A3B8">{{ row.free }}</span><span style="text-align:center;color:#34D399">{{ row.pro }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+
+    <div style="text-align:center;font:300 13px Outfit;color:#64748B;margin-top:26px">Prices shown in {{ currency }}. Cancel any time — your polls stay live on the free tier.</div>
+  </div>
+
+  <div style="padding:38px 56px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;gap:28px;font:300 14px Outfit;color:#64748B"><span>Pricing</span><span>Templates</span><span>Privacy</span><span>Terms</span></div><div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div></div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:12px">
+<div style="font:500 13px Outfit;letter-spacing:.08em;text-transform:uppercase;color:#64748B">/pricing — mobile 375</div>
+<div data-screen-label="Pricing mobile" style="width:375px;background:#0B0F19;border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;color:#F8FAFC">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05)"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;align-items:center;gap:12px"><span style="background:#10B981;color:#04180F;font:600 12px Outfit;padding:8px 14px;border-radius:999px">Get started</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div></div>
+
+  <div style="padding:34px 20px 40px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:40px 40px">
+    <h1 style="font:700 34px/1.15 'Playfair Display',serif;margin:0 0 12px;text-align:center">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
+    <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 24px;text-align:center">Start free with five active polls. Upgrade when you need more.</p>
+
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-bottom:26px">
+      <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
+        <span onClick="{{ setMonthly }}" style="{{ monthlyTabStyleSm }}">Monthly</span>
+        <span onClick="{{ setAnnual }}" style="{{ annualTabStyleSm }}">Annual −20%</span>
+      </div>
+      <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
+        <span onClick="{{ setAUD }}" style="{{ audStyleSm }}">A$</span>
+        <span onClick="{{ setUSD }}" style="{{ usdStyleSm }}">$</span>
+        <span onClick="{{ setEUR }}" style="{{ eurStyleSm }}">€</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:24px;position:relative">
+        <span style="position:absolute;top:-12px;left:24px;background:#10B981;color:#04180F;font:600 10px Outfit;padding:4px 10px;border-radius:999px">MOST POPULAR</span>
+        <div style="font:600 17px Outfit;margin-bottom:10px">Pro</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 36px 'Playfair Display',serif;color:#10B981">{{ proPrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">{{ proSuffix }}</span></div>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 16px">{{ proNote }}</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:10px;padding:11px 14px;margin-bottom:18px"><div><div style="font:600 13px Outfit">Lifetime — {{ lifetimePrice }}</div><div style="font:300 11px Outfit;color:#94A3B8">Pay once, keep Pro forever</div></div><span style="font:600 12px Outfit;color:#34D399">Choose</span></div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:22px">
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited polls and questions</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Ranked, image, open-ended, reactions</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Branded embeds &amp; overlays</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Scheduling, limits &amp; passwords</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>CSV export &amp; all chart types</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited AI drafting</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Priority support</span>
+        </div>
+        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:999px">Upgrade to Pro</span>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px">
+        <div style="font:600 17px Outfit;margin-bottom:10px">Free</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 36px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">forever</span></div>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 18px">Everything you need to settle a group decision.</p>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:22px">
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited votes on every poll</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>5 active polls, 2 questions each</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Multiple choice &amp; rating questions</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Live results with bar charts</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Voting without an account</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>3 AI-drafted polls a month</span>
+          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results dashboard &amp; history</span>
+        </div>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:14px;border-radius:999px">Get started free</span>
+      </div>
+    </div>
+
+    <div style="margin-top:22px">
+      <div onClick="{{ toggleTable }}" style="display:flex;align-items:center;justify-content:space-between;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px"><div style="font:600 15px Outfit">Compare all features</div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="{{ chevronStyle }}"><path d="m6 9 6 6 6-6"></path></svg></div>
+      <sc-if value="{{ tableOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;padding:18px">
+          <div style="display:grid;grid-template-columns:1.6fr .7fr .7fr;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07);font:600 11px Outfit;color:#64748B"><span>FEATURE</span><span style="text-align:center">FREE</span><span style="text-align:center;color:#34D399">PRO</span></div>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
+            <div style="display:grid;grid-template-columns:1.6fr .7fr .7fr;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 13px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="text-align:center;color:#94A3B8">{{ row.free }}</span><span style="text-align:center;color:#34D399">{{ row.pro }}</span></div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+    <div style="text-align:center;font:300 12px Outfit;color:#64748B;margin-top:20px">Prices shown in {{ currency }}. Cancel any time.</div>
+  </div>
+  <div style="padding:24px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 16px 'Playfair Display',serif">TheJury</div><div style="font:300 12px Outfit;color:#475569">© 2026 TheJury</div></div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
+class Component extends DCLogic {
+  state = { annual: false, cur: "AUD", open: false };
+  renderVals() {
+    const P = {
+      AUD: { sym: "A$", m: 15, a: 12, life: 79 },
+      USD: { sym: "$", m: 10, a: 8, life: 55 },
+      EUR: { sym: "€", m: 9, a: 7, life: 49 }
+    }[this.state.cur];
+    const on = "background:#10B981;color:#04180F;font:600 14px Outfit;padding:9px 20px;border-radius:999px;display:inline-flex;align-items:center;cursor:pointer";
+    const off = "color:#94A3B8;font:500 14px Outfit;padding:9px 20px;border-radius:999px;display:inline-flex;align-items:center;cursor:pointer";
+    const onSm = on.replace("14px", "13px").replace("9px 20px", "8px 16px");
+    const offSm = off.replace("14px", "13px").replace("9px 20px", "8px 16px");
+    const c = k => (this.state.cur === k ? on : off);
+    const cSm = k => (this.state.cur === k ? onSm : offSm);
+    const rows = [
+      { name: "Active polls", free: "5", pro: "Unlimited" },
+      { name: "Questions per poll", free: "2", pro: "Unlimited" },
+      { name: "Votes per poll", free: "Unlimited", pro: "Unlimited" },
+      { name: "Multiple choice & rating", free: "✓", pro: "✓" },
+      { name: "Ranked choice & image options", free: "—", pro: "✓" },
+      { name: "Open-ended & reaction polls", free: "—", pro: "✓" },
+      { name: "AI poll drafting", free: "3 / month", pro: "Unlimited" },
+      { name: "Poll templates", free: "4 free", pro: "All" },
+      { name: "Chart types", free: "Bar", pro: "Bar, pie, donut" },
+      { name: "CSV export", free: "—", pro: "✓" },
+      { name: "QR codes & short links", free: "Links & codes", pro: "✓" },
+      { name: "Scheduling & time limits", free: "—", pro: "✓" },
+      { name: "Password protection", free: "—", pro: "✓" },
+      { name: "Anonymous responses", free: "✓", pro: "✓" },
+      { name: "Custom embed theme", free: "—", pro: "✓" },
+      { name: "Stream overlay", free: "—", pro: "✓" },
+      { name: "TheJury branding removed", free: "—", pro: "✓" },
+      { name: "Support", free: "Community", pro: "Priority" }
+    ];
+    return {
+      rows,
+      currency: this.state.cur,
+      tableOpen: this.state.open,
+      freePrice: P.sym + "0",
+      proPrice: P.sym + (this.state.annual ? P.a : P.m),
+      proSuffix: "/mo",
+      proNote: this.state.annual
+        ? "Billed yearly — two months free."
+        : "Billed monthly, cancel any time.",
+      lifetimePrice: P.sym + P.life,
+      monthlyTabStyle: this.state.annual ? off : on,
+      annualTabStyle: this.state.annual ? on : off,
+      monthlyTabStyleSm: this.state.annual ? offSm : onSm,
+      annualTabStyleSm: this.state.annual ? onSm : offSm,
+      audStyle: c("AUD"), usdStyle: c("USD"), eurStyle: c("EUR"),
+      audStyleSm: cSm("AUD"), usdStyleSm: cSm("USD"), eurStyleSm: cSm("EUR"),
+      chevronStyle: "transition:transform .18s ease;transform:rotate(" + (this.state.open ? 180 : 0) + "deg)",
+      setMonthly: () => this.setState({ annual: false }),
+      setAnnual: () => this.setState({ annual: true }),
+      setAUD: () => this.setState({ cur: "AUD" }),
+      setUSD: () => this.setState({ cur: "USD" }),
+      setEUR: () => this.setState({ cur: "EUR" }),
+      toggleTable: () => this.setState(s => ({ open: !s.open }))
+    };
+  }
+}
+</script>
+</body>
+</html>

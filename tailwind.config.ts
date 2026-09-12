@@ -20,6 +20,33 @@ export default {
         sans: ["var(--font-outfit-sans)", "system-ui", "sans-serif"],
       },
       colors: {
+        // Redesign tokens (dark-first marketing/app palette from the design
+        // handoff, design/README.md). Literal values for pixel fidelity.
+        jury: {
+          base: "#0B0F19",
+          alt: "#0A0E17",
+          surface: "#0F1520",
+          input: "#0B0F19",
+          menu: "#141B27",
+          border: "rgba(255,255,255,0.07)",
+          "border-subtle": "rgba(255,255,255,0.05)",
+          "border-strong": "rgba(255,255,255,0.13)",
+          text: "#F8FAFC",
+          body: "#E2E8F0",
+          muted: "#94A3B8",
+          dim: "#64748B",
+          faint: "#475569",
+          danger: "#F87171",
+          emerald: "#10B981",
+          "emerald-hi": "#34D399",
+          "on-emerald": "#04180F",
+          "emerald-tint": "rgba(16,185,129,0.12)",
+          "emerald-line": "rgba(16,185,129,0.35)",
+        },
+        // Per-use-case secondary accents (exactly one per /for page).
+        gaming: { DEFAULT: "#A79BEA", text: "#C4BBF3", on: "#12101F" },
+        teams: { DEFAULT: "#8FB0E8", text: "#B3CAF0", on: "#0B0F19" },
+        creators: { DEFAULT: "#E0B384", text: "#EFCEA8", on: "#160F0A" },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
