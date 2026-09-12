@@ -122,14 +122,20 @@ export function Footer() {
               </h4>
               <ul className="space-y-2.5">
                 <li>
-                  <span className="text-sm text-muted-foreground">
+                  <Link
+                    href="/privacy"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Privacy Policy
-                  </span>
+                  </Link>
                 </li>
                 <li>
-                  <span className="text-sm text-muted-foreground">
+                  <Link
+                    href="/terms"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
                     Terms of Service
-                  </span>
+                  </Link>
                 </li>
               </ul>
             </div>

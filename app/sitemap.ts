@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/for/gaming-groups",
     "/for/teams",
     "/for/creators",
+    "/terms",
+    "/privacy",
   ];
 
   return routes.map((path) => ({

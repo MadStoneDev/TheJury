@@ -58,7 +58,9 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/pricing") &&
     !request.nextUrl.pathname.startsWith("/results") &&
     !request.nextUrl.pathname.startsWith("/templates") &&
-    !request.nextUrl.pathname.startsWith("/for")
+    !request.nextUrl.pathname.startsWith("/for") &&
+    !request.nextUrl.pathname.startsWith("/terms") &&
+    !request.nextUrl.pathname.startsWith("/privacy")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
