@@ -25,7 +25,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import ResultsSkeleton from "@/components/skeletons/ResultsSkeleton";
-import { exportResultsToCSV, exportQuestionResultsToCSV } from "@/lib/exportUtils";
+import { downloadCsv } from "@/lib/exportUtils";
 import ShareModal from "@/components/ShareModal";
 import UpgradeModal from "@/components/UpgradeModal";
 import { QuestionTypeResults } from "@/components/question-types";
@@ -38,7 +38,10 @@ import { BarChart, PieChart, ChartSelector } from "@/components/charts";
 import type { ChartType, ChartDataItem } from "@/components/charts";
 import type { EmbedTheme } from "@/components/EmbedThemeEditor";
 import { DEFAULT_EMBED_THEME } from "@/components/EmbedThemeEditor";
-import { updateEmbedSettings } from "@/lib/supabaseHelpers";
+import {
+  updateEmbedSettingsAction,
+  exportPollCsvAction,
+} from "@/app/actions/polls";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { pluralize } from "@/lib/utils";
 
@@ -173,19 +176,26 @@ export default function PollResultsPage() {
     }
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
     if (!poll) return;
-    if (!canUseFeature(userTier, "csvExport")) {
+    // Tier is enforced server-side: the CSV bytes are only returned to Pro.
+    const res = await exportPollCsvAction({
+      pollId: poll.id,
+      pollCode,
+      pollTitle: poll.question,
+      totalVoters,
+      isMultiQuestion,
+      results: flatResults,
+      questionResults,
+    });
+    if (res.ok) {
+      downloadCsv(res.data!.csv, pollCode);
+      toast.success("CSV exported!");
+    } else {
       setUpgradeFeature("csvExport");
       setUpgradeModalOpen(true);
-      return;
+      toast.error(res.error);
     }
-    if (isMultiQuestion) {
-      exportQuestionResultsToCSV(poll.question, pollCode, questionResults, totalVoters);
-    } else {
-      exportResultsToCSV(poll.question, pollCode, flatResults, totalVoters);
-    }
-    toast.success("CSV exported!");
   };
 
   const formatDate = formatDateFull;
@@ -528,8 +538,14 @@ export default function PollResultsPage() {
             onChange={async (newTheme) => {
               setEmbedTheme(newTheme);
               if (poll) {
-                await updateEmbedSettings(poll.id, { ...newTheme });
-                toast.success("Embed theme saved!");
+                const res = await updateEmbedSettingsAction(poll.id, {
+                  ...newTheme,
+                });
+                if (res.ok) {
+                  toast.success("Embed theme saved!");
+                } else {
+                  toast.error(res.error);
+                }
               }
             }}
           />

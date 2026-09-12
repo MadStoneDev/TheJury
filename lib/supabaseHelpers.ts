@@ -1,5 +1,13 @@
 // lib/supabaseHelpers.ts
 import { supabase } from "./supabase";
+import {
+  createPollWithClient,
+  updatePollWithClient,
+  togglePollStatusWithClient,
+  updateEmbedSettingsWithClient,
+  type CreatePollData,
+  type UpdatePollData,
+} from "./pollWrites";
 
 /**
  * Safely extract the first `count` value from a Supabase aggregate embed
@@ -216,306 +224,19 @@ export const checkPollCodeExists = async (code: string): Promise<boolean> => {
 };
 
 export const createPoll = async (
-  pollData: {
-    end_date: string | null;
-    code: string;
-    is_active: boolean;
-    question: string;
-    user_id: string;
-    has_time_limit: boolean;
-    description: string | null;
-    allow_multiple: boolean;
-    start_date: string | null;
-  },
+  pollData: CreatePollData,
   options: { text: string }[],
   questions?: QuestionInput[],
-): Promise<string | null> => {
-  let createdPollId: string | null = null;
-  try {
-    const { data: poll, error: pollError } = await supabase
-      .from("polls")
-      .insert([pollData])
-      .select("id")
-      .single();
-
-    if (pollError) throw pollError;
-    createdPollId = poll.id;
-
-    if (questions && questions.length > 0) {
-      // Multi-question mode: create poll_questions with nested options
-      for (let qi = 0; qi < questions.length; qi++) {
-        const q = questions[qi];
-        const { data: question, error: qError } = await supabase
-          .from("poll_questions")
-          .insert({
-            poll_id: poll.id,
-            question_text: q.question_text,
-            question_type: q.question_type || "multiple_choice",
-            question_order: qi + 1,
-            allow_multiple: q.allow_multiple ?? false,
-            settings: q.settings || {},
-          })
-          .select("id")
-          .single();
-
-        if (qError) throw qError;
-
-        if (q.options.length > 0) {
-          const optionsData = q.options.map((opt, oi) => ({
-            poll_id: poll.id,
-            question_id: question.id,
-            text: opt.text,
-            option_order: oi + 1,
-            ...(opt.image_url ? { image_url: opt.image_url } : {}),
-          }));
-
-          const { error: optError } = await supabase
-            .from("poll_options")
-            .insert(optionsData);
-
-          if (optError) throw optError;
-        }
-      }
-    } else {
-      // Legacy single-question mode: create one poll_question + flat options
-      const { data: question, error: qError } = await supabase
-        .from("poll_questions")
-        .insert({
-          poll_id: poll.id,
-          question_text: pollData.question,
-          question_type: "multiple_choice",
-          question_order: 1,
-          allow_multiple: pollData.allow_multiple,
-        })
-        .select("id")
-        .single();
-
-      if (qError) throw qError;
-
-      const optionsData = options.map((option, index) => ({
-        poll_id: poll.id,
-        question_id: question.id,
-        text: option.text,
-        option_order: index + 1,
-      }));
-
-      const { error: optionsError } = await supabase
-        .from("poll_options")
-        .insert(optionsData);
-
-      if (optionsError) throw optionsError;
-    }
-
-    return poll.id;
-  } catch (error) {
-    console.error("Error creating poll:", error);
-    // Best-effort rollback so partial/orphaned rows don't accumulate.
-    // poll_questions and poll_options are FK ON DELETE CASCADE from polls,
-    // so removing the poll row cleans up anything inserted before failure.
-    if (createdPollId) {
-      const { error: rollbackErr } = await supabase
-        .from("polls")
-        .delete()
-        .eq("id", createdPollId);
-      if (rollbackErr) {
-        console.error(
-          "Error rolling back partial poll creation:",
-          createdPollId,
-          rollbackErr,
-        );
-      }
-    }
-    return null;
-  }
-};
+): Promise<string | null> =>
+  createPollWithClient(supabase, pollData, options, questions);
 
 export const updatePoll = async (
   pollId: string,
-  pollData: {
-    end_date: string | null;
-    is_active: boolean;
-    question: string;
-    has_time_limit: boolean;
-    description: string | null;
-    allow_multiple: boolean;
-    start_date: string | null;
-  },
+  pollData: UpdatePollData,
   options?: { text: string; id?: string }[],
   questions?: (QuestionInput & { id?: string })[],
-): Promise<boolean> => {
-  try {
-    // Update poll data
-    const { error: pollError } = await supabase
-      .from("polls")
-      .update(pollData)
-      .eq("id", pollId);
-
-    if (pollError) throw pollError;
-
-    if (questions && questions.length > 0) {
-      // Multi-question update: handle question-level CRUD
-      const { data: existingQuestions } = await supabase
-        .from("poll_questions")
-        .select("id")
-        .eq("poll_id", pollId)
-        .order("question_order");
-
-      const existingIds = new Set((existingQuestions || []).map((q) => q.id));
-      const updatedIds = new Set<string>();
-
-      for (let qi = 0; qi < questions.length; qi++) {
-        const q = questions[qi];
-
-        if (q.id && existingIds.has(q.id)) {
-          // Update existing question
-          updatedIds.add(q.id);
-          await supabase
-            .from("poll_questions")
-            .update({
-              question_text: q.question_text,
-              question_type: q.question_type || "multiple_choice",
-              question_order: qi + 1,
-              allow_multiple: q.allow_multiple ?? false,
-              settings: q.settings || {},
-            })
-            .eq("id", q.id);
-
-          // Update options for this question
-          await updateQuestionOptions(pollId, q.id, q.options);
-        } else {
-          // Insert new question
-          const { data: newQ, error: qErr } = await supabase
-            .from("poll_questions")
-            .insert({
-              poll_id: pollId,
-              question_text: q.question_text,
-              question_type: q.question_type || "multiple_choice",
-              question_order: qi + 1,
-              allow_multiple: q.allow_multiple ?? false,
-              settings: q.settings || {},
-            })
-            .select("id")
-            .single();
-
-          if (qErr) throw qErr;
-
-          if (q.options.length > 0) {
-            const optionsData = q.options.map((opt, oi) => ({
-              poll_id: pollId,
-              question_id: newQ.id,
-              text: opt.text,
-              option_order: oi + 1,
-              ...(opt.image_url ? { image_url: opt.image_url } : {}),
-            }));
-
-            await supabase.from("poll_options").insert(optionsData);
-          }
-        }
-      }
-
-      // Delete removed questions (cascade deletes their options)
-      const toDelete = [...existingIds].filter((id) => !updatedIds.has(id));
-      if (toDelete.length > 0) {
-        await supabase.from("poll_questions").delete().in("id", toDelete);
-      }
-    } else if (options) {
-      // Legacy single-question update
-      // Get the first question for this poll
-      const { data: existingQ } = await supabase
-        .from("poll_questions")
-        .select("id")
-        .eq("poll_id", pollId)
-        .order("question_order")
-        .limit(1)
-        .single();
-
-      if (existingQ) {
-        // Update question text and allow_multiple
-        await supabase
-          .from("poll_questions")
-          .update({
-            question_text: pollData.question,
-            allow_multiple: pollData.allow_multiple,
-          })
-          .eq("id", existingQ.id);
-
-        await updateQuestionOptions(pollId, existingQ.id, options);
-      } else {
-        // No question exists yet (shouldn't happen after migration, but be safe)
-        const { data: newQ, error: qErr } = await supabase
-          .from("poll_questions")
-          .insert({
-            poll_id: pollId,
-            question_text: pollData.question,
-            question_type: "multiple_choice",
-            question_order: 1,
-            allow_multiple: pollData.allow_multiple,
-          })
-          .select("id")
-          .single();
-
-        if (qErr) throw qErr;
-
-        const optionsData = options.map((opt, i) => ({
-          poll_id: pollId,
-          question_id: newQ.id,
-          text: opt.text,
-          option_order: i + 1,
-        }));
-
-        await supabase.from("poll_options").insert(optionsData);
-      }
-    }
-
-    return true;
-  } catch (error) {
-    console.error("Error updating poll:", error);
-    return false;
-  }
-};
-
-async function updateQuestionOptions(
-  pollId: string,
-  questionId: string,
-  options: { text: string; image_url?: string }[],
-) {
-  const { data: existingOptions } = await supabase
-    .from("poll_options")
-    .select("*")
-    .eq("question_id", questionId)
-    .order("option_order");
-
-  for (let i = 0; i < options.length; i++) {
-    const option = options[i];
-    const existing = existingOptions?.[i];
-
-    if (existing) {
-      await supabase
-        .from("poll_options")
-        .update({
-          text: option.text,
-          option_order: i + 1,
-          ...(option.image_url !== undefined ? { image_url: option.image_url } : {}),
-        })
-        .eq("id", existing.id);
-    } else {
-      await supabase.from("poll_options").insert({
-        poll_id: pollId,
-        question_id: questionId,
-        text: option.text,
-        option_order: i + 1,
-        ...(option.image_url ? { image_url: option.image_url } : {}),
-      });
-    }
-  }
-
-  if (existingOptions && existingOptions.length > options.length) {
-    const idsToDelete = existingOptions
-      .slice(options.length)
-      .map((opt) => opt.id);
-    await supabase.from("poll_options").delete().in("id", idsToDelete);
-  }
-}
+): Promise<boolean> =>
+  updatePollWithClient(supabase, pollId, pollData, options, questions);
 
 export const getPollByCode = async (code: string): Promise<Poll | null> => {
   try {
@@ -711,53 +432,8 @@ export const deletePoll = async (pollId: string): Promise<boolean> => {
 export const togglePollStatus = async (
   pollId: string,
 ): Promise<{ success: boolean; error?: string }> => {
-  try {
-    // First get current status and owner
-    const { data: poll, error: fetchError } = await supabase
-      .from("polls")
-      .select("is_active, user_id")
-      .eq("id", pollId)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    // If activating, check the active poll limit
-    if (!poll.is_active) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_tier")
-        .eq("id", poll.user_id)
-        .single();
-
-      const tier = profile?.subscription_tier || "free";
-
-      // Import dynamically to avoid circular deps at module level
-      const { getFeatureLimit } = await import("@/lib/featureGate");
-      const limit = getFeatureLimit(tier as "free" | "pro" | "team", "maxActivePolls");
-
-      if (limit !== -1) {
-        const activeCount = await getActivePollCount(poll.user_id);
-        if (activeCount >= limit) {
-          return {
-            success: false,
-            error: `You've reached your limit of ${limit} active polls. Upgrade to Pro for unlimited active polls.`,
-          };
-        }
-      }
-    }
-
-    // Toggle the status
-    const { error: updateError } = await supabase
-      .from("polls")
-      .update({ is_active: !poll.is_active })
-      .eq("id", pollId);
-
-    if (updateError) throw updateError;
-    return { success: true };
-  } catch (error) {
-    console.error("Error toggling poll status:", error);
-    return { success: false, error: "Failed to update poll status" };
-  }
+  const result = await togglePollStatusWithClient(supabase, pollId);
+  return { success: result.success, error: result.error };
 };
 
 export const getActivePollCount = async (userId: string): Promise<number> => {
@@ -1282,63 +958,11 @@ export const generateFingerprint = (): string => {
 
 // ─── Embed Settings ──────────────────────────────────────────
 
-const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
-const ALLOWED_FONT_FAMILIES = new Set([
-  "Outfit",
-  "Inter",
-  "DM Sans",
-  "Roboto",
-  "System Default",
-]);
-
-function sanitizeEmbedSettings(
-  raw: Record<string, unknown>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  const colorKeys = ["primaryColor", "backgroundColor", "textColor"] as const;
-  for (const key of colorKeys) {
-    const v = raw[key];
-    if (typeof v === "string" && HEX_COLOR_RE.test(v)) {
-      out[key] = v;
-    }
-  }
-  if (
-    typeof raw.borderRadius === "number" &&
-    Number.isFinite(raw.borderRadius) &&
-    raw.borderRadius >= 0 &&
-    raw.borderRadius <= 64
-  ) {
-    out.borderRadius = raw.borderRadius;
-  }
-  if (
-    typeof raw.fontFamily === "string" &&
-    ALLOWED_FONT_FAMILIES.has(raw.fontFamily)
-  ) {
-    out.fontFamily = raw.fontFamily;
-  }
-  return out;
-}
-
 export const updateEmbedSettings = async (
   pollId: string,
   embedSettings: Record<string, unknown>,
-): Promise<boolean> => {
-  try {
-    const sanitized = sanitizeEmbedSettings(embedSettings);
-    const { error } = await supabase
-      .from("polls")
-      .update({ embed_settings: sanitized })
-      .eq("id", pollId);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error("Error updating embed settings:", error);
-    return false;
-  }
-};
-
-// ─── Live Poll State ─────────────────────────────────────────
+): Promise<boolean> =>
+  updateEmbedSettingsWithClient(supabase, pollId, embedSettings);
 
 export const updatePollLiveState = async (
   pollId: string,

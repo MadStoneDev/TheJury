@@ -7,12 +7,12 @@ function escapeCsvField(field: string): string {
   return field;
 }
 
-export function exportResultsToCSV(
+export function buildResultsCsv(
   pollQuestion: string,
   pollCode: string,
   results: PollResult[],
   totalVoters: number,
-) {
+): string {
   const totalVotes = results.reduce((sum, r) => sum + r.vote_count, 0);
 
   const lines: string[] = [];
@@ -39,15 +39,15 @@ export function exportResultsToCSV(
   // Total row
   lines.push(`Total,${totalVotes},`);
 
-  downloadCsv(lines.join("\n"), pollCode);
+  return lines.join("\n");
 }
 
-export function exportQuestionResultsToCSV(
+export function buildQuestionResultsCsv(
   pollTitle: string,
   pollCode: string,
   questionResults: QuestionResult[],
   totalVoters: number,
-) {
+): string {
   const lines: string[] = [];
 
   // Metadata comment row
@@ -108,10 +108,11 @@ export function exportQuestionResultsToCSV(
     }
   }
 
-  downloadCsv(lines.join("\n"), pollCode);
+  return lines.join("\n");
 }
 
-function downloadCsv(csvContent: string, pollCode: string) {
+/** Trigger a browser download of a CSV string produced server-side. */
+export function downloadCsv(csvContent: string, pollCode: string) {
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
 

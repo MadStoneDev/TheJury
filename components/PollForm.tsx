@@ -18,16 +18,12 @@ import {
   IconChevronDown,
   IconSparkles,
 } from "@tabler/icons-react";
-import { generateUniquePollCode } from "@/utils/pollCodeGenerator";
 import {
-  createPoll,
-  updatePoll,
   getPollByCode,
   getCurrentUser,
   getProfile,
-  getActivePollCount,
 } from "@/lib/supabaseHelpers";
-import type { QuestionInput } from "@/lib/supabaseHelpers";
+import { createPollAction, updatePollAction } from "@/app/actions/polls";
 import {
   DndContext,
   closestCenter,
@@ -740,117 +736,70 @@ export default function PollForm({ pollCode }: PollFormProps) {
         }
       }
 
-      // Check active poll limit when creating a new active poll
-      if (!isEditing && isActive) {
-        const limit = getFeatureLimit(userTier, "maxActivePolls");
-        if (limit !== -1) {
-          const activeCount = await getActivePollCount(user.id);
-          if (activeCount >= limit) {
-            setUpgradeModalOpen(true);
-            throw new Error(
-              `You've reached your limit of ${limit} active polls.`,
-            );
-          }
-        }
-      }
-
       // Hash password if set
       const passwordHash = hasPassword && pollPassword.trim()
         ? await hashPassword(pollPassword.trim())
         : null;
 
-      let code = generatedPollCode;
+      const startIso =
+        hasTimeLimit && startDate ? new Date(startDate).toISOString() : null;
+      const endIso =
+        hasTimeLimit && endDate ? new Date(endDate).toISOString() : null;
+
+      const questionsInput = questions.map((q) => ({
+        id: q.id,
+        question_text: q.questionText.trim(),
+        question_type: q.questionType,
+        allow_multiple: q.allowMultiple,
+        settings: q.settings,
+        options: questionTypeHasOptions(q.questionType)
+          ? q.options
+              .filter((o) => o.text.trim())
+              .map((o) => ({
+                text: o.text.trim(),
+                ...(o.image_url ? { image_url: o.image_url } : {}),
+              }))
+          : [],
+      }));
 
       if (!isEditing) {
-        code = await generateUniquePollCode();
-        setGeneratedPollCode(code);
-
-        const pollData = {
-          code,
-          user_id: user.id,
-          question: pollTitle,
-          description: description.trim() || null,
-          allow_multiple: questions[0].allowMultiple,
-          is_active: isActive,
-          has_time_limit: hasTimeLimit,
-          start_date:
-            hasTimeLimit && startDate
-              ? new Date(startDate).toISOString()
-              : null,
-          end_date:
-            hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
-          password_hash: passwordHash,
-        };
-
-        const questionsInput: QuestionInput[] = questions.map((q) => ({
-          question_text: q.questionText.trim(),
-          question_type: q.questionType,
-          allow_multiple: q.allowMultiple,
-          settings: q.settings,
-          options: questionTypeHasOptions(q.questionType)
-            ? q.options
-                .filter((o) => o.text.trim())
-                .map((o) => ({
-                  text: o.text.trim(),
-                  ...(o.image_url ? { image_url: o.image_url } : {}),
-                }))
-            : [],
-        }));
-
         const fallbackOptions = questions[0].options
           .filter((o) => o.text.trim())
           .map((o) => ({ text: o.text.trim() }));
 
-        const createdPollId = await createPoll(
-          pollData,
-          fallbackOptions,
-          questionsInput,
-        );
-
-        if (!createdPollId) {
-          throw new Error("Failed to create poll");
-        }
-      } else {
-        const pollData = {
+        // Tier limits are enforced server-side in createPollAction.
+        const result = await createPollAction({
           question: pollTitle,
           description: description.trim() || null,
           allow_multiple: questions[0].allowMultiple,
           is_active: isActive,
           has_time_limit: hasTimeLimit,
-          start_date:
-            hasTimeLimit && startDate
-              ? new Date(startDate).toISOString()
-              : null,
-          end_date:
-            hasTimeLimit && endDate ? new Date(endDate).toISOString() : null,
+          start_date: startIso,
+          end_date: endIso,
           password_hash: passwordHash,
-        };
+          questions: questionsInput,
+          fallbackOptions,
+        });
 
-        const questionsInput = questions.map((q) => ({
-          id: q.id,
-          question_text: q.questionText.trim(),
-          question_type: q.questionType,
-          allow_multiple: q.allowMultiple,
-          settings: q.settings,
-          options: questionTypeHasOptions(q.questionType)
-            ? q.options
-                .filter((o) => o.text.trim())
-                .map((o) => ({
-                  text: o.text.trim(),
-                  ...(o.image_url ? { image_url: o.image_url } : {}),
-                }))
-            : [],
-        }));
+        if (!result.ok) {
+          throw new Error(result.error);
+        }
+        setGeneratedPollCode(result.data!.code);
+      } else {
+        const result = await updatePollAction(pollId, {
+          question: pollTitle,
+          description: description.trim() || null,
+          allow_multiple: questions[0].allowMultiple,
+          is_active: isActive,
+          has_time_limit: hasTimeLimit,
+          start_date: startIso,
+          end_date: endIso,
+          password_hash: passwordHash,
+          questions: questionsInput,
+        });
 
-        const success = await updatePoll(
-          pollId,
-          pollData,
-          undefined,
-          questionsInput,
-        );
-
-        if (!success) {
-          throw new Error("Failed to update poll");
+        if (!result.ok) {
+          throw new Error(result.error);
         }
       }
 

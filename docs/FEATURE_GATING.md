@@ -1,62 +1,55 @@
 # Feature gating audit
 
-Where Free-tier limits are actually enforced, as of this pass. TL;DR: **only
-AI generation is enforced server-side.** Every other gate is UI-only, backed at
-the data layer solely by row-level security that checks _ownership_, not
-_subscription tier_.
+Where Free-tier limits are enforced. As of the server-enforcement pass, the
+poll create/update/toggle path, embed themes, CSV export and the AI counter are
+all enforced on the server. QR codes and branding remain display-only.
 
-## Architecture context
+## Architecture
 
-- Most reads/writes go through `lib/supabaseHelpers.ts`, which imports the
-  **browser** Supabase client (`lib/supabase.ts` → `lib/supabase/client.ts`).
-  So `createPoll`, `updatePoll`, `togglePollStatus`, `updateEmbedSettings`,
-  etc. run **in the browser** with the anon key.
-- RLS policies (`supabase/migrations/*`) gate rows by `user_id` ownership
-  (e.g. "Users can manage their poll questions"). **No policy checks
-  `subscription_tier`.** A user can therefore call Supabase directly with their
-  own anon key and write anything the UI hides, as long as they own the poll.
+- Poll mutations now go through **server actions** in `app/actions/polls.ts`
+  (`createPollAction`, `updatePollAction`, `togglePollStatusAction`,
+  `updateEmbedSettingsAction`, `exportPollCsvAction`). Each loads the user's
+  tier from the DB with the server Supabase client and rejects violations
+  before writing. The shared write logic lives in `lib/pollWrites.ts`
+  (client-agnostic) and the tier rules in `lib/tierEnforcement.ts`.
+- `lib/supabaseHelpers.ts` still exposes `createPoll`/`updatePoll`/… but they
+  now delegate to `lib/pollWrites.ts` with the browser client, and are only
+  used internally (e.g. `duplicatePoll`). The UI calls the server actions.
 
 ## Enforced server-side ✅
 
-| Limit | Where | Notes |
+| Limit | Where | How |
 |---|---|---|
-| AI generation: 3/month (Free) | `app/api/ai/generate-poll/route.ts` | Real server route. Checks `subscription_tier` + `ai_poll_usage.usage_count` before generating, then increments. Also IP + per-user rate limits. |
+| Questions per poll (Free = 2) | `createPollAction` / `updatePollAction` → `validatePollWriteForTier` | Rejects if `questions.length > maxQuestionsPerPoll`. |
+| Non-Free question types (ranked / image / open-ended / reactions) | same | Rejects any question whose `featureKey` the tier lacks. Free keeps multiple-choice + rating. |
+| Scheduling (start/end dates) | same | Rejects `start_date`/`end_date` for tiers without `scheduling`. |
+| Password protection | same | Rejects `password_hash` for tiers without `passwordProtect`. |
+| Custom embed theme | `updateEmbedSettingsAction` → `canSaveEmbedTheme` | Rejects the save for tiers without `customEmbedThemes`. |
+| CSV export | `exportPollCsvAction` → `canExportCsv` | The CSV bytes are built server-side and only returned to tiers with `csvExport`. The client just downloads the returned string. |
+| Poll activate/deactivate | `togglePollStatusAction` | Ownership checked server-side (Free polls are unlimited, so no count gate). |
+| AI generation: 3/month (Free) | `app/api/ai/generate-poll/route.ts` | Checks tier + `ai_poll_usage` before generating. **Now tamper-proof:** migration 014 makes `ai_poll_usage` read-only for users; the counter is written with the service role, so a user can no longer reset it. |
 
-**Caveat on the AI limit:** the counter lives in `ai_poll_usage`, and migration
-`006_add_ai_usage.sql` grants `"Users can manage own AI usage"`. A determined
-user could reset their own `usage_count` via a direct Supabase call and get more
-than 3/month. To make it tamper-proof, tighten that policy to read-only for
-users and write the counter only from the service-role route.
+All rejections return a user-facing string that the existing UI surfaces
+(PollForm/results toasts, upgrade modal).
 
-## Client-only ⚠️ (UI hides it; nothing stops a crafted request)
+## Still display-only ⚠️
 
-All gated in the browser via `canUseFeature` / `getFeatureLimit`, then written
-with the browser Supabase client. RLS allows the write because the user owns the
-poll.
+| Feature | Why it's not a server gate |
+|---|---|
+| QR codes | Generated client-side (`qrcode.react`) from the poll's public URL. The button is hidden for non-Pro via the server-provided tier, but a QR of a public link is not a data-integrity concern. |
+| Remove branding | Applied at embed render time from the **owner's** `subscription_tier` read from the DB (`app/embed/[pollCode]/page.tsx`), so it already reflects the true tier. Not a mutation. |
 
-| Feature | UI gate | Bypass risk |
-|---|---|---|
-| Question types (ranked / image / open-ended / reactions are Pro; MC + rating are Free) | `components/PollForm.tsx` (`QUESTION_TYPES` + `canUseFeature`); insert in `createPoll` | A Free user can insert a `poll_questions` row with any `question_type`. |
-| Questions per poll (Free = 2) | `PollForm` (`getFeatureLimit(..., "maxQuestionsPerPoll")`) | `createPoll` will insert any number of `poll_questions`. |
-| Poll scheduling (start/end dates) | `PollForm` scheduling toggle | `start_date`/`end_date` are written client-side regardless. |
-| Password protection | `PollForm` password toggle (`lib/passwordUtils`) | `password_hash` is written client-side. |
-| Custom embed themes | `app/(public)/dashboard/results/[pollCode]/page.tsx` → `updateEmbedSettings` | `embed_settings` written client-side. |
-| CSV export | results page `handleExportCSV` | Export runs entirely in the browser from already-fetched data — inherently client-side. |
-| QR codes | share/QR UI | Generated in-browser; inherently client-side. |
-| Remove branding | `app/embed/[pollCode]/page.tsx` reads owner tier and conditionally renders branding | Display-only decision; a self-hosted embed could drop it. |
-| Presenter mode | `app/present/[pollCode]/page.tsx` reads tier and redirects | Client-side check in a client page. |
-| Templates (Free = off) | `app/(public)/templates/page.tsx` (server-read tier) but applying a template just prefills the client form | Enforcement is client-side; templates are only a starting point. |
+## Residual risk (recommended follow-up)
 
-## Not gated any more
+The server actions are the only path the app UI uses, and they enforce tier
+before writing. However, RLS on `polls` / `poll_questions` still allows an owner
+to INSERT/UPDATE their own rows directly. A technical user could therefore call
+Supabase REST directly and bypass the action-layer tier checks. `ai_poll_usage`
+is the one table locked down this pass (migration 014).
 
-- **Active poll count** — Free is now unlimited (`maxActivePolls: -1`), so the
-  old client-side check in `togglePollStatus` never triggers and the dashboard
-  meter was removed.
-
-## Recommendation
-
-If any of these limits need to be real (question types and questions-per-poll
-are the most abusable), move the poll create/update path to a server route or
-Server Action that re-checks the user's tier with the server Supabase client
-before writing — or add tier checks into the RLS policies. Until then, treat the
-client-only rows above as advisory, not enforced.
+To fully close the gap, add tier checks to the `polls` / `poll_questions` RLS
+policies (e.g. a policy that rejects non-Free `question_type` or a non-null
+`password_hash`/`start_date` when the owner's `subscription_tier = 'free'`), or
+route all poll writes through the service role and restrict direct writes. That
+is a larger, separately-testable migration and was intentionally left out of
+this pass.

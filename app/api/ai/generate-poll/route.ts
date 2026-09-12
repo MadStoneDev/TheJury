@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
 
 const AI_FREE_LIMIT = 3; // free tier: 3 generations per month
+
+// Service-role client for the usage counter. ai_poll_usage RLS is read-only for
+// users (migration 014), so writes must bypass RLS via the service role. This
+// prevents a user resetting their own counter to dodge the Free limit.
+function usageClient() {
+  return createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 
 interface GeneratedQuestion {
   question_text: string;
@@ -75,9 +86,13 @@ export async function POST(request: Request) {
     const tier = profile?.subscription_tier || "free";
     const monthYear = new Date().toISOString().slice(0, 7); // "2026-02"
 
+    // The counter is read and written with the service role because
+    // ai_poll_usage is now read-only for users (migration 014).
+    const usageDb = usageClient();
+
     if (tier === "free") {
       // Check monthly usage
-      const { data: usage } = await supabase
+      const { data: usage } = await usageDb
         .from("ai_poll_usage")
         .select("usage_count")
         .eq("user_id", user.id)
@@ -112,7 +127,7 @@ export async function POST(request: Request) {
     }
 
     // Track usage
-    const { data: existingUsage } = await supabase
+    const { data: existingUsage } = await usageDb
       .from("ai_poll_usage")
       .select("id, usage_count")
       .eq("user_id", user.id)
@@ -120,12 +135,12 @@ export async function POST(request: Request) {
       .single();
 
     if (existingUsage) {
-      await supabase
+      await usageDb
         .from("ai_poll_usage")
         .update({ usage_count: existingUsage.usage_count + 1, updated_at: new Date().toISOString() })
         .eq("id", existingUsage.id);
     } else {
-      await supabase.from("ai_poll_usage").insert({
+      await usageDb.from("ai_poll_usage").insert({
         user_id: user.id,
         month_year: monthYear,
         usage_count: 1,

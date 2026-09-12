@@ -25,10 +25,10 @@ import {
   IconClock,
   IconPresentation,
 } from "@tabler/icons-react";
+import { togglePollStatusAction } from "@/app/actions/polls";
 import {
   getUserPolls,
   deletePoll,
-  togglePollStatus,
   getCurrentUser,
   duplicatePoll,
   getProfile,
@@ -169,21 +169,16 @@ export default function PollDashboardPage() {
 
   const handleTogglePollStatus = async (pollId: string) => {
     try {
-      const result = await togglePollStatus(pollId);
-      if (result.success) {
-        const poll = polls.find((p) => p.id === pollId);
-        const wasActive = poll?.is_active;
+      const result = await togglePollStatusAction(pollId);
+      if (result.ok) {
+        const wasActive = polls.find((p) => p.id === pollId)?.is_active;
         setPolls((prev) =>
           prev.map((p) =>
-            p.id === pollId ? { ...p, is_active: !p.is_active } : p,
+            p.id === pollId ? { ...p, is_active: result.data!.isActive } : p,
           ),
         );
         toast.success(wasActive ? "Poll deactivated" : "Poll activated");
-      } else if (result.error) {
-        // Hit the active poll limit — show upgrade modal
-        if (result.error.includes("limit")) {
-          setUpgradeModalOpen(true);
-        }
+      } else {
         toast.error(result.error);
       }
     } catch (err) {
