@@ -42,7 +42,7 @@ import type { StatusFilter, SortOption } from "@/components/DashboardControls";
 import Pagination from "@/components/Pagination";
 import ShareModal from "@/components/ShareModal";
 import UpgradeModal from "@/components/UpgradeModal";
-import { getFeatureLimit, canUseFeature } from "@/lib/featureGate";
+import { canUseFeature } from "@/lib/featureGate";
 import { pluralize } from "@/lib/utils";
 import type { TierName } from "@/lib/stripe";
 import { formatDateShort } from "@/lib/dateUtils";
@@ -75,8 +75,6 @@ export default function PollDashboardPage() {
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const cachedUserIdRef = useRef<string | null>(null);
 
-  // Derive active poll count from already-fetched polls
-  const activePollCount = useMemo(() => polls.filter((p) => p.is_active).length, [polls]);
 
   // Show checkout success toast
   useEffect(() => {
@@ -334,50 +332,6 @@ export default function PollDashboardPage() {
             </div>
           </HoverCard>
         </div>
-
-        {/* Active Poll Limit Indicator (free tier only) */}
-        {userTier === "free" && (
-          <motion.div
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-2xl border border-border bg-card p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">
-                Active Polls
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {activePollCount} / {getFeatureLimit("free", "maxActivePolls")}
-              </span>
-            </div>
-            <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  activePollCount >= getFeatureLimit("free", "maxActivePolls")
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-                }`}
-                style={{
-                  width: `${Math.min(
-                    (activePollCount / getFeatureLimit("free", "maxActivePolls")) * 100,
-                    100,
-                  )}%`,
-                }}
-              />
-            </div>
-            {activePollCount >= getFeatureLimit("free", "maxActivePolls") && (
-              <p className="text-xs text-amber-500 mt-2">
-                You&apos;ve reached your free tier limit.{" "}
-                <button
-                  onClick={() => setUpgradeModalOpen(true)}
-                  className="underline hover:text-amber-400 transition-colors"
-                >
-                  Upgrade for unlimited
-                </button>
-              </p>
-            )}
-          </motion.div>
-        )}
 
         {/* Controls */}
         {polls.length > 0 && (

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getStripe } from "@/lib/stripe";
+import { getStripe, isLifetimePriceId } from "@/lib/stripe";
 import { checkoutSchema } from "@/lib/validations";
 import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
 
@@ -71,14 +71,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // The lifetime plan is a one-off charge (mode: payment); everything else
+    // is a recurring subscription.
+    const isLifetime = isLifetimePriceId(priceId);
+
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: isLifetime ? "payment" : "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       allow_promotion_codes: true,
       success_url: `${appUrl}/dashboard?checkout=success`,
       cancel_url: `${appUrl}/pricing`,
-      metadata: { userId: user.id },
+      metadata: { userId: user.id, ...(isLifetime ? { plan: "lifetime" } : {}) },
+      ...(isLifetime
+        ? { payment_intent_data: { metadata: { userId: user.id, plan: "lifetime" } } }
+        : {}),
     });
 
     return NextResponse.json({ url: session.url });

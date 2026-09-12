@@ -2,7 +2,14 @@ import { TIERS, type TierName, type TierConfig } from "./stripe";
 
 export type Feature = keyof Omit<
   TierConfig,
-  "name" | "priceId" | "priceIdAnnual" | "priceMonthly" | "priceAnnualMonthly" | "priceAnnualTotal"
+  | "name"
+  | "priceId"
+  | "priceIdAnnual"
+  | "priceIdLifetime"
+  | "priceMonthly"
+  | "priceAnnualMonthly"
+  | "priceAnnualTotal"
+  | "priceLifetime"
 >;
 
 export type LimitFeature = "maxActivePolls" | "maxQuestionsPerPoll";

@@ -13,7 +13,7 @@ import {
 import type { TierName, TierConfig } from "@/lib/stripe";
 
 type Currency = "AUD" | "USD" | "EUR";
-type BillingPeriod = "monthly" | "annual";
+type BillingPeriod = "monthly" | "annual" | "lifetime";
 
 const CURRENCY_CONFIG: Record<
   Currency,
@@ -40,31 +40,26 @@ interface FeatureItem {
   label: string;
   free: string | boolean;
   pro: string | boolean;
-  team: string | boolean;
 }
 
 const FEATURES: FeatureItem[] = [
-  { label: "Unlimited votes", free: true, pro: true, team: true },
-  { label: "Active polls", free: "5", pro: "Unlimited", team: "Unlimited" },
-  { label: "Questions per poll", free: "2", pro: "Unlimited", team: "Unlimited" },
-  { label: "Remove branding", free: false, pro: true, team: true },
-  { label: "CSV export", free: false, pro: true, team: true },
-  { label: "QR codes", free: false, pro: true, team: true },
-  { label: "Poll scheduling", free: false, pro: true, team: true },
-  { label: "Rating & ranked-choice", free: false, pro: true, team: true },
-  { label: "Image options", free: false, pro: true, team: true },
-  { label: "Poll templates", free: false, pro: true, team: true },
-  { label: "AI poll generation", free: "3/month", pro: "Unlimited", team: "Unlimited" },
-  { label: "Password protection", free: false, pro: true, team: true },
-  { label: "Custom embed themes", free: false, pro: true, team: true },
-  { label: "Multiple chart types", free: false, pro: true, team: true },
-  { label: "Open-ended & reactions", free: false, pro: false, team: true },
-  { label: "Custom logo on embeds", free: false, pro: false, team: true },
-  { label: "Advanced analytics", free: false, pro: false, team: true },
-  { label: "Team workspace", free: false, pro: false, team: true },
-  { label: "A/B testing", free: false, pro: false, team: true },
-  { label: "Webhooks & API access", free: false, pro: false, team: true },
-  { label: "Custom domains", free: false, pro: false, team: true },
+  { label: "Unlimited polls", free: true, pro: true },
+  { label: "Unlimited votes", free: true, pro: true },
+  { label: "Questions per poll", free: "2", pro: "Unlimited" },
+  { label: "Multiple choice, rating & yes/no", free: true, pro: true },
+  { label: "AI poll generation", free: "3/month", pro: "Unlimited" },
+  { label: "Remove branding", free: false, pro: true },
+  { label: "Ranked choice", free: false, pro: true },
+  { label: "Image options", free: false, pro: true },
+  { label: "Open-ended & reactions", free: false, pro: true },
+  { label: "Poll scheduling", free: false, pro: true },
+  { label: "Password protection", free: false, pro: true },
+  { label: "Custom embed themes", free: false, pro: true },
+  { label: "CSV export", free: false, pro: true },
+  { label: "QR codes", free: false, pro: true },
+  { label: "Poll templates", free: false, pro: true },
+  { label: "Multiple chart types", free: false, pro: true },
+  { label: "Advanced analytics", free: false, pro: true },
 ];
 
 export default function PricingCards({
@@ -84,9 +79,11 @@ export default function PricingCards({
     }
 
     const priceId =
-      billingPeriod === "annual"
-        ? tiers[tier].priceIdAnnual
-        : tiers[tier].priceId;
+      billingPeriod === "lifetime"
+        ? tiers[tier].priceIdLifetime
+        : billingPeriod === "annual"
+          ? tiers[tier].priceIdAnnual
+          : tiers[tier].priceId;
     if (!priceId) return;
 
     setLoadingTier(tier);
@@ -132,13 +129,17 @@ export default function PricingCards({
     }
   };
 
-  const tierOrder: TierName[] = ["free", "pro", "team"];
+  const tierOrder: Array<"free" | "pro"> = ["free", "pro"];
   const currencies: Currency[] = ["AUD", "USD", "EUR"];
   const { symbol } = CURRENCY_CONFIG[currency];
 
   const getDisplayPrice = (tier: TierConfig): string => {
     const price =
-      billingPeriod === "annual" ? tier.priceAnnualMonthly : tier.priceMonthly;
+      billingPeriod === "lifetime"
+        ? tier.priceLifetime
+        : billingPeriod === "annual"
+          ? tier.priceAnnualMonthly
+          : tier.priceMonthly;
     return convertPrice(price, currency);
   };
 
@@ -148,10 +149,9 @@ export default function PricingCards({
       100,
   );
 
-  const tierDescriptions: Record<TierName, string> = {
-    free: "5 active polls, 2 questions each",
-    pro: "Unlimited polls, all question types",
-    team: "Everything in Pro, plus team features",
+  const tierDescriptions: Record<"free" | "pro", string> = {
+    free: "Unlimited polls, multiple choice + rating + yes/no",
+    pro: "Everything unlocked — all question types and pro tools",
   };
 
   return (
@@ -188,6 +188,25 @@ export default function PricingCards({
               Save {proSavings}%
             </span>
           </button>
+          <button
+            onClick={() => setBillingPeriod("lifetime")}
+            className={`px-4 py-1.5 text-sm font-medium rounded-full transition-all duration-200 flex items-center gap-1.5 ${
+              billingPeriod === "lifetime"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Lifetime
+            <span
+              className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                billingPeriod === "lifetime"
+                  ? "bg-white/20 text-white"
+                  : "bg-emerald-500/10 text-emerald-500"
+              }`}
+            >
+              Pay once
+            </span>
+          </button>
         </div>
       </div>
 
@@ -211,7 +230,7 @@ export default function PricingCards({
       </div>
 
       <StaggerContainer
-        className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start"
+        className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start max-w-3xl mx-auto"
         staggerDelay={0.15}
       >
         {tierOrder.map((tierKey) => {
@@ -251,7 +270,9 @@ export default function PricingCards({
                         {getDisplayPrice(tier)}
                       </span>
                       {tier.priceMonthly > 0 && (
-                        <span className="text-muted-foreground ml-1">/mo</span>
+                        <span className="text-muted-foreground ml-1">
+                          {billingPeriod === "lifetime" ? "once" : "/mo"}
+                        </span>
                       )}
                     </div>
                     {tier.priceMonthly > 0 && billingPeriod === "annual" && (
@@ -259,6 +280,11 @@ export default function PricingCards({
                         {symbol}
                         {convertPrice(tier.priceAnnualTotal, currency)}/year
                         &mdash; billed annually
+                      </p>
+                    )}
+                    {tier.priceLifetime > 0 && billingPeriod === "lifetime" && (
+                      <p className="mt-1 text-xs text-muted-foreground/60">
+                        One-off payment &mdash; yours forever
                       </p>
                     )}
                     {tier.priceMonthly > 0 &&

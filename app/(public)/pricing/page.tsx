@@ -2,9 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   TIERS,
   getProPriceId,
-  getTeamPriceId,
   getProAnnualPriceId,
-  getTeamAnnualPriceId,
+  getProLifetimePriceId,
   type TierName,
 } from "@/lib/stripe";
 import PricingCards from "@/components/PricingCards";
@@ -44,8 +43,8 @@ export default async function PricingPage() {
               pricing
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start free with up to 5 active polls. Upgrade for unlimited
-              polls, advanced question types, and more.
+              Start free with unlimited polls and votes. Upgrade to Pro for
+              every question type, no branding, and all the pro tools.
             </p>
           </div>
         </ScrollReveal>
@@ -57,11 +56,7 @@ export default async function PricingPage() {
               ...TIERS.pro,
               priceId: getProPriceId(),
               priceIdAnnual: getProAnnualPriceId(),
-            },
-            team: {
-              ...TIERS.team,
-              priceId: getTeamPriceId(),
-              priceIdAnnual: getTeamAnnualPriceId(),
+              priceIdLifetime: getProLifetimePriceId(),
             },
           }}
           currentTier={currentTier}

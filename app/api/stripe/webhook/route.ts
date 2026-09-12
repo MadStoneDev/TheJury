@@ -101,6 +101,48 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // One-off lifetime purchase (mode: payment). No subscription object —
+        // grant Pro permanently and stop here.
+        if (session.mode === "payment") {
+          if (session.payment_status !== "paid") break;
+          const customerId =
+            typeof session.customer === "string"
+              ? session.customer
+              : session.customer?.id;
+          const userId = await resolveUserId(
+            supabase,
+            stripe,
+            customerId ?? null,
+            session.metadata?.userId,
+          );
+          if (!userId) {
+            console.error(
+              "Webhook: Could not resolve user for lifetime checkout",
+              session.id,
+            );
+            break;
+          }
+          const { error: lifetimeError } = await supabase
+            .from("profiles")
+            .update({
+              stripe_customer_id: customerId,
+              subscription_tier: "pro",
+              subscription_status: "lifetime",
+              subscription_id: null,
+              current_period_end: null,
+            })
+            .eq("id", userId);
+          if (lifetimeError) {
+            console.error(
+              "Webhook: Failed to grant lifetime Pro for user",
+              userId,
+              lifetimeError,
+            );
+          }
+          break;
+        }
+
         if (session.mode !== "subscription" || !session.subscription) break;
 
         let subscription: Stripe.Subscription;

@@ -15,9 +15,11 @@ export interface TierConfig {
   name: string;
   priceId: string | null;
   priceIdAnnual: string | null;
+  priceIdLifetime: string | null;
   priceMonthly: number;
   priceAnnualMonthly: number;
   priceAnnualTotal: number;
+  priceLifetime: number; // 0 = no lifetime option
   maxActivePolls: number; // -1 = unlimited
   maxQuestionsPerPoll: number; // -1 = unlimited
   removeBranding: boolean;
@@ -49,22 +51,24 @@ export const TIERS: Record<TierName, TierConfig> = {
     name: "Free",
     priceId: null,
     priceIdAnnual: null,
+    priceIdLifetime: null,
     priceMonthly: 0,
     priceAnnualMonthly: 0,
     priceAnnualTotal: 0,
-    maxActivePolls: 5,
+    priceLifetime: 0,
+    maxActivePolls: -1, // unlimited polls on Free
     maxQuestionsPerPoll: 2,
-    removeBranding: false,
+    removeBranding: false, // TheJury branding stays on
     csvExport: false,
     qrCodes: false,
     scheduling: false,
-    ratingScale: false,
+    ratingScale: true, // Free: multiple choice + rating + yes/no
     rankedChoice: false,
     imageOptions: false,
     openEnded: false,
     reactionPolls: false,
     templates: false,
-    aiGeneration: false,
+    aiGeneration: true, // capped at 3/month, enforced server-side in the AI route
     passwordProtect: false,
     customEmbedThemes: false,
     chartTypes: false,
@@ -81,9 +85,11 @@ export const TIERS: Record<TierName, TierConfig> = {
     name: "Pro",
     priceId: null, // resolved at runtime via getProPriceId()
     priceIdAnnual: null, // resolved at runtime via getProAnnualPriceId()
-    priceMonthly: 15,
-    priceAnnualMonthly: 12,
-    priceAnnualTotal: 144,
+    priceIdLifetime: null, // resolved at runtime via getProLifetimePriceId()
+    priceMonthly: 9,
+    priceAnnualMonthly: 6,
+    priceAnnualTotal: 72,
+    priceLifetime: 79, // one-off
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
@@ -93,15 +99,16 @@ export const TIERS: Record<TierName, TierConfig> = {
     ratingScale: true,
     rankedChoice: true,
     imageOptions: true,
-    openEnded: false,
-    reactionPolls: false,
+    openEnded: true,
+    reactionPolls: true,
     templates: true,
-    aiGeneration: true,
+    aiGeneration: true, // unlimited
     passwordProtect: true,
     customEmbedThemes: true,
     chartTypes: true,
-    customLogoEmbed: false,
-    advancedAnalytics: false,
+    customLogoEmbed: true,
+    advancedAnalytics: true,
+    // Team-only features removed from the product (columns kept in DB, unused):
     webhooks: false,
     customDomains: false,
     teamWorkspace: false,
@@ -109,13 +116,17 @@ export const TIERS: Record<TierName, TierConfig> = {
     apiAccess: false,
     presenterMode: true,
   },
+  // Legacy tier, no longer sold or shown in the UI. Kept so existing
+  // "team" subscribers retain their features until migrated. Do not surface.
   team: {
     name: "Team",
     priceId: null, // resolved at runtime via getTeamPriceId()
     priceIdAnnual: null, // resolved at runtime via getTeamAnnualPriceId()
+    priceIdLifetime: null,
     priceMonthly: 39,
     priceAnnualMonthly: 32,
     priceAnnualTotal: 384,
+    priceLifetime: 0,
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
@@ -155,14 +166,25 @@ export function getProAnnualPriceId(): string | null {
   return process.env.STRIPE_PRO_ANNUAL_PRICE_ID || null;
 }
 
+export function getProLifetimePriceId(): string | null {
+  return process.env.STRIPE_PRO_LIFETIME_PRICE_ID || null;
+}
+
 export function getTeamAnnualPriceId(): string | null {
   return process.env.STRIPE_TEAM_ANNUAL_PRICE_ID || null;
+}
+
+/** One-off (mode: payment) prices — everything else is a subscription. */
+export function isLifetimePriceId(priceId: string): boolean {
+  const lifetime = getProLifetimePriceId();
+  return !!lifetime && priceId === lifetime;
 }
 
 export function getTierByPriceId(priceId: string): TierName {
   if (
     priceId === getProPriceId() ||
-    priceId === getProAnnualPriceId()
+    priceId === getProAnnualPriceId() ||
+    priceId === getProLifetimePriceId()
   ) {
     return "pro";
   }
