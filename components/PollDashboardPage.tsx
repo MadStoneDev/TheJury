@@ -3,28 +3,22 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "motion/react";
-import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { HoverCard, StaggerContainer, StaggerItem } from "@/components/motion";
-import {
-  IconPlus,
-  IconEdit,
-  IconEye,
-  IconTrash,
-  IconCheck,
-  IconX,
-  IconChartBar,
-  IconCode,
-  IconShare,
-  IconCopy as IconCopyFiles,
-  IconClock,
-  IconPresentation,
-} from "@tabler/icons-react";
+  Plus,
+  Share2,
+  BarChart3,
+  Pencil,
+  MoreHorizontal,
+  Eye,
+  Code,
+  Copy,
+  Power,
+  Trash2,
+  Presentation,
+  FileText,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { togglePollStatusAction } from "@/app/actions/polls";
 import {
   getUserPolls,
@@ -41,7 +35,7 @@ import DashboardControls from "@/components/DashboardControls";
 import type { StatusFilter, SortOption } from "@/components/DashboardControls";
 import Pagination from "@/components/Pagination";
 import ShareModal from "@/components/ShareModal";
-import UpgradeModal from "@/components/UpgradeModal";
+import { IconTile } from "@/components/design/IconTile";
 import { canUseFeature } from "@/lib/featureGate";
 import { pluralize } from "@/lib/utils";
 import type { TierName } from "@/lib/stripe";
@@ -50,7 +44,6 @@ import { formatDateShort } from "@/lib/dateUtils";
 const POLLS_PER_PAGE = 10;
 
 export default function PollDashboardPage() {
-  // States
   const router = useRouter();
   const searchParams = useSearchParams();
   const [polls, setPolls] = useState<Poll[]>([]);
@@ -58,25 +51,19 @@ export default function PollDashboardPage() {
   const [showEmbedCode, setShowEmbedCode] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
-  // Controls state
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Share modal state
   const [shareModalPollCode, setShareModalPollCode] = useState<string | null>(
     null,
   );
-
-  // Tier & active poll limit state
   const [userTier, setUserTier] = useState<TierName>("free");
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const cachedUserIdRef = useRef<string | null>(null);
 
-
-  // Show checkout success toast
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
       toast.success("Welcome to your new plan! Your subscription is active.");
@@ -94,8 +81,6 @@ export default function PollDashboardPage() {
           return;
         }
         cachedUserIdRef.current = user.id;
-
-        // Fetch polls and profile in parallel
         const [userPolls, profile] = await Promise.all([
           getUserPolls(user.id),
           getProfile(user.id),
@@ -109,40 +94,45 @@ export default function PollDashboardPage() {
         setIsLoading(false);
       }
     };
-
     loadPolls();
   }, [router]);
 
-  // Filtered + sorted polls
+  // Close the overflow menu on outside click or Esc.
+  useEffect(() => {
+    if (!openMenuId) return;
+    const onClick = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      if (!t.closest("[data-poll-menu]") && !t.closest("[data-poll-menu-btn]")) {
+        setOpenMenuId(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpenMenuId(null);
+    };
+    document.addEventListener("mousedown", onClick);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onClick);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [openMenuId]);
+
   const filteredPolls = useMemo(() => {
     let result = [...polls];
-
-    // Search
     if (search.trim()) {
       const q = search.toLowerCase();
       result = result.filter((p) => p.question.toLowerCase().includes(q));
     }
-
-    // Status filter
-    if (statusFilter === "active") {
-      result = result.filter((p) => p.is_active);
-    } else if (statusFilter === "inactive") {
+    if (statusFilter === "active") result = result.filter((p) => p.is_active);
+    else if (statusFilter === "inactive")
       result = result.filter((p) => !p.is_active);
-    }
 
-    // Sort
     switch (sortOption) {
       case "newest":
-        result.sort(
-          (a, b) =>
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-        );
+        result.sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
         break;
       case "oldest":
-        result.sort(
-          (a, b) =>
-            new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-        );
+        result.sort((a, b) => +new Date(a.created_at) - +new Date(b.created_at));
         break;
       case "most-votes":
         result.sort((a, b) => (b.total_votes || 0) - (a.total_votes || 0));
@@ -151,23 +141,19 @@ export default function PollDashboardPage() {
         result.sort((a, b) => (a.total_votes || 0) - (b.total_votes || 0));
         break;
     }
-
     return result;
   }, [polls, search, statusFilter, sortOption]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredPolls.length / POLLS_PER_PAGE);
   const paginatedPolls = filteredPolls.slice(
     (currentPage - 1) * POLLS_PER_PAGE,
     currentPage * POLLS_PER_PAGE,
   );
 
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, statusFilter, sortOption]);
+  useEffect(() => setCurrentPage(1), [search, statusFilter, sortOption]);
 
   const handleTogglePollStatus = async (pollId: string) => {
+    setOpenMenuId(null);
     try {
       const result = await togglePollStatusAction(pollId);
       if (result.ok) {
@@ -177,7 +163,7 @@ export default function PollDashboardPage() {
             p.id === pollId ? { ...p, is_active: result.data!.isActive } : p,
           ),
         );
-        toast.success(wasActive ? "Poll deactivated" : "Poll activated");
+        toast.success(wasActive ? "Voting closed" : "Voting reopened");
       } else {
         toast.error(result.error);
       }
@@ -191,21 +177,20 @@ export default function PollDashboardPage() {
     try {
       const success = await deletePoll(pollId);
       if (success) {
-        setPolls((prev) => prev.filter((poll) => poll.id !== pollId));
+        setPolls((prev) => prev.filter((p) => p.id !== pollId));
         setDeleteConfirm("");
         toast.success("Poll deleted");
       } else {
-        setError("Failed to delete poll");
         toast.error("Failed to delete poll");
       }
     } catch (err) {
       console.error("Error deleting poll:", err);
-      setError("Failed to delete poll");
       toast.error("Failed to delete poll");
     }
   };
 
   const handleDuplicatePoll = async (pollId: string) => {
+    setOpenMenuId(null);
     try {
       if (!cachedUserIdRef.current) {
         toast.error("Not authenticated");
@@ -224,451 +209,248 @@ export default function PollDashboardPage() {
     }
   };
 
-  const formatDate = formatDateShort;
+  if (isLoading) return <DashboardSkeleton />;
 
-  if (isLoading) {
-    return <DashboardSkeleton />;
-  }
+  const totalVotes = polls.reduce((s, p) => s + (p.total_votes || 0), 0);
+  const activeCount = polls.filter((p) => p.is_active).length;
+  const avgVotes = polls.length ? Math.round(totalVotes / polls.length) : 0;
+  const latest = polls
+    .map((p) => p.created_at)
+    .sort()
+    .at(-1);
 
-  const isFiltered = search.trim() || statusFilter !== "all";
+  const actionBtn =
+    "inline-flex items-center gap-1.5 rounded-[9px] border border-jury-border-strong px-3 py-1.5 text-[13px] font-medium text-jury-body transition hover:border-white/25";
 
   return (
-    <div className="min-h-screen sm:py-8">
-      <div className="max-w-6xl mx-auto px-4">
+    <div className="min-h-screen bg-jury-base">
+      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-col sm:flex-row justify-between xs:items-center gap-4 mb-8 transition-all duration-200 ease-in-out"
-        >
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-              Your Polls
+            <h1 className="font-display text-[28px] text-jury-text sm:text-[32px]">
+              Your polls
             </h1>
-            <p className="text-muted-foreground">
-              Manage and track all your polls in one place
+            <p className="mt-1 text-[15px] text-jury-muted">
+              Manage and track every poll in one place.
             </p>
           </div>
-          <Button variant="brand" size="lg" asChild>
-            <Link href={`/create`}>
-              <IconPlus size={20} />
-              <span>Create New Poll</span>
-            </Link>
-          </Button>
-        </motion.div>
-
-        {/* Error Message */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-2xl"
+          <Link
+            href="/create"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-jury-emerald px-5 text-[14px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi"
           >
-            <div className="text-destructive text-sm">{error}</div>
-            <button
-              onClick={() => setError("")}
-              className="mt-2 text-sm text-destructive underline"
-            >
-              Dismiss
-            </button>
-          </motion.div>
-        )}
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 xs:grid-cols-4 gap-3 mb-6">
-          <HoverCard>
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-2 h-2 rounded-full bg-muted-foreground/50" />
-                <div className="text-sm text-muted-foreground">Total Polls</div>
-              </div>
-              <div className="text-2xl font-bold text-foreground pl-5">
-                {polls.length}
-              </div>
-            </div>
-          </HoverCard>
-          <HoverCard>
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                <div className="text-sm text-muted-foreground">Active Polls</div>
-              </div>
-              <div className="text-2xl font-bold text-emerald-500 pl-5">
-                {polls.filter((p) => p.is_active).length}
-              </div>
-            </div>
-          </HoverCard>
-          <HoverCard>
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-2 h-2 rounded-full bg-blue-400/60" />
-                <div className="text-sm text-muted-foreground">Total Votes</div>
-              </div>
-              <div className="text-2xl font-bold text-foreground pl-5">
-                {polls.reduce((sum, p) => sum + (p.total_votes || 0), 0)}
-              </div>
-            </div>
-          </HoverCard>
-          <HoverCard>
-            <div className="bg-card rounded-2xl border border-border p-6">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-2 h-2 rounded-full bg-amber-400/60" />
-                <div className="text-sm text-muted-foreground">Avg Votes/Poll</div>
-              </div>
-              <div className="text-2xl font-bold text-foreground pl-5">
-                {polls.length > 0
-                  ? Math.round(
-                      polls.reduce((sum, p) => sum + (p.total_votes || 0), 0) /
-                        polls.length,
-                    )
-                  : 0}
-              </div>
-            </div>
-          </HoverCard>
+            <Plus size={17} strokeWidth={2.2} />
+            Create new poll
+          </Link>
         </div>
 
-        {/* Controls */}
+        {error && (
+          <div className="mb-6 rounded-xl border border-jury-danger/30 bg-jury-danger/10 p-4 text-[14px] text-jury-danger">
+            {error}
+            <button onClick={() => setError("")} className="ml-2 underline">
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {polls.length > 0 && (
-          <DashboardControls
-            search={search}
-            onSearchChange={setSearch}
-            statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            sortOption={sortOption}
-            onSortChange={setSortOption}
-          />
+          <>
+            {/* Slim stats strip */}
+            <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-jury-border bg-jury-surface px-6 py-4">
+              <Stat value={polls.length} label={pluralize(polls.length, "poll").split(" ")[1]} />
+              <Divider />
+              <Stat value={activeCount} label="active" emerald />
+              <Divider />
+              <Stat value={totalVotes} label="votes" />
+              <Divider />
+              <Stat value={avgVotes} label="avg per poll" />
+              {latest && (
+                <span className="ml-auto text-[13px] text-jury-dim">
+                  Latest {formatDateShort(latest)}
+                </span>
+              )}
+            </div>
+
+            {/* Filters */}
+            <DashboardControls
+              search={search}
+              onSearchChange={setSearch}
+              statusFilter={statusFilter}
+              onStatusFilterChange={setStatusFilter}
+              sortOption={sortOption}
+              onSortChange={setSortOption}
+            />
+          </>
         )}
 
-        {/* Filtered count */}
-        {polls.length > 0 && isFiltered && (
-          <p className="text-sm text-muted-foreground mb-4">
-            {filteredPolls.length} of {pluralize(polls.length, "poll")}
-          </p>
-        )}
-
-        {/* Polls List */}
+        {/* Empty / list */}
         {polls.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="bg-card rounded-2xl border border-border p-12 text-center"
-          >
-            <div className="text-6xl mb-4">
-              <IconChartBar size={64} className="mx-auto text-muted-foreground/40" />
-            </div>
-            <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-              No polls yet
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Create your first poll to get started!
-            </p>
-            <Button variant="brand" size="lg" asChild>
-              <Link href={`/create`}>
-                <IconPlus size={20} />
-                <span>Create Your First Poll</span>
-              </Link>
-            </Button>
-          </motion.div>
+          <EmptyState />
         ) : filteredPolls.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.97 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4 }}
-            className="bg-card rounded-2xl border border-border p-12 text-center"
-          >
-            <div className="text-6xl mb-4">
-              <IconEye size={64} className="mx-auto text-muted-foreground/40" />
-            </div>
-            <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-              No polls match
-            </h2>
-            <p className="text-muted-foreground mb-6">
-              Try adjusting your search or filters.
-            </p>
-            <Button
-              variant="outline"
-              size="lg"
+          <div className="rounded-xl border border-jury-border bg-jury-surface p-12 text-center">
+            <h2 className="font-display text-2xl text-jury-text">No polls match</h2>
+            <p className="mt-2 text-jury-muted">Try adjusting your search or filters.</p>
+            <button
               onClick={() => {
                 setSearch("");
                 setStatusFilter("all");
               }}
+              className="mt-6 rounded-full border border-jury-border-strong px-5 py-2 text-[14px] text-jury-body transition hover:border-white/25"
             >
-              Clear Filters
-            </Button>
-          </motion.div>
+              Clear filters
+            </button>
+          </div>
         ) : (
           <>
-            <StaggerContainer className="space-y-4">
-              {paginatedPolls.map((poll) => (
-                <StaggerItem key={poll.id}>
+            <div className="space-y-3">
+              {paginatedPolls.map((poll) => {
+                const menuOpen = openMenuId === poll.id;
+                return (
                   <div
-                    className={`relative bg-card rounded-2xl border border-border p-4 sm:p-6 transition-colors border-l-4 ${
-                      poll.is_active
-                        ? "border-l-emerald-500"
-                        : "border-l-muted-foreground/30"
-                    }`}
+                    key={poll.id}
+                    className="relative rounded-xl border border-jury-border bg-jury-surface px-6 py-5"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between">
-                      <div className="flex-1 mb-4 lg:mb-0">
-                        <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-between lg:justify-start gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-foreground max-w-[300px]">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      {/* Left */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-[18px] font-semibold text-jury-text">
                             {poll.question}
                           </h3>
-
-                          <div className="flex items-center space-x-2">
-                            {poll.allow_multiple && (
-                              <span className="bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">
-                                Multiple Choice
-                              </span>
-                            )}
-                            {poll.is_active ? (
-                              <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-500 px-2 py-1 rounded-full text-xs font-medium">
-                                <span className="relative flex h-2 w-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                                </span>
-                                Active
-                              </span>
-                            ) : (
-                              <span className="bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs font-medium">
-                                Inactive
-                              </span>
-                            )}
-                            {poll.has_time_limit && (() => {
-                              const now = new Date();
-                              const start = poll.start_date ? new Date(poll.start_date) : null;
-                              const end = poll.end_date ? new Date(poll.end_date) : null;
-
-                              if (start && start > now) {
-                                const diff = start.getTime() - now.getTime();
-                                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                                const hours = Math.floor(diff / (1000 * 60 * 60));
-                                return (
-                                  <span className="inline-flex items-center gap-1 bg-blue-500/10 text-blue-400 px-2 py-1 rounded-full text-xs font-medium">
-                                    <IconClock size={12} />
-                                    Starts in {days > 0 ? `${days}d` : `${hours}h`}
-                                  </span>
-                                );
-                              }
-                              if (end && end > now) {
-                                const diff = end.getTime() - now.getTime();
-                                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                                const hours = Math.floor(diff / (1000 * 60 * 60));
-                                return (
-                                  <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full text-xs font-medium">
-                                    <IconClock size={12} />
-                                    Ends in {days > 0 ? `${days}d` : `${hours}h`}
-                                  </span>
-                                );
-                              }
-                              if (end && end < now) {
-                                return (
-                                  <span className="inline-flex items-center gap-1 bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs font-medium">
-                                    <IconClock size={12} />
-                                    Ended
-                                  </span>
-                                );
-                              }
-                              return null;
-                            })()}
-                          </div>
+                          {poll.is_active ? (
+                            <span className="rounded-full border border-jury-emerald-line bg-jury-emerald-tint px-2 py-0.5 text-[11px] font-semibold text-jury-emerald">
+                              Active
+                            </span>
+                          ) : (
+                            <span className="rounded-full border border-jury-border bg-jury-input px-2 py-0.5 text-[11px] font-semibold text-jury-dim">
+                              Closed
+                            </span>
+                          )}
+                          <span className="rounded-md bg-jury-input px-2 py-0.5 text-[11px] text-jury-dim">
+                            {(poll.question_count || 1) > 1
+                              ? pluralize(poll.question_count || 0, "question")
+                              : poll.allow_multiple
+                                ? "Multiple choice"
+                                : "Single choice"}
+                          </span>
                         </div>
-
-                        {poll.description && (
-                          <p className="text-muted-foreground mb-2">
-                            {poll.description}
-                          </p>
-                        )}
-
-                        <div className="py-4 md:py-0 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 border-t border-b md:border-0 border-border text-xs font-light text-muted-foreground">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-jury-dim">
                           <span>
-                            Code:{" "}
-                            <span className="font-mono font-semibold bg-muted px-2 py-0.5 rounded text-xs">
+                            Code{" "}
+                            <span className="rounded bg-jury-input px-1.5 py-0.5 font-mono text-jury-muted">
                               {poll.code}
                             </span>
                           </span>
                           <span>{pluralize(poll.total_votes || 0, "vote")}</span>
-                          {(poll.question_count || 1) > 1 && (
-                            <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
-                              {pluralize(poll.question_count || 0, "question")}
-                            </span>
-                          )}
-                          <span>Created {formatDate(poll.created_at)}</span>
+                          <span>Created {formatDateShort(poll.created_at)}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-1 lg:max-w-[400px]">
-                        {/* Share */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() => setShareModalPollCode(poll.code)}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <IconShare size={18} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>Share poll</TooltipContent>
-                        </Tooltip>
+                      {/* Right actions */}
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setShareModalPollCode(poll.code)}
+                          className={actionBtn}
+                        >
+                          <Share2 size={15} /> Share
+                        </button>
+                        <Link href={`/dashboard/results/${poll.code}`} className={actionBtn}>
+                          <BarChart3 size={15} /> Results
+                        </Link>
+                        <Link href={`/edit/${poll.code}`} className={actionBtn}>
+                          <Pencil size={15} /> Edit
+                        </Link>
+                        <button
+                          data-poll-menu-btn
+                          onClick={() => setOpenMenuId(menuOpen ? null : poll.id)}
+                          aria-label="More actions"
+                          className="flex h-9 w-[38px] items-center justify-center rounded-[9px] border border-jury-border-strong text-jury-muted transition hover:border-white/25 hover:text-jury-text"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
 
-                        {/* View Poll */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link
+                        {menuOpen && (
+                          <div
+                            data-poll-menu
+                            className="absolute right-6 top-16 z-20 w-[220px] rounded-xl border border-jury-border bg-jury-menu p-1.5 shadow-[0_30px_70px_-20px_rgba(0,0,0,.9)]"
+                          >
+                            <MenuItem
+                              icon={Eye}
+                              label="View voting page"
                               href={`/answer/${poll.code}`}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <IconEye size={18} />
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>View poll</TooltipContent>
-                        </Tooltip>
-
-                        {/* View Results */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link
-                              href={`/dashboard/results/${poll.code}`}
-                              className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg transition-colors"
-                            >
-                              <IconChartBar size={18} />
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>See analytics</TooltipContent>
-                        </Tooltip>
-
-                        {/* Present (Pro/Team) */}
-                        {canUseFeature(userTier, "presenterMode") && (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link
-                                href={`/present/${poll.code}`}
-                                className="p-2 text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors"
-                              >
-                                <IconPresentation size={18} />
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>Present live</TooltipContent>
-                          </Tooltip>
-                        )}
-
-                        {/* Edit */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Link
-                              href={`/edit/${poll.code}`}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <IconEdit size={18} />
-                            </Link>
-                          </TooltipTrigger>
-                          <TooltipContent>Edit poll</TooltipContent>
-                        </Tooltip>
-
-                        {/* Embed Code */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={() =>
-                                setShowEmbedCode(
-                                  showEmbedCode === poll.id ? "" : poll.id,
-                                )
-                              }
-                              className="p-2 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors"
-                            >
-                              <IconCode size={18} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>Embed code</TooltipContent>
-                        </Tooltip>
-
-                        {/* Duplicate */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
+                            />
+                            <MenuItem
+                              icon={Code}
+                              label="Embed code"
+                              onClick={() => {
+                                setShowEmbedCode(showEmbedCode === poll.id ? "" : poll.id);
+                                setOpenMenuId(null);
+                              }}
+                            />
+                            <MenuItem
+                              icon={Copy}
+                              label="Duplicate"
                               onClick={() => handleDuplicatePoll(poll.id)}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                            >
-                              <IconCopyFiles size={18} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>Duplicate poll</TooltipContent>
-                        </Tooltip>
-
-                        {/* Toggle Active/Inactive */}
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
+                            />
+                            {canUseFeature(userTier, "presenterMode") && (
+                              <MenuItem
+                                icon={Presentation}
+                                label="Present live"
+                                href={`/present/${poll.code}`}
+                              />
+                            )}
+                            <MenuItem
+                              icon={Power}
+                              label={poll.is_active ? "Close voting" : "Reopen voting"}
                               onClick={() => handleTogglePollStatus(poll.id)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                poll.is_active
-                                  ? "text-emerald-500 hover:text-emerald-400 hover:bg-emerald-500/10"
-                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                              }`}
-                            >
-                              {poll.is_active ? (
-                                <IconCheck size={18} />
-                              ) : (
-                                <IconX size={18} />
-                              )}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {poll.is_active ? "Deactivate poll" : "Activate poll"}
-                          </TooltipContent>
-                        </Tooltip>
-
-                        {/* Delete */}
-                        {deleteConfirm === poll.id ? (
-                          <div className="absolute inset-0 flex flex-col justify-center items-center space-y-2 bg-card/95 backdrop-blur-sm rounded-2xl z-10">
-                            <span className="text-foreground text-sm">
-                              Are you sure you want to delete this poll?
-                            </span>
-                            <div className="flex justify-center items-center space-x-1">
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDeletePoll(poll.id)}
-                              >
-                                Yes, chop it
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteConfirm("")}
-                              >
-                                Wait, no. Scratch that
-                              </Button>
-                            </div>
+                            />
+                            <div className="my-1 h-px bg-jury-border-subtle" />
+                            <MenuItem
+                              icon={Trash2}
+                              label="Delete poll"
+                              danger
+                              onClick={() => {
+                                setDeleteConfirm(poll.id);
+                                setOpenMenuId(null);
+                              }}
+                            />
                           </div>
-                        ) : (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={() => setDeleteConfirm(poll.id)}
-                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                              >
-                                <IconTrash size={18} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>Delete poll</TooltipContent>
-                          </Tooltip>
                         )}
                       </div>
                     </div>
 
-                    {/* Embed Code Generator - Shows when toggled */}
+                    {/* Delete confirm overlay */}
+                    {deleteConfirm === poll.id && (
+                      <div className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 rounded-xl bg-jury-surface/95 backdrop-blur-sm">
+                        <span className="text-[14px] text-jury-body">
+                          Delete “{poll.question}”?
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleDeletePoll(poll.id)}
+                            className="rounded-full bg-jury-danger px-4 py-1.5 text-[13px] font-semibold text-white"
+                          >
+                            Delete
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm("")}
+                            className="rounded-full border border-jury-border-strong px-4 py-1.5 text-[13px] text-jury-body"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {showEmbedCode === poll.id && (
-                      <div className="border-t border-border p-6 bg-muted/50 rounded-b-2xl -mx-4 sm:-mx-6 -mb-4 sm:-mb-6 mt-4">
+                      <div className="mt-4 border-t border-jury-border-subtle pt-4">
                         <EmbedCodeGenerator pollCode={poll.code} />
                       </div>
                     )}
                   </div>
-                </StaggerItem>
-              ))}
-            </StaggerContainer>
+                );
+              })}
+            </div>
 
             <Pagination
               currentPage={currentPage}
@@ -677,22 +459,8 @@ export default function PollDashboardPage() {
             />
           </>
         )}
-
-        {/* Quick Actions Footer */}
-        <div className="mt-12 bg-card rounded-2xl border border-border p-6">
-          <h3 className="font-display font-semibold text-foreground mb-4">Quick Actions</h3>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="brand" asChild>
-              <Link href={`/create`}>
-                <IconPlus size={18} />
-                Create New Poll
-              </Link>
-            </Button>
-          </div>
-        </div>
       </div>
 
-      {/* Share Modal */}
       <ShareModal
         open={!!shareModalPollCode}
         onOpenChange={(open) => {
@@ -706,13 +474,107 @@ export default function PollDashboardPage() {
         }
         userTier={userTier}
       />
+    </div>
+  );
+}
 
-      {/* Upgrade Modal */}
-      <UpgradeModal
-        open={upgradeModalOpen}
-        onOpenChange={setUpgradeModalOpen}
-        feature="maxActivePolls"
+function Stat({ value, label, emerald }: { value: number; label: string; emerald?: boolean }) {
+  return (
+    <span className="flex items-baseline gap-1.5">
+      <span className={`text-[18px] font-bold ${emerald ? "text-jury-emerald" : "text-jury-text"}`}>
+        {value}
+      </span>
+      <span className="text-[13px] text-jury-muted">{label}</span>
+    </span>
+  );
+}
+
+function Divider() {
+  return <span className="hidden h-[26px] w-px bg-jury-border-subtle sm:block" />;
+}
+
+function MenuItem({
+  icon: Icon,
+  label,
+  href,
+  onClick,
+  danger,
+}: {
+  icon: typeof Eye;
+  label: string;
+  href?: string;
+  onClick?: () => void;
+  danger?: boolean;
+}) {
+  const cls = `flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-[13px] transition ${
+    danger
+      ? "text-jury-danger hover:bg-jury-danger/10"
+      : "text-jury-body hover:bg-white/[0.04]"
+  }`;
+  const inner = (
+    <>
+      <Icon size={15} /> {label}
+    </>
+  );
+  return href ? (
+    <Link href={href} className={cls}>
+      {inner}
+    </Link>
+  ) : (
+    <button onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  );
+}
+
+function EmptyState() {
+  const starters = [
+    { icon: Sparkles, label: "Feedback survey" },
+    { icon: Users, label: "Team retro" },
+    { icon: FileText, label: "Event RSVP" },
+  ];
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-dashed border-jury-border-strong p-12 text-center">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background: "radial-gradient(500px 200px at 50% 0%, rgba(16,185,129,0.08), transparent 70%)",
+        }}
       />
+      <div className="relative">
+        <IconTile icon={FileText} className="mx-auto h-[52px] w-[52px]" iconSize={24} />
+        <h2 className="mt-4 font-display text-2xl text-jury-text">No polls yet</h2>
+        <p className="mt-2 text-[15px] text-jury-muted">
+          Create your first poll and share it in seconds.
+        </p>
+        <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <Link
+            href="/create"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-jury-emerald px-5 text-[14px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi"
+          >
+            <Plus size={17} /> Create your first poll
+          </Link>
+          <Link
+            href="/templates"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-jury-border-strong px-5 text-[14px] font-medium text-jury-body transition hover:border-white/25"
+          >
+            Start from a template
+          </Link>
+        </div>
+        <div className="mx-auto mt-8 grid max-w-md gap-3 sm:grid-cols-3">
+          {starters.map((s) => (
+            <Link
+              key={s.label}
+              href="/templates"
+              className="rounded-xl border border-jury-border bg-jury-surface p-4 text-left transition hover:border-white/[0.12]"
+            >
+              <IconTile icon={s.icon} className="h-[38px] w-[38px]" iconSize={18} />
+              <p className="mt-3 text-[13px] font-medium text-jury-body">{s.label}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
