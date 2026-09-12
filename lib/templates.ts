@@ -50,7 +50,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Measure how happy your customers are with your product or service",
     category: "feedback",
     minTier: "free",
-    icon: "😊",
+    icon: "smile",
     questions: [
       {
         question_text: "How satisfied are you with our product/service?",
@@ -73,7 +73,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Let your team vote on where to eat",
     category: "team",
     minTier: "free",
-    icon: "🍽️",
+    icon: "utensils",
     questions: [
       {
         question_text: "Where should we go for lunch today?",
@@ -96,7 +96,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Find the best date for your next event",
     category: "events",
     minTier: "free",
-    icon: "📅",
+    icon: "calendar",
     questions: [
       {
         question_text: "Which date works best for you?",
@@ -119,7 +119,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Get a fast answer on any topic",
     category: "fun",
     minTier: "free",
-    icon: "✅",
+    icon: "check-circle",
     questions: [
       {
         question_text: "Do you agree?",
@@ -138,7 +138,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Comprehensive product feedback with ratings and rankings",
     category: "feedback",
     minTier: "pro",
-    icon: "📊",
+    icon: "bar-chart",
     questions: [
       {
         question_text: "How would you rate our product overall?",
@@ -168,7 +168,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Net Promoter Score — measure customer loyalty",
     category: "feedback",
     minTier: "pro",
-    icon: "📈",
+    icon: "trending-up",
     questions: [
       {
         question_text:
@@ -186,7 +186,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Test knowledge with a multi-question quiz",
     category: "education",
     minTier: "pro",
-    icon: "🎓",
+    icon: "graduation-cap",
     questions: [
       {
         question_text: "What is the capital of Australia?",
@@ -220,7 +220,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Gather post-event feedback with ratings",
     category: "events",
     minTier: "pro",
-    icon: "🎤",
+    icon: "mic",
     questions: [
       {
         question_text: "How would you rate the event overall?",
@@ -250,7 +250,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Compare brand options with image-based voting",
     category: "marketing",
     minTier: "pro",
-    icon: "🏷️",
+    icon: "tag",
     questions: [
       {
         question_text: "Which logo design do you prefer?",
@@ -273,7 +273,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Comprehensive workplace satisfaction survey",
     category: "team",
     minTier: "team",
-    icon: "💼",
+    icon: "briefcase",
     questions: [
       {
         question_text: "How satisfied are you with your role?",
@@ -309,7 +309,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Team retro — what went well, what to improve",
     category: "team",
     minTier: "team",
-    icon: "🔄",
+    icon: "refresh",
     questions: [
       {
         question_text: "How would you rate this sprint?",
@@ -340,7 +340,7 @@ export const TEMPLATES: PollTemplate[] = [
     description: "Comprehensive market research with multiple question types",
     category: "marketing",
     minTier: "team",
-    icon: "🔍",
+    icon: "search",
     questions: [
       {
         question_text: "How often do you use products like ours?",

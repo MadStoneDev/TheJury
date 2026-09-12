@@ -1,8 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "motion/react";
-import { IconLock, IconArrowRight } from "@tabler/icons-react";
+import Link from "next/link";
+import {
+  Lock,
+  ArrowRight,
+  Smile,
+  Utensils,
+  Calendar,
+  CheckCircle,
+  BarChart3,
+  TrendingUp,
+  GraduationCap,
+  Mic,
+  Tag,
+  Briefcase,
+  RefreshCw,
+  Search,
+  type LucideIcon,
+} from "lucide-react";
 import {
   TEMPLATES,
   TEMPLATE_CATEGORIES,
@@ -10,9 +26,23 @@ import {
   type TemplateCategory,
 } from "@/lib/templates";
 import type { TierName } from "@/lib/stripe";
-import { Button } from "@/components/ui/button";
+import { IconTile } from "@/components/design/IconTile";
 import UpgradeModal from "@/components/UpgradeModal";
-import Link from "next/link";
+
+const ICONS: Record<string, LucideIcon> = {
+  smile: Smile,
+  utensils: Utensils,
+  calendar: Calendar,
+  "check-circle": CheckCircle,
+  "bar-chart": BarChart3,
+  "trending-up": TrendingUp,
+  "graduation-cap": GraduationCap,
+  mic: Mic,
+  tag: Tag,
+  briefcase: Briefcase,
+  refresh: RefreshCw,
+  search: Search,
+};
 
 interface TemplateCardsProps {
   userTier: TierName;
@@ -28,141 +58,106 @@ export default function TemplateCards({
   >("all");
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
-  const filteredTemplates =
+  const filtered =
     selectedCategory === "all"
       ? TEMPLATES
       : TEMPLATES.filter((t) => t.category === selectedCategory);
 
   const tierOrder: TierName[] = ["free", "pro", "team"];
+  const isLocked = (t: PollTemplate) =>
+    tierOrder.indexOf(t.minTier) > tierOrder.indexOf(userTier);
 
-  const isLocked = (template: PollTemplate): boolean => {
-    return tierOrder.indexOf(template.minTier) > tierOrder.indexOf(userTier);
-  };
-
-  const tierBadge = (tier: TierName) => {
-    if (tier === "free") return null;
-    return (
-      <span
-        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase ${
-          tier === "pro"
-            ? "bg-emerald-500/10 text-emerald-500"
-            : "bg-purple-500/10 text-purple-500"
-        }`}
-      >
-        {tier}
-      </span>
-    );
-  };
+  const pill = (active: boolean) =>
+    `rounded-full px-4 py-1.5 text-[13px] font-medium transition ${
+      active
+        ? "bg-jury-emerald text-jury-on-emerald"
+        : "border border-jury-border-strong text-jury-muted hover:text-jury-text"
+    }`;
 
   return (
     <>
-      {/* Category Filter */}
-      <div className="flex flex-wrap gap-2 mb-8 justify-center">
-        <button
-          onClick={() => setSelectedCategory("all")}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-            selectedCategory === "all"
-              ? "bg-emerald-500 text-white"
-              : "bg-muted text-muted-foreground hover:text-foreground"
-          }`}
-        >
+      {/* Category pills */}
+      <div className="mb-8 flex flex-wrap justify-center gap-2">
+        <button onClick={() => setSelectedCategory("all")} className={pill(selectedCategory === "all")}>
           All
         </button>
         {TEMPLATE_CATEGORIES.map((cat) => (
           <button
             key={cat.value}
             onClick={() => setSelectedCategory(cat.value)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              selectedCategory === cat.value
-                ? "bg-emerald-500 text-white"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
+            className={pill(selectedCategory === cat.value)}
           >
             {cat.label}
           </button>
         ))}
       </div>
 
-      {/* Templates Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTemplates.map((template, i) => {
-          const locked = isLocked(template);
-
+      {/* Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((t) => {
+          const locked = isLocked(t);
+          const Icon = ICONS[t.icon] ?? Smile;
           return (
-            <motion.div
-              key={template.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-              className={`rounded-xl border bg-card p-5 transition-all ${
-                locked
-                  ? "border-border opacity-70"
-                  : "border-border hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5"
+            <div
+              key={t.id}
+              className={`flex min-h-[210px] flex-col rounded-xl border bg-jury-surface p-6 transition ${
+                locked ? "border-jury-border opacity-80" : "border-jury-border hover:border-white/[0.12]"
               }`}
             >
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-2xl">{template.icon}</span>
+              <div className="mb-4 flex items-start justify-between">
+                <IconTile icon={Icon} />
                 <div className="flex items-center gap-1.5">
-                  {tierBadge(template.minTier)}
-                  {locked && (
-                    <IconLock size={14} className="text-muted-foreground" />
+                  {t.minTier === "pro" && (
+                    <span className="rounded bg-jury-emerald-tint px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-jury-emerald">
+                      Pro
+                    </span>
                   )}
+                  {t.minTier === "team" && (
+                    <span className="rounded bg-gaming/[0.14] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-gaming-text">
+                      Team
+                    </span>
+                  )}
+                  {locked && <Lock size={14} className="text-jury-dim" />}
                 </div>
               </div>
 
-              <h3 className="font-semibold text-foreground mb-1">
-                {template.name}
-              </h3>
-              <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                {template.description}
-              </p>
+              <h3 className="text-[18px] font-semibold text-jury-text">{t.name}</h3>
+              <p className="mt-1 line-clamp-2 text-[14px] text-jury-muted">{t.description}</p>
 
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  {template.questions.length}{" "}
-                  {template.questions.length === 1 ? "question" : "questions"}
+              <div className="mt-auto flex items-center justify-between pt-4">
+                <span className="text-[13px] text-jury-dim">
+                  {t.questions.length} {t.questions.length === 1 ? "question" : "questions"}
                 </span>
-
                 {locked ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
                     onClick={() => setUpgradeModalOpen(true)}
-                    className="gap-1 text-xs"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-jury-border-strong px-3.5 py-1.5 text-[13px] font-medium text-jury-body transition hover:border-white/25"
                   >
-                    <IconLock size={12} />
-                    Unlock
-                  </Button>
+                    <Lock size={13} /> Unlock
+                  </button>
                 ) : isLoggedIn ? (
-                  <Link href={`/create?template=${template.id}`}>
-                    <Button
-                      variant="brand"
-                      size="sm"
-                      className="gap-1 text-xs"
-                    >
-                      Use Template
-                      <IconArrowRight size={12} />
-                    </Button>
+                  <Link
+                    href={`/create?template=${t.id}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-jury-emerald px-3.5 py-1.5 text-[13px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi"
+                  >
+                    Use template <ArrowRight size={13} />
                   </Link>
                 ) : (
-                  <Link href="/auth/login">
-                    <Button
-                      variant="brand"
-                      size="sm"
-                      className="gap-1 text-xs"
-                    >
-                      Sign in to use
-                    </Button>
+                  <Link
+                    href="/auth/login"
+                    className="inline-flex items-center rounded-full bg-jury-emerald px-3.5 py-1.5 text-[13px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi"
+                  >
+                    Sign in to use
                   </Link>
                 )}
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
-      {filteredTemplates.length === 0 && (
-        <div className="text-center py-12 text-muted-foreground">
+      {filtered.length === 0 && (
+        <div className="py-12 text-center text-jury-muted">
           No templates in this category yet.
         </div>
       )}
