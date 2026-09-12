@@ -17,10 +17,6 @@ import {
 import type { Profile } from "@/lib/supabaseHelpers";
 import type { TierName } from "@/lib/stripe";
 import { formatDateLong } from "@/lib/dateUtils";
-import { canUseFeature } from "@/lib/featureGate";
-import WebhookManager from "@/components/webhooks/WebhookManager";
-import APIKeyManager from "@/components/api/APIKeyManager";
-import CustomDomainSetup from "@/components/domains/CustomDomainSetup";
 
 interface ProfilePageProps {
   profile: Profile;
@@ -375,41 +371,6 @@ export default function ProfilePage({
               </div>
             </StaggerItem>
 
-            {/* Webhooks (Team) */}
-            {canUseFeature(subscriptionTier, "webhooks") && (
-              <StaggerItem>
-                <div className="rounded-2xl bg-card border border-border p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-6">
-                    Webhooks
-                  </h2>
-                  <WebhookManager />
-                </div>
-              </StaggerItem>
-            )}
-
-            {/* API Keys (Team) */}
-            {canUseFeature(subscriptionTier, "apiAccess") && (
-              <StaggerItem>
-                <div className="rounded-2xl bg-card border border-border p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-6">
-                    API Keys
-                  </h2>
-                  <APIKeyManager />
-                </div>
-              </StaggerItem>
-            )}
-
-            {/* Custom Domains (Team) */}
-            {canUseFeature(subscriptionTier, "customDomains") && (
-              <StaggerItem>
-                <div className="rounded-2xl bg-card border border-border p-6">
-                  <h2 className="text-lg font-semibold text-foreground mb-6">
-                    Custom Domains
-                  </h2>
-                  <CustomDomainSetup />
-                </div>
-              </StaggerItem>
-            )}
           </div>
         </StaggerContainer>
       </div>

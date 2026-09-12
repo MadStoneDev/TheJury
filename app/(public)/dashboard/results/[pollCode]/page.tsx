@@ -44,7 +44,6 @@ import { pluralize } from "@/lib/utils";
 
 // Lazy-load heavy tier-gated components
 const AnalyticsDashboard = dynamic(() => import("@/components/analytics/AnalyticsDashboard"), { ssr: false });
-const ABTestResults = dynamic(() => import("@/components/ab-testing").then((m) => ({ default: m.ABTestResults })), { ssr: false });
 const EmbedThemeEditor = dynamic(() => import("@/components/EmbedThemeEditor"), { ssr: false });
 
 export default function PollResultsPage() {
@@ -501,19 +500,7 @@ export default function PollResultsPage() {
         )}
       </motion.div>
 
-      {/* A/B Test Results (Team tier) */}
-      {canUseFeature(userTier, "abTesting") && totalVoters > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.12 }}
-          className="mt-6"
-        >
-          <ABTestResults pollId={poll.id} />
-        </motion.div>
-      )}
-
-      {/* Advanced Analytics (Team tier) */}
+      {/* Advanced Analytics (Pro) */}
       {canUseFeature(userTier, "advancedAnalytics") && totalVoters > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
