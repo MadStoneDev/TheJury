@@ -83,7 +83,7 @@ async function postPoll(
 }
 
 async function handleCreate(i: ChatInputCommandInteraction, userId: string) {
-  const title = i.options.getString("title", true);
+  const question = i.options.getString("question", true);
   const optionTexts = i.options
     .getString("options", true)
     .split(",")
@@ -100,7 +100,7 @@ async function handleCreate(i: ChatInputCommandInteraction, userId: string) {
     nudgeUpgrade = true;
   }
 
-  await postPoll(i, userId, title, [...new Set(optionTexts)], { allowMultiple, closeHours });
+  await postPoll(i, userId, question, [...new Set(optionTexts)], { allowMultiple, closeHours });
 
   if (nudgeUpgrade) {
     await i.followUp({

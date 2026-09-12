@@ -8,7 +8,10 @@ export const juryCommand = new SlashCommandBuilder()
       .setName("create")
       .setDescription("Create a poll in this channel")
       .addStringOption((o) =>
-        o.setName("title").setDescription("The question").setRequired(true),
+        o
+          .setName("question")
+          .setDescription("The question you're asking")
+          .setRequired(true),
       )
       .addStringOption((o) =>
         o
