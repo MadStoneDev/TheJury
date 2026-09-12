@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { staggerItem } from "@/lib/animations";
 
 interface StaggerContainerProps {
@@ -14,6 +14,12 @@ export function StaggerContainer({
   className,
   staggerDelay = 0.1,
 }: StaggerContainerProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       variants={{
@@ -28,7 +34,7 @@ export function StaggerContainer({
       }}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, amount: 0.15 }}
       className={className}
     >
       {children}
@@ -42,6 +48,12 @@ interface StaggerItemProps {
 }
 
 export function StaggerItem({ children, className }: StaggerItemProps) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div variants={staggerItem} className={className}>
       {children}

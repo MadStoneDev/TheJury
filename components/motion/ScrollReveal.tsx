@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { scrollReveal } from "@/lib/animations";
 
 interface ScrollRevealProps {
@@ -14,12 +14,19 @@ export function ScrollReveal({
   className,
   delay = 0,
 }: ScrollRevealProps) {
+  const reduceMotion = useReducedMotion();
+
+  // Respect prefers-reduced-motion: render content immediately, no animation.
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       variants={scrollReveal}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ delay }}
       className={className}
     >
