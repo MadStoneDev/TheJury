@@ -89,7 +89,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     priceMonthly: 9,
     priceAnnualMonthly: 6,
     priceAnnualTotal: 72,
-    priceLifetime: 79, // one-off
+    priceLifetime: 179, // one-off
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
