@@ -746,7 +746,7 @@ export default function PollEmbedPage() {
       {ownerTier === "free" ? (
         <div className="text-center mt-4 pt-3 border-t border-border">
           <a
-            href={`${process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"}`}
+            href={`${process.env.NEXT_PUBLIC_SITE_URL || "https://thejury.app"}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-muted-foreground hover:text-emerald-500 transition-colors"

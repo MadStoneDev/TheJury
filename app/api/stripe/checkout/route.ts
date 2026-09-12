@@ -62,9 +62,9 @@ export async function POST(request: Request) {
     }
 
     // Canonical app URL only — no request-header fallbacks (they are spoofable).
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (!appUrl) {
-      console.error("Stripe checkout: NEXT_PUBLIC_APP_URL is not configured");
+      console.error("Stripe checkout: NEXT_PUBLIC_SITE_URL is not configured");
       return NextResponse.json(
         { error: "Server misconfiguration" },
         { status: 500 },

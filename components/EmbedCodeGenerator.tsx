@@ -19,7 +19,7 @@ export default function EmbedCodeGenerator({
   const [height, setHeight] = useState("400");
 
   const baseUrl = `${
-    process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://thejury.app"
   }/embed/${pollCode}`;
   const embedUrl = `${baseUrl}?origin=${encodeURIComponent(typeof window !== "undefined" ? window.location.origin : "")}`;
 
