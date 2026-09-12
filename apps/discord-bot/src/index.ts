@@ -21,6 +21,7 @@ import {
   getPollByCode,
   recordVote,
   saveMessageRef,
+  setPollActive,
 } from "./db";
 import { buildPollMessage } from "./pollMessage";
 import { parseCloseHours, nextFridays } from "./commands";
@@ -190,6 +191,43 @@ async function handleSchedule(i: ChatInputCommandInteraction, userId: string) {
   await postPoll(i, userId, title, [...new Set(dates)], { allowMultiple: true });
 }
 
+async function handleSetActive(
+  i: ChatInputCommandInteraction,
+  userId: string,
+  active: boolean,
+) {
+  const code = i.options.getString("code", true);
+  const res = await setPollActive(code, userId, active);
+  if (!res.ok) {
+    await i.reply({ flags: MessageFlags.Ephemeral, content: res.error ?? "Failed." });
+    return;
+  }
+
+  // Update the original poll message (remove/restore vote buttons).
+  if (res.channelId && res.messageId && res.pollId) {
+    try {
+      const ch = await client.channels.fetch(res.channelId);
+      if (ch?.isTextBased()) {
+        const msg = await ch.messages.fetch(res.messageId);
+        const counts = await getCounts(res.pollId);
+        const rebuilt = buildPollMessage(res.pollId, res.code!, res.question!, counts, {
+          closed: !active,
+        });
+        await msg.edit({ embeds: rebuilt.embeds, components: rebuilt.components });
+      }
+    } catch {
+      /* message may have been deleted — ignore */
+    }
+  }
+
+  await i.reply({
+    flags: MessageFlags.Ephemeral,
+    content: active
+      ? `✅ Reopened voting on \`${res.code}\`.`
+      : `🔒 Closed voting on \`${res.code}\`.`,
+  });
+}
+
 async function handleResults(i: ChatInputCommandInteraction) {
   const code = i.options.getString("code", true);
   const poll = await getPollByCode(code);
@@ -258,6 +296,8 @@ client.on(Events.InteractionCreate, async (interaction) => {
     // create shows a modal (no immediate reply); schedule posts directly.
     if (sub === "create") await handleCreate(interaction);
     else if (sub === "schedule") await handleSchedule(interaction, userId);
+    else if (sub === "close") await handleSetActive(interaction, userId, false);
+    else if (sub === "reopen") await handleSetActive(interaction, userId, true);
   } catch (err) {
     console.error("Interaction error:", err);
     if (interaction.isRepliable() && !interaction.replied && !interaction.deferred) {

@@ -20,6 +20,7 @@ export function buildPollMessage(
   code: string,
   question: string,
   counts: Counts,
+  opts: { closed?: boolean } = {},
 ) {
   const total = counts.total || 0;
   const lines = counts.options.map((o) => {
@@ -28,30 +29,36 @@ export function buildPollMessage(
   });
 
   const embed = new EmbedBuilder()
-    .setColor(EMERALD)
+    .setColor(opts.closed ? 0x64748b : EMERALD)
     .setTitle(question)
     .setDescription(lines.join("\n\n") || "No options.")
     .setFooter({
-      text: `Poll ${code} · ${total} ${total === 1 ? "vote" : "votes"} · tap to vote`,
+      text: opts.closed
+        ? `Poll ${code} · ${total} ${total === 1 ? "vote" : "votes"} · 🔒 voting closed`
+        : `Poll ${code} · ${total} ${total === 1 ? "vote" : "votes"} · tap to vote`,
     });
 
-  const voteButtons = counts.options
-    .slice(0, MAX_VOTE_BUTTONS)
-    .map((o) =>
-      new ButtonBuilder()
-        .setCustomId(`vote:${pollId}:${o.id}`)
-        .setLabel(o.text.slice(0, 80))
-        .setStyle(ButtonStyle.Secondary),
-    );
-
   const rows: ActionRowBuilder<ButtonBuilder>[] = [];
-  for (let i = 0; i < voteButtons.length; i += 5) {
-    rows.push(
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        voteButtons.slice(i, i + 5),
-      ),
-    );
+
+  // No vote buttons once closed — just the results link.
+  if (!opts.closed) {
+    const voteButtons = counts.options
+      .slice(0, MAX_VOTE_BUTTONS)
+      .map((o) =>
+        new ButtonBuilder()
+          .setCustomId(`vote:${pollId}:${o.id}`)
+          .setLabel(o.text.slice(0, 80))
+          .setStyle(ButtonStyle.Secondary),
+      );
+    for (let i = 0; i < voteButtons.length; i += 5) {
+      rows.push(
+        new ActionRowBuilder<ButtonBuilder>().addComponents(
+          voteButtons.slice(i, i + 5),
+        ),
+      );
+    }
   }
+
   rows.push(
     new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

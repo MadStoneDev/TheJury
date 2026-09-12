@@ -32,6 +32,22 @@ export const juryCommand = new SlashCommandBuilder()
   )
   .addSubcommand((s) =>
     s
+      .setName("close")
+      .setDescription("Stop voting on a poll")
+      .addStringOption((o) =>
+        o.setName("code").setDescription("The 6-character poll code").setRequired(true),
+      ),
+  )
+  .addSubcommand((s) =>
+    s
+      .setName("reopen")
+      .setDescription("Reopen voting on a closed poll")
+      .addStringOption((o) =>
+        o.setName("code").setDescription("The 6-character poll code").setRequired(true),
+      ),
+  )
+  .addSubcommand((s) =>
+    s
       .setName("link")
       .setDescription("Link this server to your TheJury account"),
   )

@@ -258,6 +258,55 @@ export async function getPollByCode(code: string): Promise<PollByCode | null> {
   };
 }
 
+export interface SetActiveResult {
+  ok: boolean;
+  error?: string;
+  pollId?: string;
+  code?: string;
+  question?: string;
+  channelId?: string;
+  messageId?: string;
+}
+
+/** Close or reopen a poll the linked account owns, returning its message ref. */
+export async function setPollActive(
+  code: string,
+  userId: string,
+  active: boolean,
+): Promise<SetActiveResult> {
+  const { data: poll } = await supabase
+    .from("polls")
+    .select("id, user_id, question, code")
+    .eq("code", code.toUpperCase())
+    .maybeSingle();
+  if (!poll) return { ok: false, error: `No poll found with code \`${code.toUpperCase()}\`.` };
+  if (poll.user_id !== userId) {
+    return { ok: false, error: "That poll belongs to a different account." };
+  }
+
+  const { error } = await supabase
+    .from("polls")
+    .update({ is_active: active })
+    .eq("id", poll.id);
+  if (error) return { ok: false, error: "Failed to update the poll." };
+
+  const { data: ref } = await supabase
+    .from("discord_poll_messages")
+    .select("channel_id, message_id")
+    .eq("poll_id", poll.id)
+    .order("created_at", { ascending: false })
+    .maybeSingle();
+
+  return {
+    ok: true,
+    pollId: poll.id,
+    code: poll.code,
+    question: poll.question,
+    channelId: ref?.channel_id,
+    messageId: ref?.message_id,
+  };
+}
+
 export async function saveMessageRef(
   pollId: string,
   guildId: string,
