@@ -28,9 +28,34 @@ interface ApiResponse<T> {
   error?: string;
 }
 
+// Remember the last few polls this visitor saw so the hero doesn't repeat.
+const RECENT_KEY = "thejury_recent_demo_polls";
+const RECENT_MAX = 3;
+
+function getRecentPollIds(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberPollId(id: string): void {
+  try {
+    const next = [id, ...getRecentPollIds().filter((x) => x !== id)].slice(0, RECENT_MAX);
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  } catch {
+    /* storage unavailable (private mode etc.) — repeats are acceptable */
+  }
+}
+
 const livePollAPI = {
   async getRandomLivePoll(): Promise<LivePoll> {
-    const response = await fetch("/api/live-polls/random");
+    const exclude = getRecentPollIds();
+    const qs = exclude.length ? `?exclude=${encodeURIComponent(exclude.join(","))}` : "";
+    const response = await fetch(`/api/live-polls/random${qs}`);
     if (!response.ok) throw new Error("Failed to fetch live poll");
     return response.json();
   },
@@ -95,6 +120,7 @@ const DemoPollWidget: React.FC = () => {
       setIsLoading(true);
       setError(null);
       const poll = await livePollAPI.getRandomLivePoll();
+      rememberPollId(poll.id);
       setDemoPoll(poll);
       const voted = await livePollAPI.hasVoted(poll.id, voterFingerprint);
       setHasVoted(voted);

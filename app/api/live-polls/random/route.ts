@@ -42,12 +42,15 @@ export async function GET(request: Request) {
       );
     }
 
-    // Prefer gaming/community polls so the hero demo suits our audience;
-    // fall back to the full set if none are seeded yet.
-    const onBrand = polls.filter(
-      (p) => p.category === "gaming" || p.category === "community",
+    // Skip the last few polls this visitor already saw (?exclude=id1,id2,id3),
+    // so the hero doesn't repeat itself. If excluding empties the pool (they've
+    // seen everything recently), fall back to the full set.
+    const excludeParam = new URL(request.url).searchParams.get("exclude");
+    const excluded = new Set(
+      (excludeParam ?? "").split(",").map((s) => s.trim()).filter(Boolean),
     );
-    const pool = onBrand.length > 0 ? onBrand : polls;
+    const fresh = polls.filter((p) => !excluded.has(p.id));
+    const pool = fresh.length > 0 ? fresh : polls;
 
     // Randomly select a poll
     const randomIndex = Math.floor(Math.random() * pool.length);
