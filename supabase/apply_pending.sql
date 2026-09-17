@@ -7,6 +7,7 @@
 --   * migration 015 (Discord bot tables)
 --   * migration 016 (public roadmap + profiles.role)
 --   * the roadmap board seed (only inserted if the board is empty)
+--   * the homepage live-poll demo set (gamer/community/fun questions)
 --
 -- Run it in the Supabase SQL editor, or: supabase db execute < apply_pending.sql
 --
@@ -151,6 +152,58 @@ SELECT * FROM (VALUES
   ('Poll-closed & threshold notifications', 'Email or Discord DM when your poll closes or hits a target.', 'planned', 13)
 ) AS v(title, description, status, sort_order)
 WHERE NOT EXISTS (SELECT 1 FROM roadmap_items);
+
+-- ── Homepage live-poll demo set ────────────────────────────────────────────
+-- Gamer / community / fun questions the hero widget rotates through.
+-- The unique index makes ON CONFLICT valid and keeps re-runs idempotent.
+CREATE UNIQUE INDEX IF NOT EXISTS demo_polls_question_key
+  ON public.demo_polls (question);
+
+INSERT INTO public.demo_polls
+  (question, description, options, category, display_order, is_active)
+VALUES
+  ('Favourite gaming genre?', NULL,
+   '[{"id":"1","text":"RPG"},{"id":"2","text":"Shooter"},{"id":"3","text":"Strategy"},{"id":"4","text":"Roguelike"},{"id":"5","text":"Fighting"},{"id":"6","text":"Sim / management"},{"id":"7","text":"Whatever''s free this week"}]',
+   'gaming', 3, true),
+  ('Favourite TCG?', NULL,
+   '[{"id":"1","text":"Magic: The Gathering"},{"id":"2","text":"Pokémon"},{"id":"3","text":"Yu-Gi-Oh!"},{"id":"4","text":"One Piece"},{"id":"5","text":"Riftbound"},{"id":"6","text":"Lorcana"},{"id":"7","text":"I don''t play TCGs"}]',
+   'gaming', 4, true),
+  ('What do you think of TCGs?', NULL,
+   '[{"id":"1","text":"Worth every cent"},{"id":"2","text":"Fun until I see the price"},{"id":"3","text":"A second mortgage"},{"id":"4","text":"Cardboard crack"},{"id":"5","text":"Never touched one"}]',
+   'gaming', 5, true),
+  ('Controller or mouse & keyboard?', NULL,
+   '[{"id":"1","text":"MKB for life"},{"id":"2","text":"Controller"},{"id":"3","text":"Depends on the game"},{"id":"4","text":"Steam Deck"}]',
+   'gaming', 6, true),
+  ('Difficulty setting you actually pick?', NULL,
+   '[{"id":"1","text":"Story"},{"id":"2","text":"Normal"},{"id":"3","text":"Hard"},{"id":"4","text":"Whatever drops the best loot"}]',
+   'gaming', 7, true),
+  ('The real reason your backlog is huge?', NULL,
+   '[{"id":"1","text":"Steam sales"},{"id":"2","text":"New game every week"},{"id":"3","text":"I finish nothing"},{"id":"4","text":"What backlog"}]',
+   'gaming', 8, true),
+  ('Do you play board games?', NULL,
+   '[{"id":"1","text":"All the time"},{"id":"2","text":"Only at Christmas"},{"id":"3","text":"Just the drinking kind"},{"id":"4","text":"Catan ruined my friendships"},{"id":"5","text":"Nope"}]',
+   'community', 9, true),
+  ('Which board game ends friendships?', NULL,
+   '[{"id":"1","text":"Monopoly"},{"id":"2","text":"Catan"},{"id":"3","text":"Risk"},{"id":"4","text":"Uno"},{"id":"5","text":"We''re all still friends"}]',
+   'community', 10, true),
+  ('How do you settle a group decision?', NULL,
+   '[{"id":"1","text":"Vote"},{"id":"2","text":"Loudest person wins"},{"id":"3","text":"Rock paper scissors"},{"id":"4","text":"Whoever paid last time"}]',
+   'community', 11, true),
+  ('Best excuse for missing the session?', NULL,
+   '[{"id":"1","text":"Just one more game"},{"id":"2","text":"IRL got me"},{"id":"3","text":"Timezones"},{"id":"4","text":"I was on time, you weren''t"}]',
+   'community', 12, true),
+  ('Your setup?', NULL,
+   '[{"id":"1","text":"Battlestation with RGB"},{"id":"2","text":"Laptop on the couch"},{"id":"3","text":"Console + TV"},{"id":"4","text":"Handheld"},{"id":"5","text":"Phone"}]',
+   'gaming', 13, true),
+  ('Pineapple on pizza?', NULL,
+   '[{"id":"1","text":"Yes"},{"id":"2","text":"No"},{"id":"3","text":"Only after a raid win"},{"id":"4","text":"Anything past midnight"}]',
+   'fun', 14, true)
+ON CONFLICT (question) DO NOTHING;
+
+-- Retire the two original corny demo polls (flip back to true to restore).
+UPDATE public.demo_polls
+   SET is_active = false
+ WHERE question IN ('What are we queuing up tonight?', 'Best co-op game to play with friends?');
 
 COMMIT;
 
