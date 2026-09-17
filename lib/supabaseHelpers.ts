@@ -611,9 +611,12 @@ export const submitVote = async (
 
 export const getPollResultsByQuestion = async (
   pollId: string,
+  preloadedQuestions?: PollQuestion[],
 ): Promise<QuestionResult[]> => {
   try {
-    const questions = await getPollQuestions(pollId);
+    // Reuse questions the caller already loaded (e.g. from getPollByCode) so we
+    // don't re-query poll_questions + poll_options a second time per page load.
+    const questions = preloadedQuestions ?? (await getPollQuestions(pollId));
     if (questions.length === 0) {
       // Fallback: return flat results as a single question
       const flatResults = await getPollResults(pollId);

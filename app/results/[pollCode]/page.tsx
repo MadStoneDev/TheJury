@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "motion/react";
 import {
@@ -30,11 +30,12 @@ export default function PublicResultsPage() {
   const [error, setError] = useState<string | null>(null);
   const [totalVoters, setTotalVoters] = useState(0);
 
-  // Realtime: auto-refresh when new votes arrive
+  // Realtime: auto-refresh when new votes arrive. Reuse the poll's already-loaded
+  // questions so the refresh doesn't re-query questions + options each time.
   const refreshResults = useCallback(async () => {
     if (!poll) return;
     const [qResults, { count: voterCount }] = await Promise.all([
-      getPollResultsByQuestion(poll.id),
+      getPollResultsByQuestion(poll.id, poll.questions),
       supabase
         .from("votes")
         .select("*", { count: "exact", head: true })
@@ -44,9 +45,26 @@ export default function PublicResultsPage() {
     setTotalVoters(voterCount || 0);
   }, [poll]);
 
+  // Coalesce bursts of incoming votes into one refresh (~800ms trailing) so a
+  // busy poll doesn't fire the query chain once per vote for every viewer.
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scheduleRefresh = useCallback(() => {
+    if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    refreshTimer.current = setTimeout(() => {
+      void refreshResults();
+    }, 800);
+  }, [refreshResults]);
+
+  useEffect(
+    () => () => {
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+    },
+    [],
+  );
+
   useRealtimeVotes({
     pollId: poll?.id ?? null,
-    onNewVote: refreshResults,
+    onNewVote: scheduleRefresh,
   });
 
   const isMultiQuestion = questionResults.length > 1;
@@ -73,14 +91,16 @@ export default function PublicResultsPage() {
 
         setPoll(pollData);
 
-        const qResults = await getPollResultsByQuestion(pollData.id);
+        // Results (reusing the questions we just loaded) and the voter count
+        // run in parallel — no serial round-trips before the results paint.
+        const [qResults, { count: voterCount }] = await Promise.all([
+          getPollResultsByQuestion(pollData.id, pollData.questions),
+          supabase
+            .from("votes")
+            .select("*", { count: "exact", head: true })
+            .eq("poll_id", pollData.id),
+        ]);
         setQuestionResults(qResults);
-
-        const { count: voterCount } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", pollData.id);
-
         setTotalVoters(voterCount || 0);
       } catch (err) {
         console.error("Error loading results:", err);
@@ -132,6 +152,13 @@ export default function PublicResultsPage() {
   const toChartData = (results: { option_id: string; option_text: string; vote_count: number }[]): ChartDataItem[] =>
     results.map((r) => ({ label: r.option_text, value: r.vote_count, id: r.option_id }));
 
+  // Only scheduling polls (created via /jury schedule) carry scheduleDates.
+  // Skip the calendar API round-trip entirely for every other poll.
+  const isSchedulingPoll = Array.isArray(
+    (poll.questions?.[0]?.settings as { scheduleDates?: unknown } | undefined)
+      ?.scheduleDates,
+  );
+
   return (
     <div className="min-h-screen bg-background relative">
       <div className="absolute inset-0 grid-bg pointer-events-none" />
@@ -176,9 +203,11 @@ export default function PublicResultsPage() {
               </div>
 
               {/* Add-to-calendar (scheduling polls only) */}
-              <div className="mb-6">
-                <CalendarButton pollCode={pollCode} />
-              </div>
+              {isSchedulingPoll && (
+                <div className="mb-6">
+                  <CalendarButton pollCode={pollCode} />
+                </div>
+              )}
 
               {/* Results */}
               {totalVoters === 0 ? (

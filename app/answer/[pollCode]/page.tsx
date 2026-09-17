@@ -13,7 +13,6 @@ import {
 import {
   getPollByCode,
   submitVote,
-  hasUserVoted,
   getUserVotes,
   getPollResultsByQuestion,
   getCurrentUser,
@@ -158,59 +157,49 @@ export default function PollAnswerPage() {
           setLiveState(pollData.live_state);
         }
 
-        // Fetch user once — reuse throughout
-        const user = await getCurrentUser();
+        // User, A/B experiment, results and vote count are all independent
+        // (they only need pollData.id) — fetch them together instead of in a
+        // 4-hop serial chain. Reuse the questions loaded by getPollByCode.
+        const [user, abExp, qResults, { count: voterCount }] =
+          await Promise.all([
+            getCurrentUser(),
+            getABExperiment(pollData.id),
+            getPollResultsByQuestion(pollData.id, pollData.questions),
+            supabase
+              .from("votes")
+              .select("*", { count: "exact", head: true })
+              .eq("poll_id", pollData.id),
+          ]);
         cachedUserRef.current = user;
+        setQuestionResults(qResults);
+        setTotalVoters(voterCount || 0);
 
-        // Check for A/B experiment
-        const abExp = await getABExperiment(pollData.id);
+        const fingerprint = !user ? generateFingerprint() : undefined;
+
+        // A/B assignment needs the resolved user + experiment.
         if (abExp && abExp.variants.length >= 2) {
-          const fp = !user ? generateFingerprint() : undefined;
           const assigned = await assignVariant(
             abExp.experiment.id,
             abExp.variants,
             user?.id,
-            fp,
+            fingerprint,
           );
           if (assigned) {
             setAbVariant(assigned);
           }
         }
 
-        // Fetch results and vote count in parallel
-        const [qResults, { count: voterCount }] = await Promise.all([
-          getPollResultsByQuestion(pollData.id),
-          supabase
-            .from("votes")
-            .select("*", { count: "exact", head: true })
-            .eq("poll_id", pollData.id),
-        ]);
-        setQuestionResults(qResults);
-        setTotalVoters(voterCount || 0);
-
-        let voted = false;
+        // One query for the current voter's selections; "voted" is just whether
+        // a row came back (guaranteed at most one by the vote-uniqueness index).
         let userVotes: string[] = [];
-
-        if (user) {
-          voted = await hasUserVoted(pollData.id, user.id);
-          if (voted) {
-            userVotes = await getUserVotes(pollData.id, user.id);
-          }
-        } else {
-          try {
-            const fingerprint = generateFingerprint();
-            voted = await hasUserVoted(pollData.id, undefined, fingerprint);
-            if (voted) {
-              userVotes = await getUserVotes(
-                pollData.id,
-                undefined,
-                fingerprint,
-              );
-            }
-          } catch (err) {
-            console.warn("Could not check anonymous voting status:", err);
-          }
+        try {
+          userVotes = user
+            ? await getUserVotes(pollData.id, user.id)
+            : await getUserVotes(pollData.id, undefined, fingerprint);
+        } catch (err) {
+          console.warn("Could not check voting status:", err);
         }
+        const voted = userVotes.length > 0;
 
         setHasVotedFlag(voted);
         if (voted) {

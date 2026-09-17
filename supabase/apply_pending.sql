@@ -154,6 +154,12 @@ SELECT * FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM roadmap_items);
 
 -- ── Homepage live-poll demo set ────────────────────────────────────────────
+-- Composite index serves the results tally (demo_poll_id prefix) AND the
+-- has-voted / vote dedup checks (demo_poll_id + voter_fingerprint), which
+-- were previously sequential scans on demo_votes.
+CREATE INDEX IF NOT EXISTS idx_demo_votes_poll_fingerprint
+  ON public.demo_votes (demo_poll_id, voter_fingerprint);
+
 -- Gamer / community / fun questions the hero widget rotates through.
 -- The unique index makes ON CONFLICT valid and keeps re-runs idempotent.
 CREATE UNIQUE INDEX IF NOT EXISTS demo_polls_question_key
