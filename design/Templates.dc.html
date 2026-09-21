@@ -28,35 +28,159 @@
   <div style="padding:64px 56px 80px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:48px 48px">
     <div style="text-align:center;margin-bottom:34px">
       <h1 style="font:700 48px 'Playfair Display',serif;margin:0 0 12px">Poll templates</h1>
-      <p style="font:300 18px Outfit;color:#94A3B8;margin:0 auto;max-width:520px">Start from a pre-built poll and change what you need. Every template is a working poll in one click.</p>
+      <p style="font:300 18px Outfit;color:#94A3B8;margin:0 auto;max-width:560px">Start from a template built for your kind of vote, then change the wording to suit. Motions, elections, consultation, feedback and live session polls.</p>
     </div>
-    <div style="display:flex;justify-content:center;gap:10px;margin-bottom:36px">
+    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-bottom:36px">
       <span style="background:#10B981;color:#04180F;font:600 14px Outfit;padding:9px 20px;border-radius:999px">All</span>
+      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Motions &amp; elections</span>
+      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Consultation</span>
       <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Feedback</span>
-      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Education</span>
-      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Events</span>
-      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Team</span>
-      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Marketing</span>
-      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Fun</span>
+      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Dates &amp; events</span>
+      <span style="background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 14px Outfit;padding:9px 20px;border-radius:999px">Live sessions</span>
     </div>
 
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
-      <sc-for list="{{ items }}" as="t" hint-placeholder-count="12">
-        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
-            <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" dangerouslySetInnerHTML="{{ t.icon }}"></svg></div>
-            <sc-if value="{{ t.badge }}" hint-placeholder-val="{{ false }}">
-              <span style="display:inline-flex;align-items:center;gap:7px"><span style="{{ t.badgeStyle }}">{{ t.badge }}</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
-            </sc-if>
-          </div>
-          <div style="font:600 18px Outfit;margin-bottom:7px">{{ t.name }}</div>
-          <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">{{ t.desc }}</p>
-          <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
-            <span style="font:300 13px Outfit;color:#64748B">{{ t.questions }}</span>
-            <span style="{{ t.ctaStyle }}">{{ t.cta }}</span>
-          </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
         </div>
-      </sc-for>
+        <div style="font:600 18px Outfit;margin-bottom:7px">AGM motion</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Put a motion to the members. For, against or abstain, with a clear record for the minutes.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Committee or board election</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Run an election for the committee or board. Members choose up to the number of vacancies.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 9h4"/><path d="M12 7v5"/><path d="M14 22v-4a2 2 0 0 0-4 0v4"/><path d="M18 22V5.618a1 1 0 0 0-.553-.894l-4.553-2.277a2 2 0 0 0-1.788 0L6.553 4.724A1 1 0 0 0 6 5.618V22"/><path d="m18 7 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.618a1 1 0 0 1 .553-.894L6 7"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Congregational vote on a proposal</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Put a building or budget proposal to the congregation. Yes, no or abstain.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Churches · 1 question</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Board circular resolution</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">A circular resolution between meetings. Yes or no, with a close time you set.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Member consultation on a rule change</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Test a rule change before you table it. Agree, disagree or unsure, plus a comment box. Anonymous.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Clubs &amp; associations · 2 questions</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg></div>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Community consultation</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Ask residents which priorities matter most. Tick all that apply, no account needed.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Councils &amp; government · 1 question</span>
+          <span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15v3M12 10v8M17 6v12"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Anonymous staff feedback</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">An anonymous staff pulse check. A few statements, each rated one to five.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Businesses · 3 questions</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Client or patient satisfaction</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">A quick rating after an appointment, with one optional comment. Anonymous.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Businesses · 2 questions</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></div>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Find a meeting or event date</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Find a date that suits the most people. Tick every option that works.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Any organisation · 1 question</span>
+          <span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></div>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Live session check-in</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">A quick check-in during a live session. One tap from the room.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Presenters · 1 question</span>
+          <span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span>
+        </div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px;display:flex;flex-direction:column;min-height:210px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+          <div style="width:42px;height:42px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></div>
+          <span style="display:inline-flex;align-items:center;gap:7px"><span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.9" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg></span>
+        </div>
+        <div style="font:600 18px Outfit;margin-bottom:7px">Training workshop: which topic next</div>
+        <p style="font:300 14px/1.55 Outfit;color:#94A3B8;margin:0 0 20px">Let the room rank what to cover next. Ranked choice settles it.</p>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between">
+          <span style="font:300 13px Outfit;color:#64748B">Presenters · 1 question</span>
+          <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>Unlock</span>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -70,25 +194,122 @@
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05)"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;align-items:center;gap:12px"><span style="background:#10B981;color:#04180F;font:600 12px Outfit;padding:8px 14px;border-radius:999px">Get started</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div></div>
   <div style="padding:32px 20px 40px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:40px 40px">
     <h1 style="font:700 32px 'Playfair Display',serif;margin:0 0 10px">Poll templates</h1>
-    <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 22px">Start from a pre-built poll and change what you need.</p>
+    <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 22px">Start from a template built for your kind of vote, then change the wording to suit.</p>
     <div style="display:flex;gap:8px;overflow:hidden;margin-bottom:22px">
       <span style="flex:none;background:#10B981;color:#04180F;font:600 13px Outfit;padding:8px 16px;border-radius:999px">All</span>
+      <span style="flex:none;background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 13px Outfit;padding:8px 16px;border-radius:999px">Motions &amp; elections</span>
+      <span style="flex:none;background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 13px Outfit;padding:8px 16px;border-radius:999px">Consultation</span>
       <span style="flex:none;background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 13px Outfit;padding:8px 16px;border-radius:999px">Feedback</span>
-      <span style="flex:none;background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 13px Outfit;padding:8px 16px;border-radius:999px">Education</span>
-      <span style="flex:none;background:#0F1520;border:1px solid rgba(255,255,255,.07);color:#CBD5E1;font:500 13px Outfit;padding:8px 16px;border-radius:999px">Events</span>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      <sc-for list="{{ items }}" as="t" hint-placeholder-count="12">
-        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-            <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" dangerouslySetInnerHTML="{{ t.icon }}"></svg></div>
-            <sc-if value="{{ t.badge }}" hint-placeholder-val="{{ false }}"><span style="{{ t.badgeStyle }}">{{ t.badge }}</span></sc-if>
-          </div>
-          <div style="font:600 16px Outfit;margin-bottom:5px">{{ t.name }}</div>
-          <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">{{ t.desc }}</p>
-          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">{{ t.questions }}</span><span style="{{ t.ctaStyle }}">{{ t.cta }}</span></div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
         </div>
-      </sc-for>
+        <div style="font:600 16px Outfit;margin-bottom:5px">AGM motion</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Put a motion to the members. For, against or abstain, with a clear record for the minutes.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Committee or board election</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Run an election for the committee or board. Members choose up to the number of vacancies.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 9h4"/><path d="M12 7v5"/><path d="M14 22v-4a2 2 0 0 0-4 0v4"/><path d="M18 22V5.618a1 1 0 0 0-.553-.894l-4.553-2.277a2 2 0 0 0-1.788 0L6.553 4.724A1 1 0 0 0 6 5.618V22"/><path d="m18 7 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9.618a1 1 0 0 1 .553-.894L6 7"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Congregational vote on a proposal</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Put a building or budget proposal to the congregation. Yes, no or abstain.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Churches · 1 question</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Board circular resolution</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">A circular resolution between meetings. Yes or no, with a close time you set.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Clubs &amp; associations · 1 question</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Member consultation on a rule change</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Test a rule change before you table it. Agree, disagree or unsure, plus a comment box. Anonymous.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Clubs &amp; associations · 2 questions</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 18v-7"/><path d="M11.12 2.198a2 2 0 0 1 1.76.006l7.866 3.847c.476.233.31.949-.22.949H3.474c-.53 0-.695-.716-.22-.949z"/><path d="M14 18v-7"/><path d="M18 18v-7"/><path d="M3 22h18"/><path d="M6 18v-7"/></svg></div>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Community consultation</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Ask residents which priorities matter most. Tick all that apply, no account needed.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Councils &amp; government · 1 question</span><span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15v3M12 10v8M17 6v12"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Anonymous staff feedback</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">An anonymous staff pulse check. A few statements, each rated one to five.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Businesses · 3 questions</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Client or patient satisfaction</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">A quick rating after an appointment, with one optional comment. Anonymous.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Businesses · 2 questions</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg></div>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Find a meeting or event date</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Find a date that suits the most people. Tick every option that works.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Any organisation · 1 question</span><span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg></div>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Live session check-in</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">A quick check-in during a live session. One tap from the room.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Presenters · 1 question</span><span style="background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Sign in to use</span></div>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.12);display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg></div>
+          <span style="font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px">PRO</span>
+        </div>
+        <div style="font:600 16px Outfit;margin-bottom:5px">Training workshop: which topic next</div>
+        <p style="font:300 13px/1.55 Outfit;color:#94A3B8;margin:0 0 14px">Let the room rank what to cover next. Ranked choice settles it.</p>
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font:300 12px Outfit;color:#64748B">Presenters · 1 question</span><span style="border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px">Unlock</span></div>
+      </div>
+
     </div>
   </div>
   <div style="padding:24px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 16px 'Playfair Display',serif">TheJury</div><div style="font:300 12px Outfit;color:#475569">© 2026 TheJury</div></div>
@@ -97,53 +318,5 @@
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2000}}">
-class Component extends DCLogic {
-  renderVals() {
-    const P = {
-      smile: '<circle cx="12" cy="12" r="9"></circle><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"></path>',
-      utensils: '<path d="M4 3v7a2 2 0 0 0 4 0V3M6 10v11M17 3c-1.5 1.5-2 3.5-2 6v3h3V3z"></path>',
-      calendar: '<rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path>',
-      check: '<circle cx="12" cy="12" r="9"></circle><path d="m8.5 12 2.5 2.5 4.5-5"></path>',
-      chart: '<path d="M3 3v18h18M7 15v3M12 10v8M17 6v12"></path>',
-      trend: '<path d="M3 17 10 10l4 4 7-7M15 7h6v6"></path>',
-      cap: '<path d="M3 9l9-4 9 4-9 4-9-4z"></path><path d="M7 11v5c0 1.1 2.2 2 5 2s5-.9 5-2v-5"></path>',
-      mic: '<rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path>',
-      tag: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"></path><circle cx="7.5" cy="7.5" r="1.3"></circle>',
-      briefcase: '<rect x="3" y="7" width="18" height="14" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18"></path>',
-      refresh: '<path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2"></path><path d="M18 3v4h-4M6 21v-4h4"></path>',
-      search: '<circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>'
-    };
-    const pro = "font:700 10px Outfit;letter-spacing:.08em;color:#34D399;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.3);padding:3px 8px;border-radius:5px";
-    const team = "font:700 10px Outfit;letter-spacing:.08em;color:#A79BEA;background:rgba(167,155,234,.14);border:1px solid rgba(167,155,234,.3);padding:3px 8px;border-radius:5px";
-    const ctaFree = "background:#10B981;color:#04180F;font:600 13px Outfit;padding:9px 16px;border-radius:8px";
-    const ctaLock = "display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,.14);color:#E2E8F0;font:600 13px Outfit;padding:9px 16px;border-radius:8px";
-    const d = [
-      ["Customer satisfaction", "Measure how happy customers are with your product or service", "1 question", "smile", null],
-      ["Team lunch poll", "Let your team vote on where to eat", "1 question", "utensils", null],
-      ["Event date picker", "Find the best date for your next event", "1 question", "calendar", null],
-      ["Quick yes / no vote", "Get a fast answer on any topic", "1 question", "check", null],
-      ["Product feedback survey", "Comprehensive product feedback with ratings and rankings", "2 questions", "chart", "PRO"],
-      ["NPS survey", "Net promoter score — measure customer loyalty", "1 question", "trend", "PRO"],
-      ["Class quiz", "Test knowledge with a multi-question quiz", "2 questions", "cap", "PRO"],
-      ["Event feedback", "Gather post-event feedback with ratings", "2 questions", "mic", "PRO"],
-      ["Brand preference", "Compare brand options with image-based voting", "1 question", "tag", "PRO"],
-      ["Employee engagement", "Comprehensive workplace satisfaction survey", "3 questions", "briefcase", "TEAM"],
-      ["Sprint retrospective", "Team retro — what went well, what to improve", "3 questions", "refresh", "TEAM"],
-      ["Market research", "Comprehensive market research with multiple question types", "3 questions", "search", "TEAM"]
-    ];
-    return {
-      items: d.map(([name, desc, questions, icon, badge]) => ({
-        name, desc, questions,
-        icon: { __html: P[icon] },
-        badge,
-        badgeStyle: badge === "TEAM" ? team : pro,
-        cta: badge ? "Unlock" : "Sign in to use",
-        ctaStyle: badge ? ctaLock : ctaFree
-      }))
-    };
-  }
-}
-</script>
 </body>
 </html>

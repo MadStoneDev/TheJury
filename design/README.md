@@ -100,7 +100,7 @@ Desktop section padding `72px 56px` (hero `80–88px` top, CTA band `78px`); nav
 - Inner poll option rows: 10px; embedded/preview rows 8px.
 - All borders 1px.
 - Card elevation: `0 30px 70px -30px rgba(0,0,0,.9)`.
-- Highlighted (Pro / popular) card: `0 0 0 1px rgba(16,185,129,.1), 0 30px 70px -34px rgba(16,185,129,.55)` with a `rgba(16,185,129,.45)` border.
+- Highlighted (Organisation / popular) card: `0 0 0 1px rgba(16,185,129,.1), 0 30px 70px -34px rgba(16,185,129,.55)` with a `rgba(16,185,129,.45)` border.
 - CTA band wash: `radial-gradient(700px 240px at 50% 0%, <accent 10%>, transparent 70%)` (mobile `400px 180px`).
 
 ### Grid texture
@@ -122,15 +122,16 @@ The auth page uses an emerald-tinted variant: `rgba(16,185,129,.05)` on `#07110F
 
 Order of sections:
 1. **Nav** — wordmark left; Pricing / Templates / Use cases / Docs centre (Outfit 400 15px, `text/muted`); Sign in + emerald "Get started" pill right. Bottom border `border/subtle`.
-2. **Hero** — two columns, `1fr 480px`, gap 72px, vertically centred, on grid texture. Left: emerald outline eyebrow pill ("Free to start · no account needed to vote"), H1 `Let your [word] decide` where the bracketed word **rotates every 1.8s** through `team → friends → family → community` in emerald (fade+rise 6px, 0.4s); lead paragraph (max-width 520px); two buttons — emerald "Create a poll", outlined "See a live example". Right: **live poll card** (see Components).
-3. **Who it's for** — H2 + one-line sub, then 3 equal cards. Each: 42px tinted icon square in that use case's secondary colour, title (600/19px), 2-line description, coloured text link "For X →". Cards link to the three use-case routes.
+2. **Hero** — two columns, `1fr 480px`, gap 72px, vertically centred, on grid texture. Left: emerald outline eyebrow pill ("Australian-hosted · No account needed to vote"), static H1 "Polls and votes your organisation can actually use" (no rotating-word effect); lead paragraph (max-width 520px); two buttons — emerald "Create a poll", outlined "See a live poll" (anchors to the poll card). Right: **live poll card** (see Components).
+3. **Who uses TheJury** — H2 + one-line sub, then 5 cards. Each: 42px tinted icon square in that audience's secondary colour, title (600/19px), one concrete scenario, coloured text link "For X →". Cards link to the five use-case routes.
 4. **How it works** — on `bg/alt`. Three columns, each with a 1px left rule, `STEP 01/02/03` emerald label, 20px title, body.
-5. **Features** — exactly 6 cards, 3×2, emerald-tinted 38px icon squares, 17px title, two-line body. No more than six.
-6. **Pricing teaser** — on `bg/alt`. H2 + sub left, "Compare all features →" link right; two cards (Free, Pro highlighted with MOST POPULAR pill). Pro mentions Lifetime A$79 in its sub-line.
-7. **Final CTA band** — radial emerald wash, H2 "Stop asking "so what are we doing?"", one sentence, single emerald button. Must not be an empty band.
-8. **Footer** — wordmark, four links, copyright.
+5. **Features** — exactly 6 cards, 3×2, emerald-tinted 38px icon squares, 17px title, two-line body: Australian hosting, anonymous or verified voting, results record, live results, private polls, works on any phone.
+6. **Comparison strip** — H2 "How it compares", a table comparing TheJury with Google Forms and Mentimeter/Slido. The TheJury column is filled; competitor cells show italic "Check" until verified.
+7. **Pricing teaser** — on `bg/alt`. H2 + sub left, "Compare all features →" link right; two cards (Free, Organisation highlighted with MOST POPULAR pill). No lifetime option.
+8. **Final CTA band** — radial emerald wash, H2 "Put it to a vote", one sentence, single emerald button. Must not be an empty band.
+9. **Footer** — wordmark, link columns (including the five use cases and Security), "Australian owned and operated · ABN" line with the RAVENCI credit, copyright.
 
-Mobile: single column; nav collapses to wordmark + Get started + hamburger; hero buttons full-width stacked; poll card below the copy; "Who it's for" and pricing stack; features become a 2×3 grid with 14px titles.
+Mobile: single column; nav collapses to wordmark + Get started + hamburger (with a "Use cases" group listing the five audiences); hero buttons full-width stacked; poll card below the copy; "Who uses TheJury" and pricing stack; features become a 2×3 grid with 14px titles.
 
 ### 2. Use-case page template — `/for/churches`, `/for/clubs-and-associations`, `/for/councils-and-government`, `/for/businesses`, `/for/presenters`
 One template, five instances. Structure:
@@ -138,7 +139,7 @@ One template, five instances. Structure:
 1. Nav (same as homepage, "Use cases" active).
 2. **Hero** — `1fr 500px`; accent-coloured eyebrow pill; H1 62px; lead; two buttons (primary CTA differs per page); a poll card on the right themed in that page's accent.
 3. **Four alternating feature sections** — `1fr 1fr`, gap 64px, alternating image side and alternating `bg/base` / `bg/alt`. Each has an eyebrow in the accent colour, a 36px Playfair H2, body, and a 3-item check list (16px check icon in the accent colour).
-4. **Pricing teaser** (identical to homepage; sub-line and Pro description are page-specific).
+4. **Pricing teaser** (identical to homepage; sub-line and Organisation description are page-specific).
 5. **Final CTA band** with a radial wash in the page's accent.
 6. Footer.
 
@@ -153,17 +154,18 @@ One template, five instances. Structure:
 **e. `/for/presenters`** — accent `#E79AAE`. Hero "Poll the room while you talk."; visual is an on-screen six-character join code. Sections: *A code on screen* (a live workshop poll), *In your slides* (a poll embedded in a deck), *Read the room* (a live session check-in), *A local option* (a poll on where sessions run, positioning TheJury as the smaller Australian alternative to Mentimeter/Slido). CTAs: "Create a poll" + "See pricing".
 
 ### 3. `/pricing` — `design-files/Pricing.dc.html`
-Centred H1 "Simple, **transparent** pricing" (the middle word emerald) + lead. Two control groups centred below: **Monthly | Annual (Save 20%)** and **A$ AUD | $ USD | € EUR**, both as pill segmented controls (4px padding track, active segment = emerald fill with `#04180F` text).
+Centred H1 "Simple, **transparent** pricing" (the middle word emerald) + lead. Two control groups centred below: **Monthly | Annual (Save 17%)** and **A$ AUD | $ USD | € EUR**, both as pill segmented controls (4px padding track, active segment = emerald fill with `#04180F` text).
 
-Two cards in a 960px-wide `1fr 1fr` grid:
-- **Free** — `A$0` + "forever", one-line description, **8 feature lines, all with emerald ticks — no crossed-out lines**, outlined "Get started free".
-- **Pro** — highlighted: emerald border, emerald glow shadow, `MOST POPULAR` pill overlapping the top-left corner (`top:-13px; left:34px`). Price in emerald with `/mo`. Below the price, a **Lifetime** row in an emerald-tinted rounded box: "Lifetime — A$79 / Pay once, keep Pro forever" + "Choose". 8 feature lines, emerald "Upgrade to Pro".
+Three cards in a max-6xl `1fr 1fr 1fr` grid:
+- **Free** — `A$0` + "forever", one-line description, feature lines with emerald ticks, outlined "Get started free".
+- **Organisation** — highlighted: emerald border, emerald glow shadow, `MOST POPULAR` pill overlapping the top-left corner (`top:-13px; left:34px`). Price in emerald with `/mo` or `/yr`, GST-inclusive note. No lifetime option. Feature lines, emerald "Choose Organisation".
+- **Council & Enterprise** — "From A$79/mo", invoice-billing note, feature lines, outlined "Talk to us" (mailto, not a checkout).
 
-Below: a **collapsed "Compare all features"** card (title + "Every limit and feature, line by line" + chevron that rotates 180° on open, 0.18s). Expanded it reveals an 18-row table, columns `2fr 1fr 1fr` = Feature / Free / Pro, header in 13px 0.06em uppercase, Free column muted, Pro column emerald, 1px row separators. Footnote: "Prices shown in AUD. Cancel any time — your polls stay live on the free tier."
+Below: a **collapsed "Compare all features"** card (title + "Every limit and feature, line by line" + chevron that rotates 180° on open, 0.18s). Expanded it reveals a table with columns Feature / Free / Organisation / Council & Enterprise, header in 13px 0.06em uppercase, Organisation column emerald, 1px row separators. Footnote: "Prices shown in AUD, GST inclusive. Cancel any time. Your polls stay live on the free tier."
 
-Prices per currency: AUD 15 / 12 / 79 · USD 10 / 8 / 55 · EUR 9 / 7 / 49 (monthly / annual-per-month / lifetime). Annual sub-line: "Billed yearly — two months free."; monthly: "Billed monthly, cancel any time."
+Prices (GST inclusive): Organisation AUD 9/mo, 90/yr. Council & Enterprise from AUD 79/mo, 790/yr (invoice available). Annual sub-line: "Billed yearly, GST inclusive."; monthly: "Billed monthly, GST inclusive."
 
-Mobile: controls stack (currency control shows symbols only), **Pro card first**, then Free; compare table columns `1.6fr .7fr .7fr` at 13px.
+Mobile: controls stack (currency control shows symbols only), cards stack with Organisation first; compare table scrolls horizontally at 13px.
 
 ### 4. `/dashboard` — `design-files/Dashboard.dc.html`
 **App nav:** wordmark, Pricing / Templates / **Dashboard** (emerald, active) / Create Poll, then a theme toggle icon and a 32px emerald avatar.
@@ -198,7 +200,7 @@ Mobile: left panel becomes a top block (wordmark, poll card, the line of copy) a
 ### 6. `/templates` — `design-files/Templates.dc.html`
 Centred H1 "Poll templates" + lead; a centred row of category pills (All active in emerald; Feedback, Education, Events, Team, Marketing, Fun outlined). 3-column card grid, 20px gaps, cards min-height 210px.
 
-**Card:** top row = a **42px emerald-tinted square holding a 20px Lucide-style line icon** (stroke `#10B981`, width 1.8, round caps/joins) — this replaces the old emoji — and, on gated templates, the badge group on the right: `PRO` (emerald) or `TEAM` (violet) 10px/0.08em badge **exactly as they are today**, plus a small grey padlock. Then title (600/18px), description, and a footer row with the question count (`text/dim`) and the CTA: free templates get an emerald "Sign in to use"; gated ones get an outlined "Unlock" with a lock icon.
+**Card:** top row = a **42px emerald-tinted square holding a 20px Lucide-style line icon** (stroke `#10B981`, width 1.8, round caps/joins) — this replaces the old emoji — and, on gated templates, the badge group on the right: a `PRO` (emerald) 10px/0.08em badge on gated templates, plus a small grey padlock. Each card also shows its audience tag. Then title (600/18px), description, and a footer row with the question count (`text/dim`) and the CTA: free templates get an emerald "Sign in to use"; gated ones get an outlined "Unlock" with a lock icon.
 
 Twelve templates, icons in order: smile, utensils, calendar, check-circle, bar-chart, trending-up, graduation-cap, mic, tag, briefcase, refresh, search. Mobile: single column, 38px icon squares, badge without the padlock.
 
@@ -206,8 +208,8 @@ Twelve templates, icons in order: smile, utensils, calendar, check-circle, bar-c
 
 ## Interactions & Behavior
 - **Hero word rotation** (homepage): `setInterval` 1800ms cycling four words; each swap fades in and rises 6px over 0.4s. Pause it under `prefers-reduced-motion`.
-- **Pricing billing toggle**: switches Pro's price between monthly and annual-per-month and swaps the description line. Free stays at 0.
-- **Currency switcher**: AUD / USD / EUR changes every price on the page, including the lifetime figure and the footnote.
+- **Pricing billing toggle**: switches Organisation's price between monthly and annual and swaps the description line. Free stays at 0.
+- **Currency switcher**: AUD / USD / EUR changes every price on the page and the footnote.
 - **Compare all features**: click the header row to expand/collapse; chevron rotates 180° over 0.18s. Collapsed by default.
 - **Dashboard overflow menu**: click to open, click again or click another row's "…" to close. Should also close on outside click and `Esc` in production, and be keyboard-navigable.
 - **Hover states** (not captured in the static mocks — implement to the codebase's conventions): primary emerald buttons lighten to `#34D399`; outlined buttons raise their border to `rgba(255,255,255,.24)`; cards raise border to `rgba(255,255,255,.12)`; links go `#10B981 → #34D399`.

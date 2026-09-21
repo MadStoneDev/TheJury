@@ -28,13 +28,13 @@
   <div style="padding:72px 56px 90px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:48px 48px">
     <div style="text-align:center;margin-bottom:38px">
       <h1 style="font:700 54px 'Playfair Display',serif;margin:0 0 14px">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
-      <p style="font:300 19px Outfit;color:#94A3B8;margin:0 auto;max-width:560px">Start free with five active polls. Upgrade when you need unlimited polls, every question type and your own branding.</p>
+      <p style="font:300 19px Outfit;color:#94A3B8;margin:0 auto;max-width:640px">Start free. Move to Organisation for anonymous and verified voting and a results record for the minutes. Council and Enterprise adds unlimited admins and invoice billing. All prices GST inclusive.</p>
     </div>
 
     <div style="display:flex;justify-content:center;gap:14px;margin-bottom:40px">
       <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
         <span onClick="{{ setMonthly }}" style="{{ monthlyTabStyle }}">Monthly</span>
-        <span onClick="{{ setAnnual }}" style="{{ annualTabStyle }}">Annual <span style="font:600 11px Outfit;background:rgba(16,185,129,.16);color:#34D399;padding:2px 7px;border-radius:999px;margin-left:6px">Save 20%</span></span>
+        <span onClick="{{ setAnnual }}" style="{{ annualTabStyle }}">Annual <span style="font:600 11px Outfit;background:rgba(16,185,129,.16);color:#34D399;padding:2px 7px;border-radius:999px;margin-left:6px">Save {{ savings }}%</span></span>
       </div>
       <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
         <span onClick="{{ setAUD }}" style="{{ audStyle }}">A$ AUD</span>
@@ -43,63 +43,73 @@
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:960px;margin:0 auto">
-      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:34px">
-        <div style="font:600 20px Outfit;margin-bottom:12px">Free</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font:700 46px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 16px Outfit;color:#94A3B8">forever</span></div>
-        <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 26px">Everything you need to settle a group decision.</p>
-        <div style="display:flex;flex-direction:column;gap:13px;margin-bottom:30px">
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited votes on every poll</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>5 active polls, 2 questions each</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Multiple choice &amp; rating questions</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Live results with bar charts</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Voting without an account</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>3 AI-drafted polls a month</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results dashboard &amp; history</span>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1240px;margin:0 auto">
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:30px">
+        <div style="font:600 18px Outfit;margin-bottom:10px">Free</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font:700 40px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">forever</span></div>
+        <p style="font:300 14px Outfit;color:#94A3B8;margin:0 0 22px">Try it with your team. Public polls, one admin.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px">
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Public polls with live results</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited polls, single admin</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Multiple choice and rating questions</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>No account needed to vote</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>TheJury branding on the poll page</span>
         </div>
-        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:14px;border-radius:999px">Get started free</span>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:13px;border-radius:999px">Get started free</span>
       </div>
 
-      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:34px;box-shadow:0 0 0 1px rgba(16,185,129,.1),0 30px 70px -34px rgba(16,185,129,.55);position:relative">
-        <span style="position:absolute;top:-13px;left:34px;background:#10B981;color:#04180F;font:600 11px Outfit;letter-spacing:.06em;padding:5px 12px;border-radius:999px">MOST POPULAR</span>
-        <div style="font:600 20px Outfit;margin-bottom:12px">Pro</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font:700 46px 'Playfair Display',serif;color:#10B981">{{ proPrice }}</span><span style="font:400 16px Outfit;color:#94A3B8">{{ proSuffix }}</span></div>
-        <p style="font:300 15px Outfit;color:#94A3B8;margin:0 0 20px">{{ proNote }}</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:10px;padding:13px 16px;margin-bottom:24px">
-          <div><div style="font:600 14px Outfit">Lifetime — {{ lifetimePrice }}</div><div style="font:300 12px Outfit;color:#94A3B8">Pay once, keep Pro forever</div></div>
-          <span style="font:600 13px Outfit;color:#34D399">Choose</span>
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:30px;box-shadow:0 0 0 1px rgba(16,185,129,.1),0 30px 70px -34px rgba(16,185,129,.55);position:relative">
+        <span style="position:absolute;top:-13px;left:30px;background:#10B981;color:#04180F;font:600 11px Outfit;letter-spacing:.06em;padding:5px 12px;border-radius:999px">MOST POPULAR</span>
+        <div style="font:600 18px Outfit;margin-bottom:10px">Organisation</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 40px 'Playfair Display',serif;color:#10B981">{{ orgPrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">{{ orgSuffix }}</span></div>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 22px">{{ orgNote }}</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px">
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Anonymous and verified voting</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results record (PDF and CSV)</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Private polls: password, time limits, member lists</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Remove TheJury branding</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>One organisation, up to 3 admins</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Email support</span>
         </div>
-        <div style="display:flex;flex-direction:column;gap:13px;margin-bottom:30px">
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited active polls and questions</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Ranked choice, image, open-ended &amp; reactions</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Branded embeds &amp; stream overlays</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Scheduling, time limits &amp; passwords</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>CSV export &amp; pie / donut charts</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited AI drafting &amp; all templates</span>
-          <span style="display:flex;gap:11px;align-items:flex-start;font:400 15px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Priority support</span>
-        </div>
-        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:15px;border-radius:999px">Upgrade to Pro</span>
+        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:999px">Choose Organisation</span>
       </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:30px">
+        <div style="font:600 18px Outfit;margin-bottom:10px">Council &amp; Enterprise</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 34px 'Playfair Display',serif">From {{ councilPrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">/mo</span></div>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 22px">Invoice billing available. GST inclusive.</p>
+        <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px">
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Organisation</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited admins</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Priority support</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Custom subdomain and branding</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Single sign-on (on request)</span>
+          <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Invoice billing available</span>
+        </div>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:13px;border-radius:999px">Talk to us</span>
+      </div>
+
     </div>
 
-    <div style="max-width:960px;margin:48px auto 0">
+    <div style="max-width:1240px;margin:48px auto 0">
       <div onClick="{{ toggleTable }}" style="display:flex;align-items:center;justify-content:space-between;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:20px 26px;cursor:pointer">
         <div><div style="font:600 17px Outfit">Compare all features</div><div style="font:300 13px Outfit;color:#64748B;margin-top:3px">Every limit and feature, line by line</div></div>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="{{ chevronStyle }}"><path d="m6 9 6 6 6-6"></path></svg>
       </div>
       <sc-if value="{{ tableOpen }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;margin-top:-12px;padding:26px;overflow:hidden">
-          <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,.07);font:600 13px Outfit;letter-spacing:.06em;color:#64748B"><span>FEATURE</span><span style="text-align:center">FREE</span><span style="text-align:center;color:#34D399">PRO</span></div>
-          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
-            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 14px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="text-align:center;color:#94A3B8">{{ row.free }}</span><span style="text-align:center;color:#34D399">{{ row.pro }}</span></div>
+        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;margin-top:-12px;padding:26px;overflow-x:auto">
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:0 0 14px;border-bottom:1px solid rgba(255,255,255,.07);font:600 12px Outfit;letter-spacing:.06em;color:#64748B;text-transform:uppercase"><span>Feature</span><span>Free</span><span style="color:#34D399">Organisation</span><span>Council &amp; Enterprise</span></div>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="13">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 14px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="color:#94A3B8">{{ row.free }}</span><span style="color:#34D399">{{ row.org }}</span><span style="color:#E2E8F0">{{ row.council }}</span></div>
           </sc-for>
         </div>
       </sc-if>
     </div>
 
-    <div style="text-align:center;font:300 13px Outfit;color:#64748B;margin-top:26px">Prices shown in {{ currency }}. Cancel any time — your polls stay live on the free tier.</div>
+    <div style="text-align:center;font:300 13px Outfit;color:#64748B;margin-top:26px">Prices shown in {{ currency }}, GST inclusive. Cancel any time. Your polls stay live on the free tier.</div>
   </div>
 
   <div style="padding:38px 56px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;gap:28px;font:300 14px Outfit;color:#64748B"><span>Pricing</span><span>Templates</span><span>Privacy</span><span>Terms</span></div><div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div></div>
@@ -112,13 +122,13 @@
   <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.05)"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;align-items:center;gap:12px"><span style="background:#10B981;color:#04180F;font:600 12px Outfit;padding:8px 14px;border-radius:999px">Get started</span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></div></div>
 
   <div style="padding:34px 20px 40px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:40px 40px">
-    <h1 style="font:700 34px/1.15 'Playfair Display',serif;margin:0 0 12px;text-align:center">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
-    <p style="font:300 15px/1.6 Outfit;color:#94A3B8;margin:0 0 24px;text-align:center">Start free with five active polls. Upgrade when you need more.</p>
+    <h1 style="font:700 32px/1.15 'Playfair Display',serif;margin:0 0 12px;text-align:center">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
+    <p style="font:300 14px/1.6 Outfit;color:#94A3B8;margin:0 0 24px;text-align:center">Start free. Move to Organisation for anonymous and verified voting. Council and Enterprise adds invoice billing.</p>
 
     <div style="display:flex;flex-direction:column;gap:10px;align-items:center;margin-bottom:26px">
       <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
         <span onClick="{{ setMonthly }}" style="{{ monthlyTabStyleSm }}">Monthly</span>
-        <span onClick="{{ setAnnual }}" style="{{ annualTabStyleSm }}">Annual −20%</span>
+        <span onClick="{{ setAnnual }}" style="{{ annualTabStyleSm }}">Annual −{{ savings }}%</span>
       </div>
       <div style="display:flex;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:4px">
         <span onClick="{{ setAUD }}" style="{{ audStyleSm }}">A$</span>
@@ -128,55 +138,60 @@
     </div>
 
     <div style="display:flex;flex-direction:column;gap:14px">
-      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:24px;position:relative">
-        <span style="position:absolute;top:-12px;left:24px;background:#10B981;color:#04180F;font:600 10px Outfit;padding:4px 10px;border-radius:999px">MOST POPULAR</span>
-        <div style="font:600 17px Outfit;margin-bottom:10px">Pro</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 36px 'Playfair Display',serif;color:#10B981">{{ proPrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">{{ proSuffix }}</span></div>
-        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 16px">{{ proNote }}</p>
-        <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.07);border-radius:10px;padding:11px 14px;margin-bottom:18px"><div><div style="font:600 13px Outfit">Lifetime — {{ lifetimePrice }}</div><div style="font:300 11px Outfit;color:#94A3B8">Pay once, keep Pro forever</div></div><span style="font:600 12px Outfit;color:#34D399">Choose</span></div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:22px">
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited polls and questions</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Ranked, image, open-ended, reactions</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Branded embeds &amp; overlays</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Scheduling, limits &amp; passwords</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>CSV export &amp; all chart types</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited AI drafting</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Priority support</span>
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:22px">
+        <div style="font:600 16px Outfit;margin-bottom:8px">Free</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 32px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 13px Outfit;color:#94A3B8">forever</span></div>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 16px">Try it with your team. Public polls, one admin.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Public polls with live results</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited polls, single admin</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>No account needed to vote</span>
         </div>
-        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 15px Outfit;padding:14px;border-radius:999px">Upgrade to Pro</span>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 14px Outfit;padding:13px;border-radius:999px">Get started free</span>
       </div>
 
-      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:24px">
-        <div style="font:600 17px Outfit;margin-bottom:10px">Free</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 36px 'Playfair Display',serif">{{ freePrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">forever</span></div>
-        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 18px">Everything you need to settle a group decision.</p>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:22px">
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited votes on every poll</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>5 active polls, 2 questions each</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Multiple choice &amp; rating questions</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Live results with bar charts</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Share by link, code or QR</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Voting without an account</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>3 AI-drafted polls a month</span>
-          <span style="display:flex;gap:10px;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results dashboard &amp; history</span>
+      <div style="background:#0F1520;border:1px solid rgba(16,185,129,.45);border-radius:12px;padding:22px;position:relative">
+        <span style="position:absolute;top:-12px;left:22px;background:#10B981;color:#04180F;font:600 10px Outfit;padding:4px 10px;border-radius:999px">MOST POPULAR</span>
+        <div style="font:600 16px Outfit;margin-bottom:8px">Organisation</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 32px 'Playfair Display',serif;color:#10B981">{{ orgPrice }}</span><span style="font:400 13px Outfit;color:#94A3B8">{{ orgSuffix }}</span></div>
+        <p style="font:300 12px Outfit;color:#94A3B8;margin:0 0 16px">{{ orgNote }}</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Free</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Anonymous and verified voting</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Results record (PDF and CSV)</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Remove TheJury branding</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>One organisation, up to 3 admins</span>
         </div>
-        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 15px Outfit;padding:14px;border-radius:999px">Get started free</span>
+        <span style="display:block;text-align:center;background:#10B981;color:#04180F;font:600 14px Outfit;padding:13px;border-radius:999px">Choose Organisation</span>
+      </div>
+
+      <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:22px">
+        <div style="font:600 16px Outfit;margin-bottom:8px">Council &amp; Enterprise</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 28px 'Playfair Display',serif">From {{ councilPrice }}</span><span style="font:400 13px Outfit;color:#94A3B8">/mo</span></div>
+        <p style="font:300 12px Outfit;color:#94A3B8;margin:0 0 16px">Invoice billing available. GST inclusive.</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Organisation</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited admins</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Single sign-on (on request)</span>
+          <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Invoice billing available</span>
+        </div>
+        <span style="display:block;text-align:center;border:1px solid rgba(255,255,255,.14);font:500 14px Outfit;padding:13px;border-radius:999px">Talk to us</span>
       </div>
     </div>
 
     <div style="margin-top:22px">
       <div onClick="{{ toggleTable }}" style="display:flex;align-items:center;justify-content:space-between;background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px 18px"><div style="font:600 15px Outfit">Compare all features</div><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="{{ chevronStyle }}"><path d="m6 9 6 6 6-6"></path></svg></div>
       <sc-if value="{{ tableOpen }}" hint-placeholder-val="{{ false }}">
-        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;padding:18px">
-          <div style="display:grid;grid-template-columns:1.6fr .7fr .7fr;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07);font:600 11px Outfit;color:#64748B"><span>FEATURE</span><span style="text-align:center">FREE</span><span style="text-align:center;color:#34D399">PRO</span></div>
-          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="8">
-            <div style="display:grid;grid-template-columns:1.6fr .7fr .7fr;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 13px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="text-align:center;color:#94A3B8">{{ row.free }}</span><span style="text-align:center;color:#34D399">{{ row.pro }}</span></div>
+        <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-top:none;border-radius:0 0 12px 12px;padding:18px;overflow-x:auto">
+          <div style="display:grid;grid-template-columns:1.4fr .6fr .8fr .8fr;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07);font:600 10px Outfit;color:#64748B;text-transform:uppercase"><span>Feature</span><span>Free</span><span style="color:#34D399">Org</span><span>Council</span></div>
+          <sc-for list="{{ rows }}" as="row" hint-placeholder-count="13">
+            <div style="display:grid;grid-template-columns:1.4fr .6fr .8fr .8fr;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05);font:400 12px Outfit;color:#E2E8F0"><span>{{ row.name }}</span><span style="color:#94A3B8">{{ row.free }}</span><span style="color:#34D399">{{ row.org }}</span><span style="color:#E2E8F0">{{ row.council }}</span></div>
           </sc-for>
         </div>
       </sc-if>
     </div>
-    <div style="text-align:center;font:300 12px Outfit;color:#64748B;margin-top:20px">Prices shown in {{ currency }}. Cancel any time.</div>
+    <div style="text-align:center;font:300 12px Outfit;color:#64748B;margin-top:20px">Prices shown in {{ currency }}, GST inclusive. Cancel any time.</div>
   </div>
   <div style="padding:24px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 16px 'Playfair Display',serif">TheJury</div><div style="font:300 12px Outfit;color:#475569">© 2026 TheJury</div></div>
 </div>
@@ -188,48 +203,53 @@
 class Component extends DCLogic {
   state = { annual: false, cur: "AUD", open: false };
   renderVals() {
-    const P = {
-      AUD: { sym: "A$", m: 15, a: 12, life: 79 },
-      USD: { sym: "$", m: 10, a: 8, life: 55 },
-      EUR: { sym: "€", m: 9, a: 7, life: 49 }
-    }[this.state.cur];
+    const RATE = { AUD: 1, USD: 0.63, EUR: 0.58 };
+    const SYM = { AUD: "A$", USD: "$", EUR: "€" };
+    const rate = RATE[this.state.cur];
+    const sym = SYM[this.state.cur];
+    const convert = (aud) => (aud === 0 ? "0" : String(Math.round(aud * rate)));
+
+    const ORG_MONTHLY = 9;
+    const ORG_ANNUAL_TOTAL = 90;
+    const COUNCIL_MONTHLY = 79;
+
+    const savings = Math.round(((ORG_MONTHLY * 12 - ORG_ANNUAL_TOTAL) / (ORG_MONTHLY * 12)) * 100);
+
     const on = "background:#10B981;color:#04180F;font:600 14px Outfit;padding:9px 20px;border-radius:999px;display:inline-flex;align-items:center;cursor:pointer";
     const off = "color:#94A3B8;font:500 14px Outfit;padding:9px 20px;border-radius:999px;display:inline-flex;align-items:center;cursor:pointer";
     const onSm = on.replace("14px", "13px").replace("9px 20px", "8px 16px");
     const offSm = off.replace("14px", "13px").replace("9px 20px", "8px 16px");
     const c = k => (this.state.cur === k ? on : off);
     const cSm = k => (this.state.cur === k ? onSm : offSm);
+
     const rows = [
-      { name: "Active polls", free: "5", pro: "Unlimited" },
-      { name: "Questions per poll", free: "2", pro: "Unlimited" },
-      { name: "Votes per poll", free: "Unlimited", pro: "Unlimited" },
-      { name: "Multiple choice & rating", free: "✓", pro: "✓" },
-      { name: "Ranked choice & image options", free: "—", pro: "✓" },
-      { name: "Open-ended & reaction polls", free: "—", pro: "✓" },
-      { name: "AI poll drafting", free: "3 / month", pro: "Unlimited" },
-      { name: "Poll templates", free: "4 free", pro: "All" },
-      { name: "Chart types", free: "Bar", pro: "Bar, pie, donut" },
-      { name: "CSV export", free: "—", pro: "✓" },
-      { name: "QR codes & short links", free: "Links & codes", pro: "✓" },
-      { name: "Scheduling & time limits", free: "—", pro: "✓" },
-      { name: "Password protection", free: "—", pro: "✓" },
-      { name: "Anonymous responses", free: "✓", pro: "✓" },
-      { name: "Custom embed theme", free: "—", pro: "✓" },
-      { name: "Stream overlay", free: "—", pro: "✓" },
-      { name: "TheJury branding removed", free: "—", pro: "✓" },
-      { name: "Support", free: "Community", pro: "Priority" }
+      { name: "Public polls & live results", free: "✓", org: "✓", council: "✓" },
+      { name: "Hosted in Australia", free: "✓", org: "✓", council: "✓" },
+      { name: "No account needed to vote", free: "✓", org: "✓", council: "✓" },
+      { name: "Anonymous voting", free: "—", org: "✓", council: "✓" },
+      { name: "Verified voting (one link per member)", free: "—", org: "✓", council: "✓" },
+      { name: "Results record", free: "—", org: "PDF & CSV", council: "PDF & CSV" },
+      { name: "Private polls (password, time limits)", free: "—", org: "✓", council: "✓" },
+      { name: "Remove TheJury branding", free: "—", org: "✓", council: "✓" },
+      { name: "Admins", free: "1", org: "Up to 3", council: "Unlimited" },
+      { name: "Custom subdomain & branding", free: "—", org: "—", council: "✓" },
+      { name: "Single sign-on", free: "—", org: "—", council: "On request" },
+      { name: "Support", free: "Community", org: "Email", council: "Priority" },
+      { name: "Billing", free: "—", org: "Card", council: "Card or invoice" }
     ];
+
     return {
       rows,
       currency: this.state.cur,
       tableOpen: this.state.open,
-      freePrice: P.sym + "0",
-      proPrice: P.sym + (this.state.annual ? P.a : P.m),
-      proSuffix: "/mo",
-      proNote: this.state.annual
-        ? "Billed yearly — two months free."
-        : "Billed monthly, cancel any time.",
-      lifetimePrice: P.sym + P.life,
+      savings,
+      freePrice: sym + "0",
+      orgPrice: sym + (this.state.annual ? convert(ORG_ANNUAL_TOTAL) : convert(ORG_MONTHLY)),
+      orgSuffix: this.state.annual ? "/yr" : "/mo",
+      orgNote: this.state.annual
+        ? "Billed yearly, GST inclusive. Save " + savings + "%."
+        : "Billed monthly, GST inclusive.",
+      councilPrice: sym + convert(COUNCIL_MONTHLY),
       monthlyTabStyle: this.state.annual ? off : on,
       annualTabStyle: this.state.annual ? on : off,
       monthlyTabStyleSm: this.state.annual ? offSm : onSm,
