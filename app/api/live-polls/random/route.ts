@@ -42,11 +42,9 @@ export async function GET(request: Request) {
       );
     }
 
-    // Prefer gaming/community polls so the hero demo suits our audience;
-    // fall back to the full set if none are seeded yet.
-    const onBrand = polls.filter(
-      (p) => p.category === "gaming" || p.category === "community",
-    );
+    // Prefer the Australian-org demo poll so the hero suits our audience;
+    // fall back to the full set if none is seeded yet.
+    const onBrand = polls.filter((p) => p.category === "organisation");
     const pool = onBrand.length > 0 ? onBrand : polls;
 
     // Randomly select a poll

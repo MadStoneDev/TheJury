@@ -5,21 +5,18 @@ import Link from "next/link";
 import {
   Lock,
   ArrowRight,
-  Smile,
-  Utensils,
-  Calendar,
-  CheckCircle,
+  Gavel,
+  Users,
+  Church,
+  ClipboardList,
+  MessageSquare,
+  Landmark,
   BarChart3,
-  TrendingUp,
-  GraduationCap,
-  Mic,
-  Tag,
-  Briefcase,
-  RefreshCw,
-  Search,
-  Gamepad2,
   Star,
-  Dices,
+  Calendar,
+  Presentation,
+  ListChecks,
+  Smile,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -33,21 +30,17 @@ import { IconTile } from "@/components/design/IconTile";
 import UpgradeModal from "@/components/UpgradeModal";
 
 const ICONS: Record<string, LucideIcon> = {
-  smile: Smile,
-  utensils: Utensils,
-  calendar: Calendar,
-  "check-circle": CheckCircle,
+  gavel: Gavel,
+  users: Users,
+  church: Church,
+  clipboard: ClipboardList,
+  "message-square": MessageSquare,
+  landmark: Landmark,
   "bar-chart": BarChart3,
-  "trending-up": TrendingUp,
-  "graduation-cap": GraduationCap,
-  mic: Mic,
-  tag: Tag,
-  briefcase: Briefcase,
-  refresh: RefreshCw,
-  search: Search,
-  gamepad: Gamepad2,
   star: Star,
-  dice: Dices,
+  calendar: Calendar,
+  presentation: Presentation,
+  "list-checks": ListChecks,
 };
 
 interface TemplateCardsProps {
@@ -119,7 +112,7 @@ export default function TemplateCards({
                     </span>
                   )}
                   {t.minTier === "team" && (
-                    <span className="rounded bg-gaming/[0.14] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-gaming-text">
+                    <span className="rounded bg-jury-input px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-jury-muted">
                       Team
                     </span>
                   )}
@@ -132,7 +125,8 @@ export default function TemplateCards({
 
               <div className="mt-auto flex items-center justify-between pt-4">
                 <span className="text-[13px] text-jury-dim">
-                  {t.questions.length} {t.questions.length === 1 ? "question" : "questions"}
+                  {t.audience} · {t.questions.length}{" "}
+                  {t.questions.length === 1 ? "question" : "questions"}
                 </span>
                 {locked ? (
                   <button

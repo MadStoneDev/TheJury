@@ -1,5 +1,15 @@
 import type { TierName } from "./stripe";
 
+// Poll templates for the Australian-org audience. Each carries an `audience`
+// tag and a one-line description that states the default settings, since the
+// poll schema itself doesn't model "anonymous"/"verified" — the person sets
+// those in the create flow.
+//
+// CLAIM-FLAG (verified-voting): templates described as a formal vote (AGM
+// motion, elections, congregational vote, circular resolution) create an
+// ordinary poll today. Verified one-link-per-member voting is not built yet;
+// see /security. Do not imply the poll is verified until it ships.
+
 export interface TemplateOption {
   text: string;
 }
@@ -17,446 +27,311 @@ export interface PollTemplate {
   name: string;
   description: string;
   category: TemplateCategory;
+  /** Display-only audience tag (e.g. "Churches", "Councils & government"). */
+  audience: string;
   minTier: TierName;
   icon: string;
   questions: TemplateQuestion[];
 }
 
 export type TemplateCategory =
+  | "governance"
+  | "consultation"
   | "feedback"
-  | "education"
   | "events"
-  | "team"
-  | "marketing"
-  | "fun";
+  | "live";
 
 export const TEMPLATE_CATEGORIES: {
   value: TemplateCategory;
   label: string;
 }[] = [
+  { value: "governance", label: "Motions & elections" },
+  { value: "consultation", label: "Consultation" },
   { value: "feedback", label: "Feedback" },
-  { value: "education", label: "Education" },
-  { value: "events", label: "Events" },
-  { value: "team", label: "Team" },
-  { value: "marketing", label: "Marketing" },
-  { value: "fun", label: "Fun" },
+  { value: "events", label: "Dates & events" },
+  { value: "live", label: "Live sessions" },
 ];
 
+const RATING_1_5 = (low: string, high: string) => ({
+  min: 1,
+  max: 5,
+  labels: { 1: low, 5: high },
+});
+
 export const TEMPLATES: PollTemplate[] = [
-  // --- FREE TEMPLATES ---
+  // --- MOTIONS & ELECTIONS ---
   {
-    id: "customer-satisfaction",
-    name: "Customer Satisfaction",
-    description: "Measure how happy your customers are with your product or service",
-    category: "feedback",
-    minTier: "free",
-    icon: "smile",
+    id: "agm-motion",
+    name: "AGM motion",
+    description:
+      "Put a motion to the members. For, against or abstain, with a clear record for the minutes.",
+    category: "governance",
+    audience: "Clubs & associations",
+    minTier: "pro",
+    icon: "gavel",
     questions: [
       {
-        question_text: "How satisfied are you with our product/service?",
+        question_text: "That the motion be carried.",
         question_type: "multiple_choice",
         allow_multiple: false,
         settings: {},
+        options: [{ text: "For" }, { text: "Against" }, { text: "Abstain" }],
+      },
+    ],
+  },
+  {
+    id: "committee-election",
+    name: "Committee or board election",
+    description:
+      "Run an election for the committee or board. Members choose up to the number of vacancies.",
+    category: "governance",
+    audience: "Clubs & associations",
+    minTier: "pro",
+    icon: "users",
+    questions: [
+      {
+        question_text: "Elect your committee (choose up to three).",
+        question_type: "multiple_choice",
+        allow_multiple: true,
+        settings: { maxChoices: 3 },
         options: [
-          { text: "Very Satisfied" },
-          { text: "Satisfied" },
-          { text: "Neutral" },
-          { text: "Dissatisfied" },
-          { text: "Very Dissatisfied" },
+          { text: "Karen Nguyen" },
+          { text: "Dave Mitchell" },
+          { text: "Priya Sharma" },
+          { text: "Tom Kelly" },
+          { text: "Fiona Papadopoulos" },
         ],
       },
     ],
   },
   {
-    id: "team-lunch",
-    name: "Team Lunch Poll",
-    description: "Let your team vote on where to eat",
-    category: "team",
-    minTier: "free",
-    icon: "utensils",
+    id: "congregational-vote",
+    name: "Congregational vote on a proposal",
+    description:
+      "Put a building or budget proposal to the congregation. Yes, no or abstain.",
+    category: "governance",
+    audience: "Churches",
+    minTier: "pro",
+    icon: "church",
     questions: [
       {
-        question_text: "Where should we go for lunch today?",
+        question_text: "Adopt the proposal?",
         question_type: "multiple_choice",
         allow_multiple: false,
         settings: {},
-        options: [
-          { text: "Pizza" },
-          { text: "Sushi" },
-          { text: "Burgers" },
-          { text: "Salads" },
-          { text: "Thai" },
-        ],
+        options: [{ text: "Yes" }, { text: "No" }, { text: "Abstain" }],
       },
     ],
   },
   {
-    id: "event-date",
-    name: "Event Date Picker",
-    description: "Find the best date for your next event",
-    category: "events",
-    minTier: "free",
-    icon: "calendar",
+    id: "circular-resolution",
+    name: "Board circular resolution",
+    description:
+      "A circular resolution between meetings. Yes or no, with a close time you set.",
+    category: "governance",
+    audience: "Clubs & associations",
+    minTier: "pro",
+    icon: "clipboard",
     questions: [
       {
-        question_text: "Which date works best for you?",
+        question_text: "That the resolution be passed.",
+        question_type: "multiple_choice",
+        allow_multiple: false,
+        settings: {},
+        options: [{ text: "Yes" }, { text: "No" }],
+      },
+    ],
+  },
+
+  // --- CONSULTATION ---
+  {
+    id: "rule-change-consultation",
+    name: "Member consultation on a rule change",
+    description:
+      "Test a rule change before you table it. Agree, disagree or unsure, plus a comment box. Anonymous.",
+    category: "consultation",
+    audience: "Clubs & associations",
+    minTier: "pro",
+    icon: "message-square",
+    questions: [
+      {
+        question_text: "How do you feel about the proposed rule change?",
+        question_type: "multiple_choice",
+        allow_multiple: false,
+        settings: {},
+        options: [
+          { text: "Agree" },
+          { text: "Disagree" },
+          { text: "Unsure" },
+        ],
+      },
+      {
+        question_text: "Anything you'd like the committee to consider?",
+        question_type: "open_ended",
+        allow_multiple: false,
+        settings: {},
+        options: [],
+      },
+    ],
+  },
+  {
+    id: "community-consultation",
+    name: "Community consultation",
+    description:
+      "Ask residents which priorities matter most. Tick all that apply, no account needed.",
+    category: "consultation",
+    audience: "Councils & government",
+    minTier: "free",
+    icon: "landmark",
+    questions: [
+      {
+        question_text: "Which priorities matter most to you? (tick all that apply)",
         question_type: "multiple_choice",
         allow_multiple: true,
         settings: {},
         options: [
-          { text: "Monday" },
-          { text: "Tuesday" },
-          { text: "Wednesday" },
-          { text: "Thursday" },
-          { text: "Friday" },
+          { text: "Parks and open space" },
+          { text: "Roads and footpaths" },
+          { text: "Waste and recycling" },
+          { text: "Community events" },
+          { text: "Public transport" },
         ],
       },
     ],
   },
-  {
-    id: "quick-vote",
-    name: "Quick Yes/No Vote",
-    description: "Get a fast answer on any topic",
-    category: "fun",
-    minTier: "free",
-    icon: "check-circle",
-    questions: [
-      {
-        question_text: "Do you agree?",
-        question_type: "multiple_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [{ text: "Yes" }, { text: "No" }, { text: "Maybe" }],
-      },
-    ],
-  },
 
-  // --- PRO TEMPLATES ---
+  // --- FEEDBACK ---
   {
-    id: "product-feedback-survey",
-    name: "Product Feedback Survey",
-    description: "Comprehensive product feedback with ratings and rankings",
+    id: "staff-feedback",
+    name: "Anonymous staff feedback",
+    description:
+      "An anonymous staff pulse check. A few statements, each rated one to five.",
     category: "feedback",
+    audience: "Businesses",
     minTier: "pro",
     icon: "bar-chart",
     questions: [
       {
-        question_text: "How would you rate our product overall?",
+        question_text: "I have what I need to do my job well.",
         question_type: "rating_scale",
         allow_multiple: false,
-        settings: { min: 1, max: 5, labels: { "1": "Poor", "5": "Excellent" } },
+        settings: RATING_1_5("Strongly disagree", "Strongly agree"),
         options: [],
       },
       {
-        question_text: "Which features are most important to you?",
-        question_type: "ranked_choice",
+        question_text: "I feel heard by management.",
+        question_type: "rating_scale",
         allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Ease of use" },
-          { text: "Performance" },
-          { text: "Design" },
-          { text: "Price" },
-          { text: "Support" },
-        ],
+        settings: RATING_1_5("Strongly disagree", "Strongly agree"),
+        options: [],
+      },
+      {
+        question_text: "I would recommend this as a place to work.",
+        question_type: "rating_scale",
+        allow_multiple: false,
+        settings: RATING_1_5("Strongly disagree", "Strongly agree"),
+        options: [],
       },
     ],
   },
   {
-    id: "nps-survey",
-    name: "NPS Survey",
-    description: "Net Promoter Score — measure customer loyalty",
+    id: "client-satisfaction",
+    name: "Client or patient satisfaction",
+    description:
+      "A quick rating after an appointment, with one optional comment. Anonymous.",
     category: "feedback",
+    audience: "Businesses",
     minTier: "pro",
-    icon: "trending-up",
+    icon: "star",
     questions: [
       {
-        question_text:
-          "How likely are you to recommend us to a friend? (1 = Not likely, 10 = Very likely)",
+        question_text: "How was your experience today?",
         question_type: "rating_scale",
         allow_multiple: false,
-        settings: { min: 1, max: 10, labels: { "1": "Not at all", "10": "Extremely likely" } },
+        settings: RATING_1_5("Poor", "Excellent"),
+        options: [],
+      },
+      {
+        question_text: "Anything we could do better?",
+        question_type: "open_ended",
+        allow_multiple: false,
+        settings: {},
         options: [],
       },
     ],
   },
+
+  // --- DATES & EVENTS ---
   {
-    id: "class-quiz",
-    name: "Class Quiz",
-    description: "Test knowledge with a multi-question quiz",
-    category: "education",
-    minTier: "pro",
-    icon: "graduation-cap",
-    questions: [
-      {
-        question_text: "What is the capital of Australia?",
-        question_type: "multiple_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Sydney" },
-          { text: "Melbourne" },
-          { text: "Canberra" },
-          { text: "Brisbane" },
-        ],
-      },
-      {
-        question_text: "Which planet is closest to the sun?",
-        question_type: "multiple_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Venus" },
-          { text: "Mercury" },
-          { text: "Earth" },
-          { text: "Mars" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "event-feedback",
-    name: "Event Feedback",
-    description: "Gather post-event feedback with ratings",
+    id: "find-a-date",
+    name: "Find a meeting or event date",
+    description:
+      "Find a date that suits the most people. Tick every option that works.",
     category: "events",
-    minTier: "pro",
-    icon: "mic",
+    audience: "Any organisation",
+    minTier: "free",
+    icon: "calendar",
     questions: [
       {
-        question_text: "How would you rate the event overall?",
-        question_type: "rating_scale",
-        allow_multiple: false,
-        settings: { min: 1, max: 5, labels: { "1": "Poor", "5": "Excellent" } },
-        options: [],
-      },
-      {
-        question_text: "What did you enjoy most?",
+        question_text: "Which dates can you make? (tick all that work)",
         question_type: "multiple_choice",
         allow_multiple: true,
         settings: {},
         options: [
-          { text: "Speakers" },
-          { text: "Networking" },
-          { text: "Content" },
-          { text: "Venue" },
-          { text: "Food & Drinks" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "brand-preference",
-    name: "Brand Preference",
-    description: "Compare brand options with image-based voting",
-    category: "marketing",
-    minTier: "pro",
-    icon: "tag",
-    questions: [
-      {
-        question_text: "Which logo design do you prefer?",
-        question_type: "image_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Option A" },
-          { text: "Option B" },
-          { text: "Option C" },
+          { text: "Saturday 4 October" },
+          { text: "Sunday 5 October" },
+          { text: "Saturday 11 October" },
+          { text: "Sunday 12 October" },
         ],
       },
     ],
   },
 
-  // --- TEAM TEMPLATES ---
+  // --- LIVE SESSIONS ---
   {
-    id: "employee-engagement",
-    name: "Employee Engagement Survey",
-    description: "Comprehensive workplace satisfaction survey",
-    category: "team",
-    minTier: "team",
-    icon: "briefcase",
+    id: "session-check-in",
+    name: "Live session check-in",
+    description:
+      "A quick check-in during a live session. One tap from the room.",
+    category: "live",
+    audience: "Presenters",
+    minTier: "free",
+    icon: "presentation",
     questions: [
       {
-        question_text: "How satisfied are you with your role?",
-        question_type: "rating_scale",
-        allow_multiple: false,
-        settings: { min: 1, max: 5, labels: { "1": "Very unsatisfied", "5": "Very satisfied" } },
-        options: [],
-      },
-      {
-        question_text: "What could we improve?",
-        question_type: "open_ended",
-        allow_multiple: false,
-        settings: {},
-        options: [],
-      },
-      {
-        question_text: "How do you feel about the team culture?",
-        question_type: "reaction",
-        allow_multiple: true,
-        settings: { emojis: ["😀", "😐", "😢", "😡"] },
-        options: [
-          { text: "😀" },
-          { text: "😐" },
-          { text: "😢" },
-          { text: "😡" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "retrospective",
-    name: "Sprint Retrospective",
-    description: "Team retro — what went well, what to improve",
-    category: "team",
-    minTier: "team",
-    icon: "refresh",
-    questions: [
-      {
-        question_text: "How would you rate this sprint?",
-        question_type: "rating_scale",
-        allow_multiple: false,
-        settings: { min: 1, max: 5, labels: { "1": "Rough", "5": "Great" } },
-        options: [],
-      },
-      {
-        question_text: "What went well?",
-        question_type: "open_ended",
-        allow_multiple: false,
-        settings: {},
-        options: [],
-      },
-      {
-        question_text: "What should we improve?",
-        question_type: "open_ended",
-        allow_multiple: false,
-        settings: {},
-        options: [],
-      },
-    ],
-  },
-  {
-    id: "market-research",
-    name: "Market Research Survey",
-    description: "Comprehensive market research with multiple question types",
-    category: "marketing",
-    minTier: "team",
-    icon: "search",
-    questions: [
-      {
-        question_text: "How often do you use products like ours?",
+        question_text: "How are you finding the session so far?",
         question_type: "multiple_choice",
         allow_multiple: false,
         settings: {},
         options: [
-          { text: "Daily" },
-          { text: "Weekly" },
-          { text: "Monthly" },
-          { text: "Rarely" },
-          { text: "Never" },
-        ],
-      },
-      {
-        question_text: "Rate these features by importance",
-        question_type: "ranked_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Price" },
-          { text: "Quality" },
-          { text: "Speed" },
-          { text: "Support" },
-          { text: "Design" },
-        ],
-      },
-      {
-        question_text: "Any additional feedback?",
-        question_type: "open_ended",
-        allow_multiple: false,
-        settings: {},
-        options: [],
-      },
-    ],
-  },
-  // --- GAMING TEMPLATES ---
-  {
-    id: "game-night",
-    name: "Game Night",
-    description: "Let the squad pick what you're playing tonight",
-    category: "fun",
-    minTier: "free",
-    icon: "gamepad",
-    questions: [
-      {
-        question_text: "What are we playing tonight?",
-        question_type: "multiple_choice",
-        allow_multiple: false,
-        settings: {},
-        options: [
-          { text: "Ranked grind" },
-          { text: "Chill co-op" },
-          { text: "Party games" },
-          { text: "Something new" },
+          { text: "Following along" },
+          { text: "A bit lost" },
+          { text: "Too slow" },
+          { text: "Just right" },
         ],
       },
     ],
   },
   {
-    id: "session-scheduling",
-    name: "Session Scheduling",
-    description: "Find a night everyone can make (tick all that work)",
-    category: "events",
-    minTier: "free",
-    icon: "calendar",
-    questions: [
-      {
-        question_text: "Which nights can you make this week?",
-        question_type: "multiple_choice",
-        allow_multiple: true,
-        settings: {},
-        options: [
-          { text: "Friday" },
-          { text: "Saturday" },
-          { text: "Sunday" },
-          { text: "Weeknight" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "rate-the-session",
-    name: "Rate the Session",
-    description: "A quick temperature check after tonight's session",
-    category: "feedback",
-    minTier: "free",
-    icon: "star",
-    questions: [
-      {
-        question_text: "How was tonight's session?",
-        question_type: "rating_scale",
-        allow_multiple: false,
-        settings: { min: 1, max: 5, labels: { 1: "Rough", 5: "Legendary" } },
-        options: [],
-      },
-    ],
-  },
-  {
-    id: "next-campaign",
-    name: "Next Campaign",
-    description: "Rank what the group plays next — ranked choice ends the stalemate",
-    category: "fun",
+    id: "which-topic-next",
+    name: "Training workshop: which topic next",
+    description:
+      "Let the room rank what to cover next. Ranked choice settles it.",
+    category: "live",
+    audience: "Presenters",
     minTier: "pro",
-    icon: "dice",
+    icon: "list-checks",
     questions: [
       {
-        question_text: "What should we run next?",
+        question_text: "Which topic should we cover next?",
         question_type: "ranked_choice",
         allow_multiple: false,
         settings: {},
         options: [
-          { text: "Curse of Strahd" },
-          { text: "Blades in the Dark" },
-          { text: "Delta Green one-shot" },
-          { text: "Something homebrew" },
+          { text: "Worked examples" },
+          { text: "A live demo" },
+          { text: "Common mistakes" },
+          { text: "Questions and discussion" },
         ],
       },
     ],

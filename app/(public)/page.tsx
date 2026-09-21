@@ -13,6 +13,7 @@ import { IconTile } from "@/components/design/IconTile";
 import { ACCENT_TEXT } from "@/components/design/accents";
 import { AUDIENCES } from "@/lib/marketing/audiences";
 import { PricingTeaser } from "@/components/design/PricingTeaser";
+import { ComparisonStrip } from "@/components/design/ComparisonStrip";
 import { CtaBand } from "@/components/design/CtaBand";
 
 // CLAIM-FLAG: the feature grid and step 2/3 below describe server-enforced
@@ -173,6 +174,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      <ComparisonStrip />
 
       <PricingTeaser />
 

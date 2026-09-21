@@ -13,31 +13,64 @@ const defaultUrl =
     ? "https://thejury.app"
     : "http://localhost:3888");
 
+const defaultTitle =
+  "TheJury — Australian-hosted polls and votes for organisations";
+const defaultDescription =
+  "Anonymous staff feedback, AGM motions, community consultation and live session polls. Hosted in Australia, with a results record you can attach to the minutes. No account needed to vote.";
+
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "TheJury - Polling Platform",
-  description: "Create and participate in polls with TheJury",
+  title: defaultTitle,
+  description: defaultDescription,
   openGraph: {
     type: "website",
     siteName: "TheJury",
-    title: "TheJury - Polling Platform",
-    description: "Create and participate in polls with TheJury",
+    title: defaultTitle,
+    description: defaultDescription,
     url: defaultUrl,
     images: [
       {
         url: "thejury-og.png",
         width: 1920,
         height: 1080,
-        alt: "TheJury — twelve opinions, one answer.",
+        alt: "TheJury — Australian-hosted polls and votes for organisations.",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "TheJury - Polling Platform",
-    description: "Create and participate in polls with TheJury",
+    title: defaultTitle,
+    description: defaultDescription,
     images: ["thejury-og.png"],
   },
+};
+
+// Site-wide structured data. ABN and registered address are placeholders —
+// confirm before launch. (CLAIM-FLAG: business identifiers to be filled in.)
+const orgJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "TheJury",
+  url: defaultUrl,
+  logo: `${defaultUrl}/thejury-og.png`,
+  areaServed: "AU",
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "AU",
+    addressRegion: "[state: to confirm]",
+  },
+  identifier: {
+    "@type": "PropertyValue",
+    name: "ABN",
+    value: "[ABN: to confirm]",
+  },
+};
+
+const siteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "TheJury",
+  url: defaultUrl,
 };
 
 const outfitSans = Outfit({
@@ -63,6 +96,14 @@ export default function RootLayout({
       <body
         className={`${outfitSans.variable} ${dmSerifDisplay.variable} font-sans antialiased`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

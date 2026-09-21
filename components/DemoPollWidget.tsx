@@ -87,7 +87,11 @@ const DemoPollWidget: React.FC = () => {
   const [voterFingerprint, setVoterFingerprint] = useState("");
 
   useEffect(() => {
-    setVoterFingerprint(generateFingerprint());
+    // Fall back to a random id so a fingerprint failure can't leave the widget
+    // stuck on "Loading" forever.
+    setVoterFingerprint(
+      generateFingerprint() || `demo-${Math.random().toString(36).slice(2)}`,
+    );
   }, []);
 
   const loadDemoPoll = useCallback(async () => {
@@ -185,30 +189,10 @@ const DemoPollWidget: React.FC = () => {
     );
   }
 
-  if (error && !demoPoll) {
-    return (
-      <div className={cardClass}>
-        <div className="text-center py-8">
-          <p className="text-destructive mb-4 text-sm">{error}</p>
-          <button
-            onClick={loadDemoPoll}
-            className="text-jury-emerald hover:text-jury-emerald-hi font-medium text-sm transition-colors"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+  // If the demo poll can't load, hide the block entirely rather than showing an
+  // empty or error state (per the marketing brief).
   if (!demoPoll) {
-    return (
-      <div className={cardClass}>
-        <div className="text-center text-jury-muted py-8">
-          No live polls available
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const options: Array<{ id: string; text: string }> = safeJsonParse(

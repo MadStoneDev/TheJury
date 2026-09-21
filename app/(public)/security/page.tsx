@@ -37,7 +37,7 @@ export default function SecurityPage() {
       <Section heading="Where your data is hosted">
         <P>
           Poll content, votes and account details are stored on
-          Australian-hosted infrastructure in [Australian region — to confirm].
+          Australian-hosted infrastructure in [Australian region: to confirm].
           We run our own database and storage rather than a shared overseas
           platform.
         </P>
@@ -63,7 +63,7 @@ export default function SecurityPage() {
       <Section heading="What we don't store">
         <List
           items={[
-            "Card numbers — payment details stay with Stripe.",
+            "Card numbers. Payment details stay with Stripe.",
             "A voter account for people who only vote. No one needs an account to respond to a poll.",
             "Message content from any linked Discord server.",
           ]}
@@ -98,7 +98,7 @@ export default function SecurityPage() {
       <Section heading="Backups and retention">
         <P>
           We back up the database on a regular schedule, kept within Australia
-          [backup location, frequency and retention — to confirm]. You can delete
+          [backup location, frequency and retention: to confirm]. You can delete
           a poll at any time, which removes its votes. Deleting your account
           removes your personal data, other than records we are required to keep
           for legal or accounting reasons, such as billing history.
@@ -122,7 +122,7 @@ export default function SecurityPage() {
       <Section heading="Security questions">
         <P>
           If you have a security question, or you need to report something, email
-          [security contact — to confirm]. We would rather hear about a concern
+          [security contact: to confirm]. We would rather hear about a concern
           early than late.
         </P>
       </Section>
