@@ -1,26 +1,31 @@
 import { Check, Minus } from "lucide-react";
 
-// CLAIM-FLAG: the TheJury column asserts anonymous-enforced voting, verified
-// one-vote-per-member and a PDF results record. CSV export exists today; the
-// others are target-state — confirm before launch.
-// Competitor cells are deliberately left as "Check": do not publish a claim
-// about Google Forms or Mentimeter/Slido until it has been verified (per brief).
+// Competitor facts researched September 2026 from each vendor's own security /
+// pricing pages (hosting and anonymity: high confidence; entry prices vary by
+// source and change over time — see the footnote). Kept fair: Google Forms is
+// credited with free CSV export, and competitors' anonymous-by-default support.
+// CLAIM-FLAG: the TheJury column's "Anonymous voting", "Verified voting" and the
+// PDF half of "Results record" are target-state. CSV export and Australian
+// hosting exist today; confirm the rest before relying on this table publicly.
 
 type Cell = true | false | string;
 
-const COLUMNS = ["TheJury", "Google Forms", "Mentimeter / Slido"] as const;
+const COLUMNS = ["TheJury", "Google Forms", "Mentimeter", "Slido"] as const;
 
-const ROWS: { label: string; cells: [Cell, Cell, Cell] }[] = [
-  { label: "Hosted in Australia", cells: [true, "Check", "Check"] },
-  { label: "Anonymous voting enforced", cells: [true, "Check", "Check"] },
-  { label: "Verified one vote per member", cells: [true, "Check", "Check"] },
+const ROWS: { label: string; cells: [Cell, Cell, Cell, Cell] }[] = [
+  { label: "Hosted in Australia", cells: [true, false, false, false] },
+  { label: "Anonymous voting", cells: [true, "With setup", true, true] },
   {
-    label: "Results record for the minutes",
-    cells: ["PDF & CSV", "Check", "Check"],
+    label: "Verified voting (one link per member)",
+    cells: [true, false, "Enterprise SSO", "Paid add-on"],
+  },
+  {
+    label: "Results record",
+    cells: ["PDF & CSV", "CSV (free)", "Paid export", "Paid export"],
   },
   {
     label: "Price for a small organisation",
-    cells: ["From A$9/mo", "Check", "Check"],
+    cells: ["From A$9/mo", "Free", "From US$12/mo", "From ~US$10/mo"],
   },
 ];
 
@@ -112,8 +117,10 @@ export function ComparisonStrip() {
           </table>
         </div>
         <p className="mt-4 text-[12px] text-jury-dim">
-          &ldquo;Check&rdquo; means we haven&apos;t verified that detail for
-          another product and won&apos;t claim it until we have.
+          Details as at September 2026, from each vendor&apos;s own pages. Google
+          Forms is free but stores data outside Australia. Competitor prices are
+          entry paid tiers, per host or user, billed annually in USD; each also
+          has a limited free tier.
         </p>
       </div>
     </section>
