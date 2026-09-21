@@ -43,19 +43,14 @@ export default {
           "emerald-tint": "rgba(16,185,129,0.12)",
           "emerald-line": "rgba(16,185,129,0.35)",
         },
-        // Per-use-case secondary accents (exactly one per /for page).
-        // New Australian-org audiences (reuse three palette values, plus two
-        // new muted hues in the same style — councils teal, presenters rose).
+        // Per-use-case secondary accents (one per /for page). Three reuse the
+        // original palette values; councils (teal) and presenters (rose) are new
+        // muted hues in the same style.
         churches: { DEFAULT: "#E0B384", text: "#EFCEA8", on: "#160F0A" },
         clubs: { DEFAULT: "#8FB0E8", text: "#B3CAF0", on: "#0B0F19" },
         councils: { DEFAULT: "#7FBEB5", text: "#AAD8D0", on: "#08110F" },
         businesses: { DEFAULT: "#A79BEA", text: "#C4BBF3", on: "#12101F" },
         presenters: { DEFAULT: "#E79AAE", text: "#F1BECC", on: "#1A0D12" },
-        // Legacy gaming/creator accents — retained until the old /for pages are
-        // removed; delete once nothing references them.
-        gaming: { DEFAULT: "#A79BEA", text: "#C4BBF3", on: "#12101F" },
-        teams: { DEFAULT: "#8FB0E8", text: "#B3CAF0", on: "#0B0F19" },
-        creators: { DEFAULT: "#E0B384", text: "#EFCEA8", on: "#160F0A" },
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

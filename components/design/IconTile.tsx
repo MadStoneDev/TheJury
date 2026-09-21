@@ -6,11 +6,7 @@ export type Accent =
   | "clubs"
   | "councils"
   | "businesses"
-  | "presenters"
-  // Legacy — remove with the old /for pages.
-  | "gaming"
-  | "teams"
-  | "creators";
+  | "presenters";
 
 const TILE: Record<Accent, string> = {
   emerald: "bg-jury-emerald-tint text-jury-emerald",
@@ -19,9 +15,6 @@ const TILE: Record<Accent, string> = {
   councils: "bg-councils/[0.14] text-councils",
   businesses: "bg-businesses/[0.14] text-businesses",
   presenters: "bg-presenters/[0.14] text-presenters",
-  gaming: "bg-gaming/[0.14] text-gaming",
-  teams: "bg-teams/[0.14] text-teams",
-  creators: "bg-creators/[0.14] text-creators",
 };
 
 interface IconTileProps {

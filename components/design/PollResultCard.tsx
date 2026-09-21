@@ -7,9 +7,6 @@ const FILL: Record<Accent, string> = {
   councils: "rgba(127,190,181,0.16)",
   businesses: "rgba(167,155,234,0.16)",
   presenters: "rgba(231,154,174,0.16)",
-  gaming: "rgba(167,155,234,0.16)",
-  teams: "rgba(143,176,232,0.16)",
-  creators: "rgba(224,179,132,0.16)",
 };
 
 const LEADER_TEXT: Record<Accent, string> = {
@@ -19,9 +16,6 @@ const LEADER_TEXT: Record<Accent, string> = {
   councils: "text-councils-text",
   businesses: "text-businesses-text",
   presenters: "text-presenters-text",
-  gaming: "text-gaming-text",
-  teams: "text-teams-text",
-  creators: "text-creators-text",
 };
 
 export interface PollOption {
