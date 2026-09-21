@@ -10,7 +10,8 @@ import {
   IconCurrencyDollar,
   IconDashboard,
   IconTemplate,
-  IconLayoutGrid,
+  IconShieldLock,
+  IconChevronDown,
   IconMenu2,
   IconMoon,
   IconPlus,
@@ -26,6 +27,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { AUDIENCES } from "@/lib/marketing/audiences";
 
 export const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -79,9 +81,9 @@ export const Navbar = () => {
   const isActive = (path: string) => pathname === path;
 
   const navLinks = [
+    { href: "/templates", label: "Templates", icon: IconTemplate, show: !user },
     { href: "/pricing", label: "Pricing", icon: IconCurrencyDollar, show: true },
-    { href: "/templates", label: "Templates", icon: IconTemplate, show: true },
-    { href: "/for/gaming-groups", label: "Use cases", icon: IconLayoutGrid, show: !user },
+    { href: "/security", label: "Security", icon: IconShieldLock, show: !user },
     { href: "/dashboard", label: "Dashboard", icon: IconDashboard, show: !!user },
     { href: "/create", label: "Create Poll", icon: IconPlus, show: !!user },
   ];
@@ -106,6 +108,32 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
+            {/* Use cases dropdown (marketing / logged-out) */}
+            {!user && (
+              <div className="relative group">
+                <button
+                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                  aria-haspopup="true"
+                >
+                  Use cases
+                  <IconChevronDown size={14} />
+                </button>
+                <div className="absolute left-0 top-full pt-2 opacity-0 invisible translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0">
+                  <div className="w-72 rounded-xl border border-border bg-background p-2 shadow-lg">
+                    {AUDIENCES.map((a) => (
+                      <Link
+                        key={a.slug}
+                        href={`/for/${a.slug}`}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+                      >
+                        <a.icon size={18} className="shrink-0" />
+                        <span className="font-medium">{a.navLabel}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
             {navLinks
               .filter((l) => l.show)
               .map((link) => (
@@ -212,6 +240,25 @@ export const Navbar = () => {
                 </SheetHeader>
 
                 <nav className="flex flex-col gap-1 mt-6">
+                  {!user && (
+                    <>
+                      <p className="px-3 pt-1 pb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                        Use cases
+                      </p>
+                      {AUDIENCES.map((a) => (
+                        <Link
+                          key={a.slug}
+                          href={`/for/${a.slug}`}
+                          onClick={() => setSheetOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                        >
+                          <a.icon size={20} />
+                          {a.navLabel}
+                        </Link>
+                      ))}
+                      <div className="my-3 h-px bg-border" />
+                    </>
+                  )}
                   {navLinks
                     .filter((l) => l.show)
                     .map((link) => (

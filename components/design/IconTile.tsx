@@ -1,9 +1,24 @@
 import type { LucideIcon } from "lucide-react";
 
-export type Accent = "emerald" | "gaming" | "teams" | "creators";
+export type Accent =
+  | "emerald"
+  | "churches"
+  | "clubs"
+  | "councils"
+  | "businesses"
+  | "presenters"
+  // Legacy — remove with the old /for pages.
+  | "gaming"
+  | "teams"
+  | "creators";
 
 const TILE: Record<Accent, string> = {
   emerald: "bg-jury-emerald-tint text-jury-emerald",
+  churches: "bg-churches/[0.14] text-churches",
+  clubs: "bg-clubs/[0.14] text-clubs",
+  councils: "bg-councils/[0.14] text-councils",
+  businesses: "bg-businesses/[0.14] text-businesses",
+  presenters: "bg-presenters/[0.14] text-presenters",
   gaming: "bg-gaming/[0.14] text-gaming",
   teams: "bg-teams/[0.14] text-teams",
   creators: "bg-creators/[0.14] text-creators",

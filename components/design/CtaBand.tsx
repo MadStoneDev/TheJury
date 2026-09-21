@@ -3,6 +3,11 @@ import type { Accent } from "./IconTile";
 
 const WASH: Record<Accent, string> = {
   emerald: "rgba(16,185,129,0.10)",
+  churches: "rgba(224,179,132,0.10)",
+  clubs: "rgba(143,176,232,0.10)",
+  councils: "rgba(127,190,181,0.10)",
+  businesses: "rgba(167,155,234,0.10)",
+  presenters: "rgba(231,154,174,0.10)",
   gaming: "rgba(167,155,234,0.10)",
   teams: "rgba(143,176,232,0.10)",
   creators: "rgba(224,179,132,0.10)",
@@ -10,6 +15,11 @@ const WASH: Record<Accent, string> = {
 
 const FILL: Record<Accent, string> = {
   emerald: "bg-jury-emerald text-jury-on-emerald hover:bg-jury-emerald-hi",
+  churches: "bg-churches text-churches-on hover:brightness-110",
+  clubs: "bg-clubs text-clubs-on hover:brightness-110",
+  councils: "bg-councils text-councils-on hover:brightness-110",
+  businesses: "bg-businesses text-businesses-on hover:brightness-110",
+  presenters: "bg-presenters text-presenters-on hover:brightness-110",
   gaming: "bg-gaming text-gaming-on hover:brightness-110",
   teams: "bg-teams text-teams-on hover:brightness-110",
   creators: "bg-creators text-creators-on hover:brightness-110",

@@ -2,6 +2,11 @@ import type { Accent } from "./IconTile";
 
 const FILL: Record<Accent, string> = {
   emerald: "rgba(16,185,129,0.14)",
+  churches: "rgba(224,179,132,0.16)",
+  clubs: "rgba(143,176,232,0.16)",
+  councils: "rgba(127,190,181,0.16)",
+  businesses: "rgba(167,155,234,0.16)",
+  presenters: "rgba(231,154,174,0.16)",
   gaming: "rgba(167,155,234,0.16)",
   teams: "rgba(143,176,232,0.16)",
   creators: "rgba(224,179,132,0.16)",
@@ -9,6 +14,11 @@ const FILL: Record<Accent, string> = {
 
 const LEADER_TEXT: Record<Accent, string> = {
   emerald: "text-jury-emerald-hi",
+  churches: "text-churches-text",
+  clubs: "text-clubs-text",
+  councils: "text-councils-text",
+  businesses: "text-businesses-text",
+  presenters: "text-presenters-text",
   gaming: "text-gaming-text",
   teams: "text-teams-text",
   creators: "text-creators-text",
