@@ -10,9 +10,9 @@ import PricingCards from "@/components/PricingCards";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing — Free & Pro | TheJury",
+  title: "Pricing | TheJury",
   description:
-    "Start free with unlimited polls and votes. Upgrade to Pro (A$9/mo, A$90/yr, or A$199 lifetime) for every question type, branded embeds and no branding.",
+    "Free to start. Organisation at A$9/mo or A$90/yr (GST inclusive) for anonymous and verified voting and a results record. Council and Enterprise with invoice billing.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -47,8 +47,9 @@ export default async function PricingPage() {
             pricing
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-jury-muted sm:text-[18px]">
-            Start free with unlimited polls and votes. Upgrade when you need every
-            question type, branded embeds and your own branding.
+            Start free. Move to Organisation for anonymous and verified voting and
+            a results record for the minutes. Council and Enterprise adds
+            unlimited admins and invoice billing. All prices GST inclusive.
           </p>
         </div>
 

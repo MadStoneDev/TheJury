@@ -9,17 +9,25 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
+// Internal tier keys are unchanged so existing DB rows, Stripe price mapping and
+// the webhook keep working. Public presentation is:
+//   free → "Free", pro → "Organisation", team → "Council & Enterprise".
+// CLAIM-FLAG (pricing): the prices below are PLACEHOLDERS agreed for the AU
+// repositioning. Confirm them and create the matching Stripe prices
+// (STRIPE_PRO_PRICE_ID / _ANNUAL, and Council billing) before launch.
 export type TierName = "free" | "pro" | "team";
 
 export interface TierConfig {
   name: string;
+  /** Contact-sales tier: no self-serve checkout ("Talk to us"). */
+  contactSales?: boolean;
   priceId: string | null;
   priceIdAnnual: string | null;
   priceIdLifetime: string | null;
   priceMonthly: number;
   priceAnnualMonthly: number;
   priceAnnualTotal: number;
-  priceLifetime: number; // 0 = no lifetime option
+  priceLifetime: number; // 0 = no lifetime option (no longer sold publicly)
   maxActivePolls: number; // -1 = unlimited
   maxQuestionsPerPoll: number; // -1 = unlimited
   removeBranding: boolean;
@@ -82,14 +90,16 @@ export const TIERS: Record<TierName, TierConfig> = {
     presenterMode: false,
   },
   pro: {
-    name: "Pro",
+    name: "Organisation",
     priceId: null, // resolved at runtime via getProPriceId()
     priceIdAnnual: null, // resolved at runtime via getProAnnualPriceId()
     priceIdLifetime: null, // resolved at runtime via getProLifetimePriceId()
-    priceMonthly: 9,
+    priceMonthly: 9, // A$9/mo, GST inclusive (placeholder — confirm)
     priceAnnualMonthly: 7.5, // A$90/yr billed annually
     priceAnnualTotal: 90,
-    priceLifetime: 199, // one-off
+    // Lifetime is no longer sold publicly (dropped from the pricing pages).
+    // Kept non-zero only so existing lifetime price IDs still map to this tier.
+    priceLifetime: 199,
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
@@ -116,16 +126,18 @@ export const TIERS: Record<TierName, TierConfig> = {
     apiAccess: true, // public API (v1) + per-user keys for partner integrations
     presenterMode: true,
   },
-  // Legacy tier, no longer sold or shown in the UI. Kept so existing
-  // "team" subscribers retain their features until migrated. Do not surface.
+  // Repurposed from the legacy "Team" tier into the public "Council &
+  // Enterprise" tier. Existing "team" subscribers keep their features. This is a
+  // contact-sales / invoice-billed tier: no self-serve Stripe checkout.
   team: {
-    name: "Team",
+    name: "Council & Enterprise",
+    contactSales: true,
     priceId: null, // resolved at runtime via getTeamPriceId()
     priceIdAnnual: null, // resolved at runtime via getTeamAnnualPriceId()
     priceIdLifetime: null,
-    priceMonthly: 39,
-    priceAnnualMonthly: 32,
-    priceAnnualTotal: 384,
+    priceMonthly: 79, // A$79/mo (placeholder — confirm)
+    priceAnnualMonthly: 65.83,
+    priceAnnualTotal: 790, // A$790/yr, invoice billing available
     priceLifetime: 0,
     maxActivePolls: -1, // unlimited
     maxQuestionsPerPoll: -1, // unlimited

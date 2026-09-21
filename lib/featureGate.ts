@@ -3,6 +3,7 @@ import { TIERS, type TierName, type TierConfig } from "./stripe";
 export type Feature = keyof Omit<
   TierConfig,
   | "name"
+  | "contactSales"
   | "priceId"
   | "priceIdAnnual"
   | "priceIdLifetime"

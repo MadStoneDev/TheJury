@@ -7,12 +7,15 @@ import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import type { TierName, TierConfig } from "@/lib/stripe";
 
+// CLAIM-FLAG (pricing + features): prices are placeholders (see lib/stripe.ts).
+// "Anonymous voting", "Verified voting" and the PDF results record are the
+// target-state features the tiers are sold on; CSV export exists today, the rest
+// need confirming before launch. Contact email is a placeholder.
+const CONTACT_EMAIL = "hello@thejury.app"; // placeholder — confirm
+
 type Currency = "AUD" | "USD" | "EUR";
 
-const CURRENCY_CONFIG: Record<
-  Currency,
-  { symbol: string; rate: number }
-> = {
+const CURRENCY_CONFIG: Record<Currency, { symbol: string; rate: number }> = {
   AUD: { symbol: "A$", rate: 1 },
   USD: { symbol: "$", rate: 0.63 },
   EUR: { symbol: "€", rate: 0.58 },
@@ -24,46 +27,48 @@ function convert(aud: number, currency: Currency): string {
 }
 
 const FREE_FEATURES = [
-  "Unlimited votes on every poll",
-  "Unlimited polls, 2 questions each",
-  "Multiple choice & rating questions",
-  "Live results with bar charts",
+  "Public polls with live results",
+  "Unlimited polls, single admin",
+  "Multiple choice and rating questions",
   "Share by link, code or QR",
-  "Voting without an account",
-  "3 AI-drafted polls a month",
-  "Results dashboard & history",
+  "No account needed to vote",
+  "TheJury branding on the poll page",
 ];
 
-const PRO_FEATURES = [
+const ORG_FEATURES = [
   "Everything in Free",
-  "Unlimited active polls and questions",
-  "Ranked choice, image, open-ended & reactions",
-  "Branded embeds & stream overlays",
-  "Scheduling, time limits & passwords",
-  "CSV export & pie / donut charts",
-  "Unlimited AI drafting & all templates",
-  "Priority support",
+  "Anonymous and verified voting",
+  "Results record (PDF and CSV)",
+  "Private polls: password, time limits, member lists",
+  "Remove TheJury branding",
+  "One organisation, up to 3 admins",
+  "Email support",
 ];
 
-const COMPARE: { name: string; free: string | boolean; pro: string | boolean }[] = [
-  { name: "Active polls", free: "Unlimited", pro: "Unlimited" },
-  { name: "Questions per poll", free: "2", pro: "Unlimited" },
-  { name: "Votes per poll", free: "Unlimited", pro: "Unlimited" },
-  { name: "Multiple choice", free: true, pro: true },
-  { name: "Rating questions", free: true, pro: true },
-  { name: "Ranked choice", free: false, pro: true },
-  { name: "Image options", free: false, pro: true },
-  { name: "Open-ended responses", free: false, pro: true },
-  { name: "Reaction polls", free: false, pro: true },
-  { name: "AI drafting", free: "3 / month", pro: "Unlimited" },
-  { name: "Result charts", free: "Bar", pro: "Bar, pie, donut" },
-  { name: "Share link, code & QR", free: true, pro: true },
-  { name: "Embed polls", free: "Basic", pro: "Branded + overlays" },
-  { name: "Custom embed theme", free: false, pro: true },
-  { name: "Remove TheJury branding", free: false, pro: true },
-  { name: "Scheduling & time limits", free: false, pro: true },
-  { name: "Password protection", free: false, pro: true },
-  { name: "CSV export", free: false, pro: true },
+const COUNCIL_FEATURES = [
+  "Everything in Organisation",
+  "Unlimited admins",
+  "Priority support",
+  "Custom subdomain and branding",
+  "Single sign-on (on request)",
+  "Invoice billing available",
+];
+
+type Cell = string | boolean;
+const COMPARE: { name: string; free: Cell; org: Cell; council: Cell }[] = [
+  { name: "Public polls & live results", free: true, org: true, council: true },
+  { name: "Hosted in Australia", free: true, org: true, council: true },
+  { name: "No account needed to vote", free: true, org: true, council: true },
+  { name: "Anonymous voting", free: false, org: true, council: true },
+  { name: "Verified voting (one link per member)", free: false, org: true, council: true },
+  { name: "Results record", free: false, org: "PDF & CSV", council: "PDF & CSV" },
+  { name: "Private polls (password, time limits)", free: false, org: true, council: true },
+  { name: "Remove TheJury branding", free: false, org: true, council: true },
+  { name: "Admins", free: "1", org: "Up to 3", council: "Unlimited" },
+  { name: "Custom subdomain & branding", free: false, org: false, council: true },
+  { name: "Single sign-on", free: false, org: false, council: "On request" },
+  { name: "Support", free: "Community", org: "Email", council: "Priority" },
+  { name: "Billing", free: "—", org: "Card", council: "Card or invoice" },
 ];
 
 interface PricingCardsProps {
@@ -83,10 +88,12 @@ export default function PricingCards({
   const [compareOpen, setCompareOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const pro = tiers.pro;
+  const org = tiers.pro;
+  const council = tiers.team;
   const { symbol } = CURRENCY_CONFIG[currency];
   const savings = Math.round(
-    ((pro.priceMonthly * 12 - pro.priceAnnualTotal) / (pro.priceMonthly * 12)) *
+    ((org.priceMonthly * 12 - org.priceAnnualTotal) /
+      (org.priceMonthly * 12)) *
       100,
   );
 
@@ -96,7 +103,10 @@ export default function PricingCards({
       return;
     }
     if (!priceId) return;
-    track("upgrade_clicked", { plan: key, billing: annual ? "annual" : "monthly" });
+    track("upgrade_clicked", {
+      plan: key,
+      billing: annual ? "annual" : "monthly",
+    });
     setLoading(key);
     try {
       const res = await fetch("/api/stripe/checkout", {
@@ -141,14 +151,15 @@ export default function PricingCards({
         : "text-jury-muted hover:text-jury-text"
     }`;
 
-  const proPrice = annual
-    ? convert(pro.priceAnnualTotal, currency)
-    : convert(pro.priceMonthly, currency);
-  const proSuffix = annual ? "/yr" : "/mo";
-  const proNote = annual
-    ? `Billed yearly — ${savings > 0 ? `${savings}% off` : "save"}`
-    : "Billed monthly, cancel any time.";
-  const isProCurrent = currentTier === "pro";
+  const orgPrice = annual
+    ? convert(org.priceAnnualTotal, currency)
+    : convert(org.priceMonthly, currency);
+  const orgSuffix = annual ? "/yr" : "/mo";
+  const orgNote = annual
+    ? `Billed yearly, GST inclusive. ${savings > 0 ? `Save ${savings}%.` : ""}`
+    : "Billed monthly, GST inclusive.";
+  const isOrgCurrent = currentTier === "pro";
+  const isCouncilCurrent = currentTier === "team";
 
   return (
     <div>
@@ -158,7 +169,10 @@ export default function PricingCards({
           <button onClick={() => setAnnual(false)} className={segBtn(!annual)}>
             Monthly
           </button>
-          <button onClick={() => setAnnual(true)} className={`${segBtn(annual)} flex items-center gap-1.5`}>
+          <button
+            onClick={() => setAnnual(true)}
+            className={`${segBtn(annual)} flex items-center gap-1.5`}
+          >
             Annual
             <span className="text-[11px] font-semibold text-jury-emerald-hi">
               Save {savings}%
@@ -169,7 +183,11 @@ export default function PricingCards({
       <div className="mb-12 flex justify-center">
         <div className="inline-flex items-center rounded-full border border-jury-border bg-jury-surface p-1">
           {(Object.keys(CURRENCY_CONFIG) as Currency[]).map((c) => (
-            <button key={c} onClick={() => setCurrency(c)} className={segBtn(currency === c)}>
+            <button
+              key={c}
+              onClick={() => setCurrency(c)}
+              className={segBtn(currency === c)}
+            >
               {CURRENCY_CONFIG[c].symbol} {c}
             </button>
           ))}
@@ -177,7 +195,7 @@ export default function PricingCards({
       </div>
 
       {/* Cards */}
-      <div className="mx-auto grid max-w-[960px] gap-6 md:grid-cols-2">
+      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
         {/* Free */}
         <div className="rounded-xl border border-jury-border bg-jury-surface p-8">
           <h3 className="text-[17px] font-semibold text-jury-text">Free</h3>
@@ -188,12 +206,19 @@ export default function PricingCards({
             <span className="text-[14px] text-jury-dim">forever</span>
           </div>
           <p className="mt-3 text-[15px] text-jury-muted">
-            Everything you need to settle a group decision.
+            Try it with your team. Public polls, one admin.
           </p>
           <ul className="mt-6 space-y-3">
             {FREE_FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-[15px] text-jury-body">
-                <Check size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-jury-emerald" />
+              <li
+                key={f}
+                className="flex items-start gap-2.5 text-[15px] text-jury-body"
+              >
+                <Check
+                  size={18}
+                  strokeWidth={2}
+                  className="mt-0.5 shrink-0 text-jury-emerald"
+                />
                 {f}
               </li>
             ))}
@@ -207,7 +232,9 @@ export default function PricingCards({
             </button>
           ) : (
             <button
-              onClick={() => router.push(isLoggedIn ? "/dashboard" : "/auth/sign-up")}
+              onClick={() =>
+                router.push(isLoggedIn ? "/dashboard" : "/auth/sign-up")
+              }
               className="mt-8 h-11 w-full rounded-full border border-jury-border-strong text-[15px] font-medium text-jury-body transition hover:border-white/25"
             >
               {isLoggedIn ? "Go to dashboard" : "Get started free"}
@@ -215,7 +242,7 @@ export default function PricingCards({
           )}
         </div>
 
-        {/* Pro */}
+        {/* Organisation — highlighted */}
         <div
           className="relative rounded-xl border p-8"
           style={{
@@ -228,44 +255,35 @@ export default function PricingCards({
           <span className="absolute -top-[13px] left-[34px] rounded-full bg-jury-emerald px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-jury-on-emerald">
             Most Popular
           </span>
-          <h3 className="text-[17px] font-semibold text-jury-text">Pro</h3>
+          <h3 className="text-[17px] font-semibold text-jury-text">
+            {org.name}
+          </h3>
           <div className="mt-2 flex items-baseline gap-1">
             <span className="font-display text-[44px] leading-none text-jury-emerald-hi">
-              {symbol}{proPrice}
+              {symbol}
+              {orgPrice}
             </span>
-            <span className="text-[14px] text-jury-dim">{proSuffix}</span>
+            <span className="text-[14px] text-jury-dim">{orgSuffix}</span>
           </div>
-          <p className="mt-1 text-[13px] text-jury-dim">{proNote}</p>
-
-          {/* Lifetime row */}
-          {pro.priceLifetime > 0 && (
-            <div className="mt-4 flex items-center justify-between rounded-[10px] border border-jury-emerald-line bg-jury-emerald-tint px-3.5 py-2.5">
-              <div className="text-[13px]">
-                <span className="font-semibold text-jury-text">
-                  Lifetime — {symbol}{convert(pro.priceLifetime, currency)}
-                </span>
-                <span className="text-jury-muted"> · Pay once, keep Pro forever</span>
-              </div>
-              <button
-                onClick={() => checkout(pro.priceIdLifetime, "lifetime")}
-                disabled={loading !== null}
-                className="shrink-0 rounded-full bg-jury-emerald px-3 py-1 text-[12px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi disabled:opacity-60"
-              >
-                {loading === "lifetime" ? "…" : "Choose"}
-              </button>
-            </div>
-          )}
+          <p className="mt-1 text-[13px] text-jury-dim">{orgNote}</p>
 
           <ul className="mt-6 space-y-3">
-            {PRO_FEATURES.map((f) => (
-              <li key={f} className="flex items-start gap-2.5 text-[15px] text-jury-body">
-                <Check size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-jury-emerald" />
+            {ORG_FEATURES.map((f) => (
+              <li
+                key={f}
+                className="flex items-start gap-2.5 text-[15px] text-jury-body"
+              >
+                <Check
+                  size={18}
+                  strokeWidth={2}
+                  className="mt-0.5 shrink-0 text-jury-emerald"
+                />
                 {f}
               </li>
             ))}
           </ul>
 
-          {isProCurrent ? (
+          {isOrgCurrent ? (
             <button
               onClick={handlePortal}
               disabled={loading !== null}
@@ -275,18 +293,68 @@ export default function PricingCards({
             </button>
           ) : (
             <button
-              onClick={() => checkout(annual ? pro.priceIdAnnual : pro.priceId, "pro")}
+              onClick={() =>
+                checkout(annual ? org.priceIdAnnual : org.priceId, "organisation")
+              }
               disabled={loading !== null}
               className="mt-8 h-11 w-full rounded-full bg-jury-emerald text-[15px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi disabled:opacity-60"
             >
-              {loading === "pro" ? "Redirecting…" : "Upgrade to Pro"}
+              {loading === "organisation" ? "Redirecting…" : "Choose Organisation"}
             </button>
+          )}
+        </div>
+
+        {/* Council & Enterprise — contact sales */}
+        <div className="rounded-xl border border-jury-border bg-jury-surface p-8">
+          <h3 className="text-[17px] font-semibold text-jury-text">
+            {council.name}
+          </h3>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-display text-[40px] leading-none text-jury-text">
+              From {symbol}
+              {convert(council.priceMonthly, currency)}
+            </span>
+            <span className="text-[14px] text-jury-dim">/mo</span>
+          </div>
+          <p className="mt-1 text-[13px] text-jury-dim">
+            Invoice billing available. GST inclusive.
+          </p>
+          <ul className="mt-6 space-y-3">
+            {COUNCIL_FEATURES.map((f) => (
+              <li
+                key={f}
+                className="flex items-start gap-2.5 text-[15px] text-jury-body"
+              >
+                <Check
+                  size={18}
+                  strokeWidth={2}
+                  className="mt-0.5 shrink-0 text-jury-emerald"
+                />
+                {f}
+              </li>
+            ))}
+          </ul>
+          {isCouncilCurrent ? (
+            <button
+              onClick={handlePortal}
+              disabled={loading !== null}
+              className="mt-8 h-11 w-full rounded-full border border-jury-border-strong text-[15px] font-medium text-jury-body transition hover:border-white/25"
+            >
+              {loading === "portal" ? "Loading…" : "Manage billing"}
+            </button>
+          ) : (
+            <a
+              href={`mailto:${CONTACT_EMAIL}?subject=Council%20%26%20Enterprise%20enquiry`}
+              className="mt-8 flex h-11 w-full items-center justify-center rounded-full border border-jury-border-strong text-[15px] font-medium text-jury-body transition hover:border-white/25"
+            >
+              Talk to us
+            </a>
           )}
         </div>
       </div>
 
       {/* Compare all features */}
-      <div className="mx-auto mt-8 max-w-[960px]">
+      <div className="mx-auto mt-8 max-w-6xl">
         <div className="overflow-hidden rounded-xl border border-jury-border bg-jury-surface">
           <button
             onClick={() => setCompareOpen((o) => !o)}
@@ -308,43 +376,62 @@ export default function PricingCards({
             />
           </button>
           {compareOpen && (
-            <table className="w-full border-t border-jury-border-subtle text-[14px]">
-              <thead>
-                <tr className="text-[12px] uppercase tracking-[0.06em] text-jury-dim">
-                  <th className="px-6 py-3 text-left font-semibold">Feature</th>
-                  <th className="px-4 py-3 text-left font-semibold">Free</th>
-                  <th className="px-4 py-3 text-left font-semibold">Pro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARE.map((row) => (
-                  <tr key={row.name} className="border-t border-jury-border-subtle">
-                    <td className="px-6 py-3 text-jury-body">{row.name}</td>
-                    <td className="px-4 py-3 text-jury-muted">
-                      {renderCell(row.free, false)}
-                    </td>
-                    <td className="px-4 py-3 text-jury-emerald-hi">
-                      {renderCell(row.pro, true)}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full border-t border-jury-border-subtle text-[14px]">
+                <thead>
+                  <tr className="text-[12px] uppercase tracking-[0.06em] text-jury-dim">
+                    <th className="px-6 py-3 text-left font-semibold">Feature</th>
+                    <th className="px-4 py-3 text-left font-semibold">Free</th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Organisation
+                    </th>
+                    <th className="px-4 py-3 text-left font-semibold">
+                      Council &amp; Enterprise
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {COMPARE.map((row) => (
+                    <tr
+                      key={row.name}
+                      className="border-t border-jury-border-subtle"
+                    >
+                      <td className="px-6 py-3 text-jury-body">{row.name}</td>
+                      <td className="px-4 py-3 text-jury-muted">
+                        {renderCell(row.free, false)}
+                      </td>
+                      <td className="px-4 py-3 text-jury-emerald-hi">
+                        {renderCell(row.org, true)}
+                      </td>
+                      <td className="px-4 py-3 text-jury-body">
+                        {renderCell(row.council, false)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>
 
       <p className="mt-8 text-center text-[13px] text-jury-dim">
-        Prices shown in {currency}. Cancel any time — your polls stay live on the
-        free tier.
+        Prices shown in {currency}, GST inclusive. Cancel any time. Your polls
+        stay live on the free tier.
       </p>
     </div>
   );
 }
 
-function renderCell(v: string | boolean, pro: boolean) {
+function renderCell(v: string | boolean, primary: boolean) {
   if (v === true)
-    return <Check size={16} strokeWidth={2.2} className={pro ? "text-jury-emerald" : "text-jury-muted"} />;
+    return (
+      <Check
+        size={16}
+        strokeWidth={2.2}
+        className={primary ? "text-jury-emerald" : "text-jury-muted"}
+      />
+    );
   if (v === false)
     return <X size={16} strokeWidth={2} className="text-jury-faint" />;
   return v;
