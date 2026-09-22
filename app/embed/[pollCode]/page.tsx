@@ -16,7 +16,8 @@ import {
 } from "@/lib/supabaseHelpers";
 import type { Poll, PollQuestion, PollResult, QuestionResult } from "@/lib/supabaseHelpers";
 import { supabase } from "@/lib/supabase";
-import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
+import QuestionTypeInput from "@/components/question-types/QuestionTypeInput";
+import QuestionTypeResults from "@/components/question-types/QuestionTypeResults";
 import { hashPassword } from "@/lib/passwordUtils";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 

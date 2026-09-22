@@ -31,7 +31,8 @@ import type {
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { QuestionTypeInput, QuestionTypeResults } from "@/components/question-types";
+import QuestionTypeInput from "@/components/question-types/QuestionTypeInput";
+import QuestionTypeResults from "@/components/question-types/QuestionTypeResults";
 import PasswordGate from "@/components/PasswordGate";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { useRealtimePollState } from "@/hooks/useRealtimePollState";

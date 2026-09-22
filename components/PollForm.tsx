@@ -61,7 +61,13 @@ import {
 import { QuestionTypeConfig } from "@/components/question-types";
 import ImageUploader from "@/components/question-types/ImageUploader";
 import { getTemplateById } from "@/lib/templates";
-import AIGenerateModal from "@/components/AIGenerateModal";
+import dynamic from "next/dynamic";
+
+// Modal-gated + AI-only — load it the first time the user opens it, not with
+// the (already large) create form.
+const AIGenerateModal = dynamic(() => import("@/components/AIGenerateModal"), {
+  ssr: false,
+});
 import { hashPassword } from "@/lib/passwordUtils";
 
 interface PollOption {
@@ -1324,7 +1330,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
         feature={upgradeFeature}
       />
 
-      {/* AI Generate Modal */}
+      {/* AI Generate Modal — mounted only when opened (lazy-loaded) */}
+      {aiModalOpen && (
       <AIGenerateModal
         open={aiModalOpen}
         onOpenChange={setAiModalOpen}
@@ -1356,6 +1363,7 @@ export default function PollForm({ pollCode }: PollFormProps) {
           );
         }}
       />
+      )}
     </div>
   );
 }

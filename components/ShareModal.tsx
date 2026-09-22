@@ -8,7 +8,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QRCodeSVG } from "qrcode.react";
+import dynamic from "next/dynamic";
+
+// The QR library only matters once the share modal's QR block renders — keep it
+// out of the parent route's first-load JS.
+const QRCodeSVG = dynamic(
+  () => import("qrcode.react").then((m) => ({ default: m.QRCodeSVG })),
+  { ssr: false },
+);
 import {
   IconCopy,
   IconCheck,

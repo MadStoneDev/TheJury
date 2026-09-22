@@ -13,7 +13,7 @@ import type { Poll, QuestionResult } from "@/lib/supabaseHelpers";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
-import { QuestionTypeResults } from "@/components/question-types";
+import QuestionTypeResults from "@/components/question-types/QuestionTypeResults";
 import { BarChart } from "@/components/charts";
 import type { ChartDataItem } from "@/components/charts";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";

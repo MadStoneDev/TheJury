@@ -23,7 +23,7 @@ import {
   PresenterQRCode,
 } from "@/components/presenter";
 import type { ChartDataItem } from "@/components/charts";
-import { QuestionTypeResults } from "@/components/question-types";
+import QuestionTypeResults from "@/components/question-types/QuestionTypeResults";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
