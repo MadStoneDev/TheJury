@@ -45,24 +45,26 @@ export const metadata: Metadata = {
   },
 };
 
-// Site-wide structured data. ABN and registered address are placeholders —
-// confirm before launch. (CLAIM-FLAG: business identifiers to be filled in.)
+// Site-wide structured data. TheJury is operated by RAVENCI (a registered
+// business name of Richard Haddad, sole trader, QLD). Street address omitted
+// on purpose (sole-trader/residential); state only.
 const orgJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "TheJury",
+  legalName: "RAVENCI",
   url: defaultUrl,
   logo: `${defaultUrl}/thejury-og.png`,
   areaServed: "AU",
   address: {
     "@type": "PostalAddress",
     addressCountry: "AU",
-    addressRegion: "[state: to confirm]",
+    addressRegion: "QLD",
   },
   identifier: {
     "@type": "PropertyValue",
     name: "ABN",
-    value: "[ABN: to confirm]",
+    value: "35 664 615 205",
   },
 };
 

@@ -28,7 +28,7 @@
   <div style="padding:72px 56px 90px;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:48px 48px">
     <div style="text-align:center;margin-bottom:38px">
       <h1 style="font:700 54px 'Playfair Display',serif;margin:0 0 14px">Simple, <span style="color:#10B981">transparent</span> pricing</h1>
-      <p style="font:300 19px Outfit;color:#94A3B8;margin:0 auto;max-width:640px">Start free. Move to Organisation for anonymous and verified voting and a results record for the minutes. Council and Enterprise adds unlimited admins and invoice billing. All prices GST inclusive.</p>
+      <p style="font:300 19px Outfit;color:#94A3B8;margin:0 auto;max-width:640px">Start free. Move to Organisation for anonymous and verified voting and a results record for the minutes. Council and Enterprise adds unlimited admins and invoice billing.</p>
     </div>
 
     <div style="display:flex;justify-content:center;gap:14px;margin-bottom:40px">
@@ -80,7 +80,7 @@
       <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:30px">
         <div style="font:600 18px Outfit;margin-bottom:10px">Council &amp; Enterprise</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 34px 'Playfair Display',serif">From {{ councilPrice }}</span><span style="font:400 14px Outfit;color:#94A3B8">/mo</span></div>
-        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 22px">Invoice billing available. GST inclusive.</p>
+        <p style="font:300 13px Outfit;color:#94A3B8;margin:0 0 22px">Invoice billing available.</p>
         <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:26px">
           <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Organisation</span>
           <span style="display:flex;gap:10px;align-items:flex-start;font:400 14px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.2" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited admins</span>
@@ -109,7 +109,7 @@
       </sc-if>
     </div>
 
-    <div style="text-align:center;font:300 13px Outfit;color:#64748B;margin-top:26px">Prices shown in {{ currency }}, GST inclusive. Cancel any time. Your polls stay live on the free tier.</div>
+    <div style="text-align:center;font:300 13px Outfit;color:#64748B;margin-top:26px">Prices shown in {{ currency }}. Cancel any time. Your polls stay live on the free tier.</div>
   </div>
 
   <div style="padding:38px 56px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 20px 'Playfair Display',serif">TheJury</div><div style="display:flex;gap:28px;font:300 14px Outfit;color:#64748B"><span>Pricing</span><span>Templates</span><span>Privacy</span><span>Terms</span></div><div style="font:300 13px Outfit;color:#475569">© 2026 TheJury</div></div>
@@ -169,7 +169,7 @@
       <div style="background:#0F1520;border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:22px">
         <div style="font:600 16px Outfit;margin-bottom:8px">Council &amp; Enterprise</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px"><span style="font:700 28px 'Playfair Display',serif">From {{ councilPrice }}</span><span style="font:400 13px Outfit;color:#94A3B8">/mo</span></div>
-        <p style="font:300 12px Outfit;color:#94A3B8;margin:0 0 16px">Invoice billing available. GST inclusive.</p>
+        <p style="font:300 12px Outfit;color:#94A3B8;margin:0 0 16px">Invoice billing available.</p>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
           <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Everything in Organisation</span>
           <span style="display:flex;gap:9px;font:400 13px Outfit;color:#E2E8F0"><svg style="flex:none;margin-top:2px" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.4" stroke-linecap="round"><path d="m20 6-11 11-5-5"></path></svg>Unlimited admins</span>
@@ -191,7 +191,7 @@
         </div>
       </sc-if>
     </div>
-    <div style="text-align:center;font:300 12px Outfit;color:#64748B;margin-top:20px">Prices shown in {{ currency }}, GST inclusive. Cancel any time.</div>
+    <div style="text-align:center;font:300 12px Outfit;color:#64748B;margin-top:20px">Prices shown in {{ currency }}. Cancel any time.</div>
   </div>
   <div style="padding:24px 20px;border-top:1px solid rgba(255,255,255,.05);display:flex;justify-content:space-between;align-items:center"><div style="font:700 16px 'Playfair Display',serif">TheJury</div><div style="font:300 12px Outfit;color:#475569">© 2026 TheJury</div></div>
 </div>
@@ -247,8 +247,8 @@ class Component extends DCLogic {
       orgPrice: sym + (this.state.annual ? convert(ORG_ANNUAL_TOTAL) : convert(ORG_MONTHLY)),
       orgSuffix: this.state.annual ? "/yr" : "/mo",
       orgNote: this.state.annual
-        ? "Billed yearly, GST inclusive. Save " + savings + "%."
-        : "Billed monthly, GST inclusive.",
+        ? "Billed yearly. Save " + savings + "%."
+        : "Billed monthly.",
       councilPrice: sym + convert(COUNCIL_MONTHLY),
       monthlyTabStyle: this.state.annual ? off : on,
       annualTabStyle: this.state.annual ? on : off,

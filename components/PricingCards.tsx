@@ -156,8 +156,8 @@ export default function PricingCards({
     : convert(org.priceMonthly, currency);
   const orgSuffix = annual ? "/yr" : "/mo";
   const orgNote = annual
-    ? `Billed yearly, GST inclusive. ${savings > 0 ? `Save ${savings}%.` : ""}`
-    : "Billed monthly, GST inclusive.";
+    ? `Billed yearly. ${savings > 0 ? `Save ${savings}%.` : ""}`
+    : "Billed monthly.";
   const isOrgCurrent = currentTier === "pro";
   const isCouncilCurrent = currentTier === "team";
 
@@ -317,7 +317,7 @@ export default function PricingCards({
             <span className="text-[14px] text-jury-dim">/mo</span>
           </div>
           <p className="mt-1 text-[13px] text-jury-dim">
-            Invoice billing available. GST inclusive.
+            Invoice billing available.
           </p>
           <ul className="mt-6 space-y-3">
             {COUNCIL_FEATURES.map((f) => (
@@ -416,8 +416,8 @@ export default function PricingCards({
       </div>
 
       <p className="mt-8 text-center text-[13px] text-jury-dim">
-        Prices shown in {currency}, GST inclusive. Cancel any time. Your polls
-        stay live on the free tier.
+        Prices shown in {currency}. Cancel any time. Your polls stay live on the
+        free tier.
       </p>
     </div>
   );

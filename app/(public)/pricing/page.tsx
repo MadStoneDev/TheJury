@@ -12,7 +12,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pricing | TheJury",
   description:
-    "Free to start. Organisation at A$9/mo or A$90/yr (GST inclusive) for anonymous and verified voting and a results record. Council and Enterprise with invoice billing.",
+    "Free to start. Organisation at A$9/mo or A$90/yr for anonymous and verified voting and a results record. Council and Enterprise with invoice billing.",
   alternates: { canonical: "/pricing" },
 };
 
@@ -49,7 +49,7 @@ export default async function PricingPage() {
           <p className="mt-4 text-[16px] leading-relaxed text-jury-muted sm:text-[18px]">
             Start free. Move to Organisation for anonymous and verified voting and
             a results record for the minutes. Council and Enterprise adds
-            unlimited admins and invoice billing. All prices GST inclusive.
+            unlimited admins and invoice billing.
           </p>
         </div>
 

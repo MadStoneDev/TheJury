@@ -62,7 +62,7 @@ export default function TermsPage() {
       <Section heading="6. Plans, billing & refunds">
         <List
           items={[
-            "The Free plan is available at no cost. Organisation is billed monthly or annually in AUD (GST inclusive) via Stripe. Council and Enterprise can be billed by invoice.",
+            "The Free plan is available at no cost. Organisation is billed monthly or annually in AUD via Stripe. Council and Enterprise can be billed by invoice.",
             "Subscriptions renew automatically until cancelled; you can cancel any time and keep your paid features until the end of the paid period.",
             "Prices may change with notice; changes don’t affect the current paid period.",
             "Except where required by law, payments are non-refundable. If your subscription lapses, your polls stay live on the Free tier subject to its limits.",

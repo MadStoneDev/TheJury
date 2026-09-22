@@ -158,12 +158,12 @@ Centred H1 "Simple, **transparent** pricing" (the middle word emerald) + lead. T
 
 Three cards in a max-6xl `1fr 1fr 1fr` grid:
 - **Free** — `A$0` + "forever", one-line description, feature lines with emerald ticks, outlined "Get started free".
-- **Organisation** — highlighted: emerald border, emerald glow shadow, `MOST POPULAR` pill overlapping the top-left corner (`top:-13px; left:34px`). Price in emerald with `/mo` or `/yr`, GST-inclusive note. No lifetime option. Feature lines, emerald "Choose Organisation".
+- **Organisation** — highlighted: emerald border, emerald glow shadow, `MOST POPULAR` pill overlapping the top-left corner (`top:-13px; left:34px`). Price in emerald with `/mo` or `/yr`. No lifetime option. Feature lines, emerald "Choose Organisation".
 - **Council & Enterprise** — "From A$79/mo", invoice-billing note, feature lines, outlined "Talk to us" (mailto, not a checkout).
 
-Below: a **collapsed "Compare all features"** card (title + "Every limit and feature, line by line" + chevron that rotates 180° on open, 0.18s). Expanded it reveals a table with columns Feature / Free / Organisation / Council & Enterprise, header in 13px 0.06em uppercase, Organisation column emerald, 1px row separators. Footnote: "Prices shown in AUD, GST inclusive. Cancel any time. Your polls stay live on the free tier."
+Below: a **collapsed "Compare all features"** card (title + "Every limit and feature, line by line" + chevron that rotates 180° on open, 0.18s). Expanded it reveals a table with columns Feature / Free / Organisation / Council & Enterprise, header in 13px 0.06em uppercase, Organisation column emerald, 1px row separators. Footnote: "Prices shown in AUD. Cancel any time. Your polls stay live on the free tier."
 
-Prices (GST inclusive): Organisation AUD 9/mo, 90/yr. Council & Enterprise from AUD 79/mo, 790/yr (invoice available). Annual sub-line: "Billed yearly, GST inclusive."; monthly: "Billed monthly, GST inclusive."
+Prices: Organisation AUD 9/mo, 90/yr. Council & Enterprise from AUD 79/mo, 790/yr (invoice available). Annual sub-line: "Billed yearly."; monthly: "Billed monthly."
 
 Mobile: controls stack (currency control shows symbols only), cards stack with Organisation first; compare table scrolls horizontally at 13px.
 

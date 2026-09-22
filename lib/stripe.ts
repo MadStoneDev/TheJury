@@ -94,7 +94,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     priceId: null, // resolved at runtime via getProPriceId()
     priceIdAnnual: null, // resolved at runtime via getProAnnualPriceId()
     priceIdLifetime: null, // resolved at runtime via getProLifetimePriceId()
-    priceMonthly: 9, // A$9/mo, GST inclusive (placeholder — confirm)
+    priceMonthly: 9, // A$9/mo (placeholder — confirm)
     priceAnnualMonthly: 7.5, // A$90/yr billed annually
     priceAnnualTotal: 90,
     // Lifetime is no longer sold publicly (dropped from the pricing pages).

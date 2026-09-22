@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ScrollReveal } from "@/components/motion";
 import { AUDIENCES } from "@/lib/marketing/audiences";
 
-// TODO(placeholder): confirm the registered ABN before launch.
-const ABN_PLACEHOLDER = "ABN 00 000 000 000";
+// RAVENCI is a registered business name of Richard Haddad (sole trader, QLD).
+const ABN = "ABN 35 664 615 205";
 
 export function Footer() {
   return (
@@ -153,8 +153,7 @@ export function Footer() {
               &copy; {new Date().getFullYear()} TheJury. All rights reserved.
             </p>
             <p className="text-xs text-muted-foreground">
-              Australian owned and operated · {ABN_PLACEHOLDER} · Made with care
-              by{" "}
+              Australian owned and operated · {ABN} · Made with care by{" "}
               <Link
                 target="_blank"
                 rel="noopener"
