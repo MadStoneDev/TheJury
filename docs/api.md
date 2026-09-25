@@ -1,8 +1,8 @@
 # TheJury public API (v1)
 
-A small REST API for creating polls (including session-scheduling polls) and
-reading their results — enough for a partner such as **Tabletop Chronicles** to
-embed a scheduling poll on a campaign page and read the outcome.
+A small REST API for creating polls (including scheduling polls) and reading
+their results. Enough for a partner or your own site to embed a poll on a page
+and read the outcome.
 
 - **Base URL:** `https://thejury.app/api/v1`
 - **Format:** JSON in, JSON out. Success responses wrap the payload in `data`.
@@ -99,13 +99,13 @@ curl https://thejury.app/api/v1/polls/8f3… \
     ] } }
 ```
 
-## Embedding (Tabletop Chronicles)
+## Embedding
 
-1. `POST /polls` to create the scheduling poll; keep the returned `id` and `code`.
-2. Embed the vote widget on the campaign page:
+1. `POST /polls` to create the poll; keep the returned `id` and `code`.
+2. Embed the vote widget on your page:
    ```html
    <iframe src="https://thejury.app/embed/AB12CD" width="100%" height="420"
-           style="border:0" title="Session scheduling poll"></iframe>
+           style="border:0" title="Poll"></iframe>
    ```
 3. Poll `GET /polls/{id}` to show the winning night, or link players to
    `https://thejury.app/results/AB12CD`.

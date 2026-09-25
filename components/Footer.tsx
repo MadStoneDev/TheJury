@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { ScrollReveal } from "@/components/motion";
+import { AUDIENCES } from "@/lib/marketing/audiences";
+
+// RAVENCI is a registered business name of Richard Haddad (sole trader, QLD).
+const ABN = "ABN 35 664 615 205";
 
 export function Footer() {
   return (
@@ -19,8 +23,8 @@ export function Footer() {
                 TheJury
               </Link>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                Create beautiful polls and get instant feedback from your
-                audience.
+                Australian-hosted polls and votes for organisations. No account
+                needed to vote.
               </p>
             </div>
 
@@ -71,30 +75,16 @@ export function Footer() {
                 Use cases
               </h4>
               <ul className="space-y-2.5">
-                <li>
-                  <Link
-                    href="/for/gaming-groups"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Gaming groups
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/for/teams"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Teams
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/for/creators"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Creators
-                  </Link>
-                </li>
+                {AUDIENCES.map((a) => (
+                  <li key={a.slug}>
+                    <Link
+                      href={`/for/${a.slug}`}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {a.navLabel}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -145,6 +135,14 @@ export function Footer() {
                     Terms of Service
                   </Link>
                 </li>
+                <li>
+                  <Link
+                    href="/security"
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Security
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -155,9 +153,10 @@ export function Footer() {
               &copy; {new Date().getFullYear()} TheJury. All rights reserved.
             </p>
             <p className="text-xs text-muted-foreground">
-              Made with care by{" "}
+              Australian owned and operated · {ABN} · Made with care by{" "}
               <Link
                 target="_blank"
+                rel="noopener"
                 href="https://ravenci.solutions"
                 className="text-emerald-500 hover:text-emerald-400 transition-colors font-medium"
               >

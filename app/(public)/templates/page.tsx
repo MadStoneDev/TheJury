@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Poll templates | TheJury",
   description:
-    "Start from a pre-built poll template — feedback surveys, team retros, event RSVPs, quizzes and more — and customise it in seconds.",
+    "Start from a template built for Australian organisations: AGM motions, community consultation, anonymous staff feedback, meeting dates and live session polls.",
   alternates: { canonical: "/templates" },
 };
 
@@ -41,8 +41,9 @@ export default async function TemplatesPage() {
             Poll templates
           </h1>
           <p className="mt-4 text-[16px] leading-relaxed text-jury-muted sm:text-[18px]">
-            Start from a pre-built template and customise it to fit your needs —
-            save time and get better results.
+            Start from a template built for your kind of vote, then change the
+            wording to suit. Motions, elections, consultation, feedback and live
+            session polls.
           </p>
         </div>
 

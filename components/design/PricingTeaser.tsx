@@ -9,8 +9,8 @@ interface PricingTeaserProps {
 }
 
 /**
- * Compact two-tier pricing teaser used on the homepage and the use-case pages.
- * Prices come from the two-tier config in lib/stripe (Free + Pro, Pro lifetime).
+ * Compact pricing teaser used on the homepage and the use-case pages. Shows
+ * Free and Organisation (the full three tiers live on /pricing).
  */
 export function PricingTeaser({
   sub = "Start free. Upgrade when your polls outgrow it.",
@@ -19,7 +19,7 @@ export function PricingTeaser({
   const pro = TIERS.pro;
   const proDesc =
     proDescription ??
-    `Unlimited polls, every question type, branded embeds. Lifetime A$${pro.priceLifetime}.`;
+    "Anonymous and verified voting, the results record, and no TheJury branding.";
 
   return (
     <section className="border-y border-jury-border-subtle bg-jury-alt">
@@ -50,8 +50,7 @@ export function PricingTeaser({
               <span className="text-[14px] text-jury-dim">forever</span>
             </div>
             <p className="mt-3 text-[15px] leading-relaxed text-jury-muted">
-              Unlimited polls &amp; votes, multiple choice + rating, 3 AI drafts a
-              month.
+              Public polls, live results, and no account needed to vote.
             </p>
             <Link
               href="/auth/sign-up"
@@ -61,7 +60,7 @@ export function PricingTeaser({
             </Link>
           </div>
 
-          {/* Pro — highlighted */}
+          {/* Organisation — highlighted */}
           <div
             className="relative rounded-xl border p-7"
             style={{
@@ -74,7 +73,9 @@ export function PricingTeaser({
             <span className="absolute -top-3 left-7 rounded-full border border-jury-emerald-line bg-jury-emerald-tint px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-jury-emerald-hi">
               Most Popular
             </span>
-            <h3 className="text-[17px] font-semibold text-jury-text">Pro</h3>
+            <h3 className="text-[17px] font-semibold text-jury-text">
+              {pro.name}
+            </h3>
             <div className="mt-2 flex items-baseline gap-1">
               <span className="font-display text-[40px] leading-none text-jury-emerald-hi">
                 A${pro.priceMonthly}
@@ -88,7 +89,7 @@ export function PricingTeaser({
               href="/pricing"
               className="mt-6 flex h-11 items-center justify-center rounded-full bg-jury-emerald text-[15px] font-semibold text-jury-on-emerald transition hover:bg-jury-emerald-hi"
             >
-              Upgrade to Pro
+              See {pro.name}
             </Link>
           </div>
         </div>

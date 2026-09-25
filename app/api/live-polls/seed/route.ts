@@ -19,54 +19,23 @@ export async function POST(request: Request) {
   try {
     const supabase = await createClient();
 
+    // The hero (app/api/live-polls/random) prefers category "organisation".
+    // For a plausible starting distribution and monthly reset, prefer the SQL
+    // seed (supabase/seed_demo_polls.sql); this route just ensures the poll row
+    // exists.
     const additionalPolls = [
       {
-        question: "What are we queuing up tonight?",
-        description: "Squad's in — pick the vibe for game night",
+        question: "How does your organisation run votes today?",
+        description: "A live demo. Have a go, then see how everyone answered.",
         options: [
-          { id: "1", text: "Ranked grind" },
-          { id: "2", text: "Chill co-op" },
-          { id: "3", text: "Party games" },
-          { id: "4", text: "Something new" },
+          { id: "1", text: "Show of hands" },
+          { id: "2", text: "Paper ballots" },
+          { id: "3", text: "Email replies" },
+          { id: "4", text: "Google Forms or similar" },
+          { id: "5", text: "Something else" },
         ],
-        category: "gaming",
+        category: "organisation",
         display_order: 1,
-      },
-      {
-        question: "What's your preferred programming language?",
-        description: "For building web applications",
-        options: [
-          { id: "1", text: "JavaScript/TypeScript" },
-          { id: "2", text: "Python" },
-          { id: "3", text: "Java" },
-          { id: "4", text: "Go" },
-        ],
-        category: "tech",
-        display_order: 6,
-      },
-      {
-        question: "How do you stay motivated?",
-        description: "What keeps you going when things get tough?",
-        options: [
-          { id: "1", text: "Setting small goals" },
-          { id: "2", text: "Rewards and treats" },
-          { id: "3", text: "Support from others" },
-          { id: "4", text: "Thinking about the outcome" },
-        ],
-        category: "motivation",
-        display_order: 7,
-      },
-      {
-        question: "What's your ideal weekend?",
-        description: "How do you like to spend your free time?",
-        options: [
-          { id: "1", text: "Outdoors and active" },
-          { id: "2", text: "Reading or learning" },
-          { id: "3", text: "Socializing with friends" },
-          { id: "4", text: "Relaxing at home" },
-        ],
-        category: "lifestyle",
-        display_order: 8,
       },
     ];
 

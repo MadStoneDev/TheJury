@@ -42,15 +42,19 @@ export async function GET(request: Request) {
       );
     }
 
-    // Skip the last few polls this visitor already saw (?exclude=id1,id2,id3),
-    // so the hero doesn't repeat itself. If excluding empties the pool (they've
-    // seen everything recently), fall back to the full set.
+    // Prefer the Australian-org demo poll so the hero suits our audience;
+    // fall back to the full set if none is seeded yet.
+    const onBrand = polls.filter((p) => p.category === "organisation");
+    const base = onBrand.length > 0 ? onBrand : polls;
+
+    // Then skip the last few polls this visitor already saw (?exclude=id1,id2,id3)
+    // so the hero doesn't repeat itself; if that empties the pool, fall back.
     const excludeParam = new URL(request.url).searchParams.get("exclude");
     const excluded = new Set(
       (excludeParam ?? "").split(",").map((s) => s.trim()).filter(Boolean),
     );
-    const fresh = polls.filter((p) => !excluded.has(p.id));
-    const pool = fresh.length > 0 ? fresh : polls;
+    const fresh = base.filter((p) => !excluded.has(p.id));
+    const pool = fresh.length > 0 ? fresh : base;
 
     // Randomly select a poll
     const randomIndex = Math.floor(Math.random() * pool.length);

@@ -373,7 +373,7 @@ export default function ProfilePage({
               </div>
             </StaggerItem>
 
-            {/* API keys (Pro) — for the public API / Tabletop Chronicles integration */}
+            {/* API keys (Pro) — for the public API and partner integrations */}
             {canUseFeature(subscriptionTier, "apiAccess") && (
               <StaggerItem>
                 <div className="rounded-2xl bg-card border border-border p-6">
