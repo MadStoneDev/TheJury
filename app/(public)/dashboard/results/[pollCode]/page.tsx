@@ -14,6 +14,7 @@ import {
   IconDownload,
   IconLink,
   IconLock,
+  IconFileText,
 } from "@tabler/icons-react";
 import {
   getPollByCode,
@@ -676,6 +677,12 @@ export default function PollResultsPage() {
               </Button>
             </>
           )}
+          <Link href={`/dashboard/results/${pollCode}/record`}>
+            <Button variant="outline" size="sm" className="gap-1.5">
+              <IconFileText size={14} />
+              Results record
+            </Button>
+          </Link>
           {showResultsToVoters && (
             <Button
               variant="outline"
