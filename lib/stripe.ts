@@ -32,6 +32,7 @@ export interface TierConfig {
   maxQuestionsPerPoll: number; // -1 = unlimited
   removeBranding: boolean;
   csvExport: boolean;
+  resultsRecord: boolean;
   qrCodes: boolean;
   anonymousVoting: boolean;
   verifiedVoting: boolean;
@@ -70,6 +71,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     maxQuestionsPerPoll: 2,
     removeBranding: false, // TheJury branding stays on
     csvExport: false,
+    resultsRecord: false,
     qrCodes: false,
     anonymousVoting: false,
     verifiedVoting: false,
@@ -108,6 +110,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
     csvExport: true,
+    resultsRecord: true,
     qrCodes: true,
     anonymousVoting: true,
     verifiedVoting: true,
@@ -149,6 +152,7 @@ export const TIERS: Record<TierName, TierConfig> = {
     maxQuestionsPerPoll: -1, // unlimited
     removeBranding: true,
     csvExport: true,
+    resultsRecord: true,
     qrCodes: true,
     anonymousVoting: true,
     verifiedVoting: true,

@@ -7,10 +7,13 @@ import { IconArrowLeft, IconPrinter, IconLoader2 } from "@tabler/icons-react";
 import {
   getPollByCode,
   getPollResultsByQuestion,
+  getCurrentUser,
 } from "@/lib/supabaseHelpers";
 import type { Poll, QuestionResult } from "@/lib/supabaseHelpers";
 import { supabase } from "@/lib/supabase";
 import { formatDateFull } from "@/lib/dateUtils";
+import { canUseFeature } from "@/lib/featureGate";
+import type { TierName } from "@/lib/stripe";
 
 /**
  * Printable "results record" for the minutes. A clean, light-themed document
@@ -27,6 +30,7 @@ export default function ResultsRecordPage() {
   const [totalResponses, setTotalResponses] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [entitled, setEntitled] = useState(true);
   const [generatedAt] = useState(() => new Date().toISOString());
 
   useEffect(() => {
@@ -34,6 +38,25 @@ export default function ResultsRecordPage() {
       if (!pollCode) return;
       setIsLoading(true);
       try {
+        // The results record is an Organisation-tier feature. Check entitlement
+        // before rendering (the button is gated too, this covers direct links).
+        const user = await getCurrentUser();
+        let tier: TierName = "free";
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("subscription_tier")
+            .eq("id", user.id)
+            .maybeSingle();
+          if (profile?.subscription_tier) {
+            tier = profile.subscription_tier as TierName;
+          }
+        }
+        if (!canUseFeature(tier, "resultsRecord")) {
+          setEntitled(false);
+          return;
+        }
+
         const pollData = await getPollByCode(pollCode);
         if (!pollData) {
           setError("Poll not found");
@@ -63,6 +86,36 @@ export default function ResultsRecordPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <IconLoader2 className="w-8 h-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
+  if (!entitled) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-md text-center rounded-2xl border bg-card p-8">
+          <h1 className="text-xl font-display text-foreground mb-2">
+            An Organisation feature
+          </h1>
+          <p className="text-muted-foreground text-sm mb-6">
+            The printable results record — ready for the minutes — is available
+            on the Organisation plan.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <Link
+              href={`/dashboard/results/${pollCode}`}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Back to results
+            </Link>
+            <Link
+              href="/pricing"
+              className="inline-flex h-10 items-center rounded-full bg-emerald-600 px-5 text-sm font-semibold text-white transition hover:bg-emerald-500"
+            >
+              See plans
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

@@ -677,12 +677,27 @@ export default function PollResultsPage() {
               </Button>
             </>
           )}
-          <Link href={`/dashboard/results/${pollCode}/record`}>
-            <Button variant="outline" size="sm" className="gap-1.5">
-              <IconFileText size={14} />
+          {canUseFeature(userTier, "resultsRecord") ? (
+            <Link href={`/dashboard/results/${pollCode}/record`}>
+              <Button variant="outline" size="sm" className="gap-1.5">
+                <IconFileText size={14} />
+                Results record
+              </Button>
+            </Link>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => {
+                setUpgradeFeature("resultsRecord");
+                setUpgradeModalOpen(true);
+              }}
+            >
+              <IconLock size={14} className="text-muted-foreground" />
               Results record
             </Button>
-          </Link>
+          )}
           {showResultsToVoters && (
             <Button
               variant="outline"
