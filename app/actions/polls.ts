@@ -81,6 +81,10 @@ export interface CreatePollInput {
   start_date: string | null;
   end_date: string | null;
   password_hash: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
+  /** Verified-voting roll: created after the poll when requires_verification. */
+  members?: { label: string; email?: string | null }[];
   questions: QuestionInput[];
   fallbackOptions: { text: string }[];
 }
@@ -97,6 +101,8 @@ export async function createPollAction(
     start_date: input.start_date,
     end_date: input.end_date,
     password_hash: input.password_hash,
+    is_anonymous: input.is_anonymous,
+    requires_verification: input.requires_verification,
   });
   if (tierError) return { ok: false, error: tierError };
 
@@ -115,12 +121,34 @@ export async function createPollAction(
       start_date: input.start_date,
       end_date: input.end_date,
       password_hash: input.password_hash,
+      is_anonymous: input.is_anonymous ?? false,
+      requires_verification: input.requires_verification ?? false,
     },
     input.fallbackOptions,
     input.questions,
   );
 
   if (!pollId) return { ok: false, error: "Failed to create poll." };
+
+  // Seed the member roll for verified polls via the tier-checked RPC.
+  if (input.requires_verification && input.members && input.members.length > 0) {
+    const { error: memberError } = await supabase.rpc("add_poll_members", {
+      p_poll_id: pollId,
+      p_members: input.members.map((m) => ({
+        label: m.label,
+        email: m.email ?? null,
+      })),
+    });
+    if (memberError) {
+      console.error("Failed to add poll members:", memberError);
+      return {
+        ok: false,
+        error:
+          "The poll was created but its member links could not be generated. Add members from the poll's settings.",
+      };
+    }
+  }
+
   return { ok: true, data: { pollId, code } };
 }
 
@@ -133,6 +161,8 @@ export interface UpdatePollInput {
   start_date: string | null;
   end_date: string | null;
   password_hash: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
   questions: (QuestionInput & { id?: string })[];
 }
 
@@ -166,6 +196,8 @@ export async function updatePollAction(
     start_date: input.start_date,
     end_date: input.end_date,
     password_hash: input.password_hash,
+    is_anonymous: input.is_anonymous,
+    requires_verification: input.requires_verification,
   });
   if (tierError) return { ok: false, error: tierError };
 
@@ -181,6 +213,8 @@ export async function updatePollAction(
       start_date: input.start_date,
       end_date: input.end_date,
       password_hash: input.password_hash,
+      is_anonymous: input.is_anonymous ?? false,
+      requires_verification: input.requires_verification ?? false,
     },
     undefined,
     input.questions,

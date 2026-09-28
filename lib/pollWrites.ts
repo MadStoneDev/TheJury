@@ -24,6 +24,8 @@ export interface CreatePollData {
   allow_multiple: boolean;
   start_date: string | null;
   password_hash?: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
 }
 
 export interface UpdatePollData {
@@ -35,6 +37,8 @@ export interface UpdatePollData {
   allow_multiple: boolean;
   start_date: string | null;
   password_hash?: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
 }
 
 export const createPollWithClient = async (

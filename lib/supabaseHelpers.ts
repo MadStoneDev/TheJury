@@ -74,6 +74,8 @@ export interface Poll {
   has_time_limit: boolean;
   show_results_to_voters?: boolean;
   password_hash?: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
   embed_settings?: Record<string, unknown> | null;
   start_date?: string;
   end_date?: string;

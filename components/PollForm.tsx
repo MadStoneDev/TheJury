@@ -69,6 +69,7 @@ const AIGenerateModal = dynamic(() => import("@/components/AIGenerateModal"), {
   ssr: false,
 });
 import { hashPassword } from "@/lib/passwordUtils";
+import { supabase } from "@/lib/supabase";
 
 // Loaded on demand, matching ShareModal, so the QR library isn't in the
 // initial poll-form bundle.
@@ -76,6 +77,20 @@ const QRCodeSVG = dynamic(
   () => import("qrcode.react").then((m) => ({ default: m.QRCodeSVG })),
   { ssr: false },
 );
+
+/** Parse the verified-voting roll editor: one member per line, "Label, email?". */
+function parseMemberRoll(text: string): { label: string; email: string | null }[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [labelPart, ...rest] = line.split(",");
+      const email = rest.join(",").trim();
+      return { label: labelPart.trim(), email: email || null };
+    })
+    .filter((m) => m.label.length > 0);
+}
 
 interface PollOption {
   id: string;
@@ -498,6 +513,15 @@ export default function PollForm({ pollCode }: PollFormProps) {
   const [endDate, setEndDate] = useState("");
   const [hasPassword, setHasPassword] = useState(false);
   const [pollPassword, setPollPassword] = useState("");
+  const [isAnonymous, setIsAnonymous] = useState(false);
+  const [requiresVerification, setRequiresVerification] = useState(false);
+  // Verified-voting roll editor: one member per line, "Label, email?" (create
+  // flow only for now — managing members on an existing poll is a follow-up).
+  const [memberText, setMemberText] = useState("");
+  // Links generated on save, shown on the success screen for CSV download.
+  const [generatedMembers, setGeneratedMembers] = useState<
+    { label: string; email: string | null; token: string }[]
+  >([]);
 
   // Questions
   const [questions, setQuestions] = useState<QuestionFormData[]>([
@@ -604,6 +628,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
           setGeneratedPollCode(poll.code);
           setPollId(poll.id);
           setHasPassword(!!poll.password_hash);
+          setIsAnonymous(poll.is_anonymous ?? false);
+          setRequiresVerification(poll.requires_verification ?? false);
 
           // Load questions
           if (poll.questions && poll.questions.length > 0) {
@@ -776,6 +802,14 @@ export default function PollForm({ pollCode }: PollFormProps) {
           : [],
       }));
 
+      // Verified-voting roll (create flow). Require at least one member.
+      const members = requiresVerification ? parseMemberRoll(memberText) : [];
+      if (requiresVerification && !isEditing && members.length === 0) {
+        throw new Error(
+          "Add at least one member (one per line) so links can be generated.",
+        );
+      }
+
       if (!isEditing) {
         const fallbackOptions = questions[0].options
           .filter((o) => o.text.trim())
@@ -791,6 +825,9 @@ export default function PollForm({ pollCode }: PollFormProps) {
           start_date: startIso,
           end_date: endIso,
           password_hash: passwordHash,
+          is_anonymous: isAnonymous,
+          requires_verification: requiresVerification,
+          members,
           questions: questionsInput,
           fallbackOptions,
         });
@@ -800,6 +837,15 @@ export default function PollForm({ pollCode }: PollFormProps) {
         }
         setGeneratedPollCode(result.data!.code);
         track("poll_created", { questions: questionsInput.length });
+
+        // Read back the generated member links for the success screen.
+        if (requiresVerification) {
+          const { data: roll } = await supabase
+            .from("poll_members")
+            .select("label, email, token")
+            .eq("poll_id", result.data!.pollId);
+          if (roll) setGeneratedMembers(roll);
+        }
       } else {
         const result = await updatePollAction(pollId, {
           question: pollTitle,
@@ -810,6 +856,8 @@ export default function PollForm({ pollCode }: PollFormProps) {
           start_date: startIso,
           end_date: endIso,
           password_hash: passwordHash,
+          is_anonymous: isAnonymous,
+          requires_verification: requiresVerification,
           questions: questionsInput,
         });
 
@@ -834,6 +882,33 @@ export default function PollForm({ pollCode }: PollFormProps) {
     await navigator.clipboard.writeText(link);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const downloadMemberLinks = () => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const esc = (v: string) =>
+      /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v;
+    const rows = [
+      "Label,Email,Voting link",
+      ...generatedMembers.map((m) =>
+        [
+          esc(m.label),
+          esc(m.email ?? ""),
+          esc(`${origin}/answer/${generatedPollCode}?t=${m.token}`),
+        ].join(","),
+      ),
+    ];
+    const blob = new Blob([rows.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `member-links-${generatedPollCode}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   if (isLoading) {
@@ -937,6 +1012,29 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     </div>
                   )}
               </div>
+
+              {generatedMembers.length > 0 && (
+                <div className="rounded-xl border bg-muted/50 p-5 mb-6 text-left">
+                  <h3 className="font-semibold text-foreground mb-1 text-sm">
+                    Member voting links
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    {generatedMembers.length} single-use link
+                    {generatedMembers.length === 1 ? "" : "s"} generated. Download
+                    them now and send each member their own link — only these
+                    links can vote, once each.
+                  </p>
+                  <Button
+                    onClick={downloadMemberLinks}
+                    variant="brand"
+                    size="sm"
+                    className="gap-1.5"
+                  >
+                    <IconCopy size={14} />
+                    Download links (CSV)
+                  </Button>
+                </div>
+              )}
 
               <div className="flex flex-wrap justify-center gap-3">
                 <Button
@@ -1310,6 +1408,117 @@ export default function PollForm({ pollCode }: PollFormProps) {
                           <p className="text-xs text-muted-foreground mt-2">
                             Voters will need this password to access the poll.
                           </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Anonymous voting */}
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={isAnonymous}
+                        onChange={(e) => {
+                          if (!canUseFeature(userTier, "anonymousVoting")) {
+                            setUpgradeFeature("anonymousVoting");
+                            setUpgradeModalOpen(true);
+                            return;
+                          }
+                          setIsAnonymous(e.target.checked);
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-1.5">
+                      Anonymous voting
+                      {!canUseFeature(userTier, "anonymousVoting") && (
+                        <IconLock size={12} className="text-muted-foreground" />
+                      )}
+                    </span>
+                  </label>
+                  {isAnonymous && (
+                    <p className="text-xs text-muted-foreground -mt-2 ml-8">
+                      Ballots can&apos;t be traced back to a voter, including by
+                      you. Signed-in voters get one vote each; open links to
+                      guests can&apos;t fully prevent repeat voting — turn on
+                      verified voting for a guaranteed one vote per member.
+                    </p>
+                  )}
+
+                  {/* Verified voting */}
+                  <label className="flex items-center cursor-pointer group">
+                    <div className="relative">
+                      <input
+                        type="checkbox"
+                        checked={requiresVerification}
+                        onChange={(e) => {
+                          if (!canUseFeature(userTier, "verifiedVoting")) {
+                            setUpgradeFeature("verifiedVoting");
+                            setUpgradeModalOpen(true);
+                            return;
+                          }
+                          setRequiresVerification(e.target.checked);
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-5 h-5 rounded border-2 border-border peer-checked:border-emerald-500 peer-checked:bg-emerald-500 transition-colors flex items-center justify-center">
+                        <IconCheck
+                          size={12}
+                          className="text-white opacity-0 peer-checked:opacity-100"
+                        />
+                      </div>
+                    </div>
+                    <span className="ml-3 text-sm text-foreground group-hover:text-foreground/80 transition-colors flex items-center gap-1.5">
+                      Require a member link to vote
+                      {!canUseFeature(userTier, "verifiedVoting") && (
+                        <IconLock size={12} className="text-muted-foreground" />
+                      )}
+                    </span>
+                  </label>
+
+                  <AnimatePresence>
+                    {requiresVerification && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-2 p-4 bg-card rounded-xl border border-border">
+                          {isEditing ? (
+                            <p className="text-xs text-muted-foreground">
+                              This poll requires member links. Managing the member
+                              list for an existing poll is coming soon — for now,
+                              create members when you first set up the poll.
+                            </p>
+                          ) : (
+                            <>
+                              <label className="block text-sm font-medium text-foreground mb-1">
+                                Members — one per line
+                              </label>
+                              <textarea
+                                value={memberText}
+                                onChange={(e) => setMemberText(e.target.value)}
+                                rows={5}
+                                placeholder={"Seat 14\nJane Chair, jane@example.org\nTreasurer"}
+                                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground"
+                              />
+                              <p className="text-xs text-muted-foreground mt-2">
+                                Each member gets a unique, single-use voting link.
+                                Format: a label (required), optionally followed by
+                                a comma and an email. You&apos;ll be able to
+                                download all the links after you create the poll.
+                              </p>
+                            </>
+                          )}
                         </div>
                       </motion.div>
                     )}
