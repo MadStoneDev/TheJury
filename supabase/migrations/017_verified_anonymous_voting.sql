@@ -105,22 +105,34 @@ CREATE UNIQUE INDEX IF NOT EXISTS votes_unique_member_per_poll
 
 -- ── Close the client insert path for protected polls ─────────────────────────
 -- Anonymous/verified polls must be voted on ONLY through cast_verified_vote (a
--- SECURITY DEFINER function, which bypasses RLS). A RESTRICTIVE policy is ANDed
--- with whatever permissive INSERT policy the base schema already has, so this
--- tightens the client path without needing to know that policy's name: a direct
--- insert from anon/authenticated is rejected when the target poll is anonymous
--- or requires verification. The definer function is unaffected (it runs as the
--- table owner and bypasses RLS).
+-- SECURITY DEFINER function, which bypasses RLS).
+--
+-- The check reads the poll's flags through a SECURITY DEFINER helper, NOT a
+-- direct subquery on polls. A subquery in the policy runs as the voter, so if
+-- the voter can't SELECT the poll row (password-protected, inactive, or a future
+-- RLS change), a `NOT EXISTS` subquery would find nothing and wrongly PASS,
+-- re-opening the client path exactly when the row is hidden. The helper always
+-- sees the real flags regardless of the caller's visibility.
+CREATE OR REPLACE FUNCTION public.poll_uses_protected_voting(p_poll_id uuid)
+RETURNS boolean
+LANGUAGE sql SECURITY DEFINER SET search_path = public, extensions STABLE AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM polls
+    WHERE polls.id = p_poll_id
+      AND (polls.is_anonymous OR polls.requires_verification)
+  );
+$$;
+REVOKE ALL ON FUNCTION public.poll_uses_protected_voting(uuid) FROM public;
+GRANT EXECUTE ON FUNCTION public.poll_uses_protected_voting(uuid)
+  TO anon, authenticated;
+
+-- A RESTRICTIVE policy is ANDed with whatever permissive INSERT policy the base
+-- schema already has, so this tightens the client path without needing that
+-- policy's name. The definer function above is unaffected (it bypasses RLS).
 DROP POLICY IF EXISTS "No direct votes on protected polls" ON public.votes;
 CREATE POLICY "No direct votes on protected polls" ON public.votes
   AS RESTRICTIVE FOR INSERT TO anon, authenticated
-  WITH CHECK (
-    NOT EXISTS (
-      SELECT 1 FROM public.polls p
-      WHERE p.id = votes.poll_id
-        AND (p.is_anonymous OR p.requires_verification)
-    )
-  );
+  WITH CHECK (NOT public.poll_uses_protected_voting(poll_id));
 
 -- ── add_poll_members: generate the roll (owner + tier checked) ───────────────
 -- Returns the created rows (with tokens) so the owner can download the links.

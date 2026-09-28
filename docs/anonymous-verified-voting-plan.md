@@ -135,9 +135,14 @@ app code that must not deploy before Phase 1 is live.
    hand-written bridge (polls flags, votes columns, `poll_members`, the three
    functions).
 3. Merge `feat/au-public-review-fixes`, then `feat/verified-anonymous-voting`.
-4. Smoke-test: an anonymous poll (signed-in dedup + guest), and a verified poll
-   (valid link votes once; reused link rejected; no-link is gated; turnout
-   shows used/total; owner can't see who voted how).
+4. Smoke-test by running `supabase/test_017.sql` (transactional, rolls back) —
+   it asserts: direct client insert rejected for anonymous and verified polls
+   (including as a non-owner who can't see the poll); open-poll direct insert
+   still works; token redeem once / reuse rejected / no-token rejected;
+   anonymous dedup for signed-in and guest-fingerprint; Free owner can't enable
+   a flag by direct update while a paid owner can; a downgraded owner's active
+   poll still accepts votes; and the owner cannot read `poll_members.used_at`,
+   `app_secrets` or `poll_anon_salts`.
 
 ### Follow-ups (not in this branch)
 
@@ -198,7 +203,12 @@ app code that must not deploy before Phase 1 is live.
 - **Client insert path closed.** A RESTRICTIVE `INSERT` policy on `votes` rejects
   direct client inserts for any poll that is anonymous or requires verification,
   so those polls can only be voted on through `cast_verified_vote`. It ANDs with
-  the existing permissive policy, so it needed no knowledge of that policy.
+  the existing permissive policy, so it needed no knowledge of that policy. The
+  flag check goes through a `SECURITY DEFINER` helper
+  (`poll_uses_protected_voting`), **not** a subquery on `polls` — a subquery
+  would run as the voter and, if the poll row is hidden from them by RLS, a
+  `NOT EXISTS` check would wrongly pass and re-open the path. The helper always
+  sees the real flags.
 - **pgcrypto schema.** The migration and all functions use
   `search_path = public, extensions` so `gen_random_bytes()` / `hmac()` resolve
   whether pgcrypto is in `extensions` (Supabase) or `public`.
