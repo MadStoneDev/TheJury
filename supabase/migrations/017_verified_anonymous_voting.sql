@@ -3,17 +3,21 @@
 --
 -- Design notes (see docs/anonymous-verified-voting-plan.md):
 --  * Votes for anonymous/verified polls are cast ONLY through the SECURITY
---    DEFINER function cast_verified_vote(). It bypasses RLS, so it validates
---    everything itself: tier, active/time-window, option membership, and the
---    member token. Open non-anonymous polls keep the existing client insert.
+--    DEFINER function cast_verified_vote() (a RESTRICTIVE policy blocks the
+--    direct client insert). It bypasses RLS, so it validates active/time-window,
+--    option membership and the member token itself. Tier is NOT checked here:
+--    it is enforced when a poll's flags are SET (the enforce_voting_feature_tier
+--    trigger), so a poll is grandfathered if its owner later downgrades.
 --  * Anonymity is FROM THE POLL OWNER. The owner can see tallies and turnout
 --    (used/total), never who cast which ballot, and never per-member timing.
---  * anon_hash is computed server-side inside the function from auth.uid() and
---    a per-poll salt combined with a global pepper. The client never supplies
---    it, and neither salt nor pepper is readable by any app role.
---  * A guest (not signed in) voting on an anonymous poll has no server-side
---    identifier, so repeat voting cannot be fully prevented — verified voting
---    is the mechanism when one-vote-per-person must be guaranteed.
+--  * A non-verified anonymous poll dedups via anon_hash: a server-side HMAC of
+--    the signed-in account, or (for a guest) the device fingerprint, keyed by a
+--    per-poll salt + a global pepper. The client never supplies the hash, and
+--    neither salt nor pepper is readable by any app role. A fingerprint is
+--    spoofable, so guest dedup is best-effort; verified voting is the hard
+--    one-vote guarantee. A verified poll dedups by consuming the token, so it
+--    never computes anon_hash — a verified+anonymous ballot stores neither
+--    member_id nor anon_hash and is fully unlinkable.
 --
 -- Safe to run more than once.
 
