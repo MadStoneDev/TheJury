@@ -33,6 +33,8 @@ export interface TierConfig {
   removeBranding: boolean;
   csvExport: boolean;
   qrCodes: boolean;
+  anonymousVoting: boolean;
+  verifiedVoting: boolean;
   scheduling: boolean;
   ratingScale: boolean;
   rankedChoice: boolean;
@@ -69,6 +71,8 @@ export const TIERS: Record<TierName, TierConfig> = {
     removeBranding: false, // TheJury branding stays on
     csvExport: false,
     qrCodes: false,
+    anonymousVoting: false,
+    verifiedVoting: false,
     scheduling: false,
     ratingScale: true, // Free: multiple choice + rating + yes/no
     rankedChoice: false,
@@ -105,6 +109,8 @@ export const TIERS: Record<TierName, TierConfig> = {
     removeBranding: true,
     csvExport: true,
     qrCodes: true,
+    anonymousVoting: true,
+    verifiedVoting: true,
     scheduling: true,
     ratingScale: true,
     rankedChoice: true,
@@ -144,6 +150,8 @@ export const TIERS: Record<TierName, TierConfig> = {
     removeBranding: true,
     csvExport: true,
     qrCodes: true,
+    anonymousVoting: true,
+    verifiedVoting: true,
     scheduling: true,
     ratingScale: true,
     rankedChoice: true,

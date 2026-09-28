@@ -14,6 +14,8 @@ export interface PollWriteCheck {
   start_date: string | null;
   end_date: string | null;
   password_hash?: string | null;
+  is_anonymous?: boolean;
+  requires_verification?: boolean;
 }
 
 /**
@@ -51,6 +53,16 @@ export function validatePollWriteForTier(
   // Password protection
   if (input.password_hash && !canUseFeature(tier, "passwordProtect")) {
     return "Password protection is a Pro feature. Upgrade to protect your polls.";
+  }
+
+  // Anonymous voting
+  if (input.is_anonymous && !canUseFeature(tier, "anonymousVoting")) {
+    return "Anonymous voting is an Organisation feature. Upgrade to enable it.";
+  }
+
+  // Verified (one link per member) voting
+  if (input.requires_verification && !canUseFeature(tier, "verifiedVoting")) {
+    return "Verified voting is an Organisation feature. Upgrade to enable it.";
   }
 
   return null;

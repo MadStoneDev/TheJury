@@ -579,6 +579,44 @@ export type Database = {
           },
         ]
       }
+      poll_members: {
+        Row: {
+          id: string
+          poll_id: string
+          token: string
+          label: string
+          email: string | null
+          used_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          token: string
+          label: string
+          email?: string | null
+          used_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          token?: string
+          label?: string
+          email?: string | null
+          used_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_members_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       polls: {
         Row: {
           id: string
@@ -603,6 +641,8 @@ export type Database = {
           live_current_question: number | null
           team_id: string | null
           quiz_mode: boolean | null
+          is_anonymous: boolean
+          requires_verification: boolean
         }
         Insert: {
           id?: string
@@ -627,6 +667,8 @@ export type Database = {
           live_current_question?: number | null
           team_id?: string | null
           quiz_mode?: boolean | null
+          is_anonymous?: boolean
+          requires_verification?: boolean
         }
         Update: {
           id?: string
@@ -651,6 +693,8 @@ export type Database = {
           live_current_question?: number | null
           team_id?: string | null
           quiz_mode?: boolean | null
+          is_anonymous?: boolean
+          requires_verification?: boolean
         }
         Relationships: [
           {
@@ -1144,6 +1188,8 @@ export type Database = {
           created_at: string | null
           options: Json | null
           answers: Json | null
+          anon_hash: string | null
+          member_id: string | null
         }
         Insert: {
           id?: string
@@ -1154,6 +1200,8 @@ export type Database = {
           created_at?: string | null
           options?: Json | null
           answers?: Json | null
+          anon_hash?: string | null
+          member_id?: string | null
         }
         Update: {
           id?: string
@@ -1164,6 +1212,8 @@ export type Database = {
           created_at?: string | null
           options?: Json | null
           answers?: Json | null
+          anon_hash?: string | null
+          member_id?: string | null
         }
         Relationships: [
           {
@@ -1253,6 +1303,36 @@ export type Database = {
           base_name: string
         }
         Returns: string
+      }
+      add_poll_members: {
+        Args: {
+          p_poll_id: string
+          p_members: Json
+        }
+        Returns: {
+          id: string
+          label: string
+          email: string | null
+          token: string
+        }[]
+      }
+      get_poll_turnout: {
+        Args: {
+          p_poll_id: string
+        }
+        Returns: {
+          used: number
+          total: number
+        }[]
+      }
+      cast_verified_vote: {
+        Args: {
+          p_poll_id: string
+          p_token: string | null
+          p_options: Json
+          p_answers: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {
