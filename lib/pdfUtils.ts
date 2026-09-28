@@ -14,6 +14,7 @@ export interface ResultsPdfInput {
   results?: PollResult[];
   questionResults?: QuestionResult[];
   generatedAt?: string; // ISO; defaults to now
+  modeNote?: string; // e.g. "Anonymous ballot · turnout 38 of 41"
 }
 
 const MARGIN = 48;
@@ -96,6 +97,14 @@ export async function downloadResultsPdf(input: ResultsPdfInput): Promise<void> 
     y,
   );
   y += 16;
+
+  if (input.modeNote) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(INK);
+    doc.text(input.modeNote, MARGIN, y);
+    y += 16;
+  }
 
   doc.setDrawColor(RULE);
   doc.line(MARGIN, y, PAGE_W - MARGIN, y);

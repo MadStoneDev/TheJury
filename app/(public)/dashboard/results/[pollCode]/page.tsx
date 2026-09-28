@@ -56,6 +56,9 @@ export default function PollResultsPage() {
   const pollCode = params.pollCode as string;
 
   const [poll, setPoll] = useState<Poll | null>(null);
+  const [turnout, setTurnout] = useState<{ used: number; total: number } | null>(
+    null,
+  );
   const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -145,6 +148,15 @@ export default function PollResultsPage() {
         ]);
         setQuestionResults(qResults);
         setTotalVoters(voterCount || 0);
+
+        // Verified polls: load turnout (used / total) via the aggregate RPC.
+        if (pollData.requires_verification) {
+          const { data: turnoutRows } = await supabase.rpc("get_poll_turnout", {
+            p_poll_id: pollData.id,
+          });
+          const row = Array.isArray(turnoutRows) ? turnoutRows[0] : turnoutRows;
+          if (row) setTurnout({ used: Number(row.used), total: Number(row.total) });
+        }
       } catch (err) {
         console.error("Error loading poll results:", err);
         setError("Failed to load poll results");
@@ -214,8 +226,20 @@ export default function PollResultsPage() {
       questionResults,
     });
     if (res.ok) {
+      const modeParts: string[] = [];
+      if (poll.is_anonymous) modeParts.push("Anonymous ballot");
+      if (poll.requires_verification) {
+        modeParts.push(
+          turnout
+            ? `Verified · turnout ${turnout.used} of ${turnout.total}`
+            : "Verified voting",
+        );
+      }
       try {
-        await downloadResultsPdf(res.data!);
+        await downloadResultsPdf({
+          ...res.data!,
+          modeNote: modeParts.join(" · ") || undefined,
+        });
         toast.success("PDF exported!");
       } catch (err) {
         console.error("Failed to build PDF:", err);
@@ -333,6 +357,16 @@ export default function PollResultsPage() {
                   <IconUsers size={14} />
                   {totalVoters} {totalVoters === 1 ? "voter" : "voters"}
                 </span>
+                {poll.requires_verification && turnout && (
+                  <span className="bg-emerald-500/10 text-emerald-500 px-2 py-0.5 rounded-full font-medium">
+                    Turnout {turnout.used} of {turnout.total}
+                  </span>
+                )}
+                {poll.is_anonymous && (
+                  <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded-full font-medium">
+                    Anonymous
+                  </span>
+                )}
                 {isMultiQuestion && (
                   <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full font-medium">
                     {pluralize(questionResults.length, "question")}
