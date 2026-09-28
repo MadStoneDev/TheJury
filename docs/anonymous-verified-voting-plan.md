@@ -223,3 +223,8 @@ app code that must not deploy before Phase 1 is live.
 - **Member deletion deferred safely.** No `DELETE` grant on `poll_members` yet
   (a voted member would hit the `votes.member_id` FK), so the roll is
   create-only until the member-management follow-up handles it explicitly.
+- **Verified + anonymous shared-device fix.** `anon_hash` is computed only for
+  anonymous polls that are **not** verified. On a verified poll the single-use
+  token is the dedup; adding a fingerprint hash there would make two members
+  voting from the same device collide, wrongly rejecting the second despite a
+  valid token. `test_017.sql` §5c is the regression test.

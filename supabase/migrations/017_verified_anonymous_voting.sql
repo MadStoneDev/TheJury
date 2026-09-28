@@ -287,13 +287,20 @@ BEGIN
     END IF;
   END IF;
 
-  -- Anonymous: derive a per-poll, peppered hash of the voter for dedup, never
-  -- storing a raw identifier. Prefer the signed-in account; otherwise fall back
-  -- to the guest device fingerprint. A domain-separator prefix stops a uid and a
-  -- fingerprint ever colliding. A fingerprint is spoofable, so this is
-  -- best-effort for guests (verified voting is the hard guarantee) — but it
-  -- restores the duplicate protection open polls have always had.
-  IF v_poll.is_anonymous THEN
+  -- Anonymous dedup by hashed identifier — ONLY for anonymous polls that are not
+  -- also verified. For verified polls the single-use token is the dedup, so we
+  -- must NOT add a fingerprint hash: two members voting from the same shared
+  -- device would collide on anon_hash and the second, though holding a valid
+  -- unused token, would be wrongly rejected. (A verified+anonymous ballot thus
+  -- stores neither member_id nor anon_hash — fully unlinkable; the consumed
+  -- token guarantees one vote.)
+  --
+  -- We never store a raw identifier. Prefer the signed-in account; otherwise the
+  -- guest device fingerprint, with a domain-separator prefix so a uid and a
+  -- fingerprint can't collide. A fingerprint is spoofable, so guest dedup is
+  -- best-effort (verified voting is the hard guarantee) — but it restores the
+  -- duplicate protection open polls have always had.
+  IF v_poll.is_anonymous AND NOT v_poll.requires_verification THEN
     IF auth.uid() IS NOT NULL THEN
       v_ident := 'uid:' || auth.uid()::text;
     ELSIF p_fingerprint IS NOT NULL AND p_fingerprint <> '' THEN

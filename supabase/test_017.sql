@@ -33,16 +33,22 @@ INSERT INTO polls (id, code, user_id, question, allow_multiple, is_active,
   ('00000000-0000-0000-0000-0000000000b1', 'TST-OPEN', '00000000-0000-0000-0000-0000000000a1', 'Open poll',      false, true, false, false, false),
   ('00000000-0000-0000-0000-0000000000b2', 'TST-ANON', '00000000-0000-0000-0000-0000000000a1', 'Anonymous poll', false, true, false, true,  false),
   ('00000000-0000-0000-0000-0000000000b3', 'TST-VERI', '00000000-0000-0000-0000-0000000000a1', 'Verified poll',  false, true, false, false, true),
-  ('00000000-0000-0000-0000-0000000000b4', 'TST-FREE', '00000000-0000-0000-0000-0000000000a2', 'Free open poll', false, true, false, false, false);
+  ('00000000-0000-0000-0000-0000000000b4', 'TST-FREE', '00000000-0000-0000-0000-0000000000a2', 'Free open poll', false, true, false, false, false),
+  ('00000000-0000-0000-0000-0000000000b5', 'TST-VANO', '00000000-0000-0000-0000-0000000000a1', 'Verified+anon poll', false, true, false, true, true);
 
 INSERT INTO poll_options (id, poll_id, text, option_order) VALUES
   ('00000000-0000-0000-0000-0000000000c1', '00000000-0000-0000-0000-0000000000b1', 'A', 1),
   ('00000000-0000-0000-0000-0000000000c2', '00000000-0000-0000-0000-0000000000b2', 'A', 1),
-  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-0000000000b3', 'A', 1);
+  ('00000000-0000-0000-0000-0000000000c3', '00000000-0000-0000-0000-0000000000b3', 'A', 1),
+  ('00000000-0000-0000-0000-0000000000c5', '00000000-0000-0000-0000-0000000000b5', 'A', 1);
 
 INSERT INTO poll_members (id, poll_id, token, label) VALUES
   ('00000000-0000-0000-0000-0000000000d1', '00000000-0000-0000-0000-0000000000b3',
-   'TESTTOKEN0000000000000001', 'Seat 1');
+   'TESTTOKEN0000000000000001', 'Seat 1'),
+  ('00000000-0000-0000-0000-0000000000d2', '00000000-0000-0000-0000-0000000000b5',
+   'TESTTOKEN0000000000000002', 'Seat A'),
+  ('00000000-0000-0000-0000-0000000000d3', '00000000-0000-0000-0000-0000000000b5',
+   'TESTTOKEN0000000000000003', 'Seat B');
 
 SET session_replication_role = DEFAULT;  -- triggers + FK back on for the tests
 
@@ -121,6 +127,10 @@ END $$;
 RESET ROLE;
 
 -- ── 3. Helper sees the real flags even under the anon role ──────────────────
+-- Clear claim.sub as well as claims: auth.uid() reads claim.sub first, so a
+-- leftover sub from an earlier section would make these "guest" calls run as a
+-- signed-in user. Sections 4 and 5a inherit this anon context.
+SET LOCAL request.jwt.claim.sub = '';
 SET LOCAL request.jwt.claims = '{"role":"anon"}';
 SET LOCAL ROLE anon;
 
@@ -227,6 +237,28 @@ END $$;
 
 RESET ROLE;
 
+-- ── 5c. Verified + anonymous: two members on the SAME device both vote ──────
+-- Regression: a verified+anonymous ballot must NOT get a fingerprint anon_hash,
+-- or two members sharing a device (a kiosk at an AGM) would collide and the
+-- second, though holding a valid token, would be wrongly rejected. The token is
+-- the dedup here; the ballot stores neither member_id nor anon_hash.
+SET LOCAL request.jwt.claim.sub = '';
+SET LOCAL request.jwt.claims = '{"role":"anon"}';
+SET LOCAL ROLE anon;
+
+DO $$
+BEGIN
+  PERFORM cast_verified_vote('00000000-0000-0000-0000-0000000000b5', 'TESTTOKEN0000000000000002', 'shared-device',
+                             '["00000000-0000-0000-0000-0000000000c5"]'::jsonb, '{}'::jsonb);
+  PERFORM cast_verified_vote('00000000-0000-0000-0000-0000000000b5', 'TESTTOKEN0000000000000003', 'shared-device',
+                             '["00000000-0000-0000-0000-0000000000c5"]'::jsonb, '{}'::jsonb);
+  RAISE NOTICE 'ok: two verified+anonymous members can vote from the same device';
+EXCEPTION WHEN others THEN
+  RAISE EXCEPTION 'FAIL: verified+anonymous shared-device vote rejected: %', SQLERRM;
+END $$;
+
+RESET ROLE;
+
 -- ── 6. Tier trigger: Free owner can't enable a flag; paid can ───────────────
 DO $$
 DECLARE rejected boolean := false;
@@ -250,6 +282,7 @@ END $$;
 -- ── 7. Downgraded owner: an active protected poll still accepts votes ───────
 UPDATE profiles SET subscription_tier = 'free' WHERE id = '00000000-0000-0000-0000-0000000000a1';
 
+SET LOCAL request.jwt.claim.sub = '';
 SET LOCAL request.jwt.claims = '{"role":"anon"}';
 SET LOCAL ROLE anon;
 
