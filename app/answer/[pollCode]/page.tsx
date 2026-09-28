@@ -41,6 +41,14 @@ import { track } from "@/lib/analytics";
 export default function PollAnswerPage() {
   const params = useParams();
   const pollCode = params.pollCode as string;
+  // Single-use member link for verified voting: /answer/CODE?t=<token>. Read
+  // from window (not useSearchParams) to avoid a Suspense-boundary requirement.
+  const [memberToken, setMemberToken] = useState<string | null>(null);
+  const [tokenReady, setTokenReady] = useState(false);
+  useEffect(() => {
+    setMemberToken(new URLSearchParams(window.location.search).get("t"));
+    setTokenReady(true);
+  }, []);
 
   const [poll, setPoll] = useState<Poll | null>(null);
   const [questionResults, setQuestionResults] = useState<QuestionResult[]>([]);
@@ -286,14 +294,28 @@ export default function PollAnswerPage() {
         }
       }
 
-      // Submit vote
-      if (user) {
+      // Anonymous and verified polls go through the server-side RPC, which
+      // validates the member token, computes the anonymity hash server-side and
+      // never stores voter identity. Open polls keep the direct client insert.
+      const isProtected = poll.is_anonymous || poll.requires_verification;
+
+      if (isProtected) {
+        const { error: rpcError } = await supabase.rpc("cast_verified_vote", {
+          p_poll_id: poll.id,
+          p_token: poll.requires_verification ? memberToken : null,
+          p_options: allOptionIds,
+          p_answers: answers,
+        });
+        if (rpcError) throw new Error(rpcError.message);
+      } else if (user) {
         await submitVote(poll.id, allOptionIds, user.id, undefined, undefined, answers);
       } else {
         await submitVote(poll.id, allOptionIds, undefined, undefined, fingerprint, answers);
       }
 
-      // Submit open-ended responses to poll_responses table
+      // Submit open-ended responses to poll_responses. On protected polls we
+      // never attach voter identity (no user_id / fingerprint) so the response
+      // can't be tied back to a voter.
       for (const q of questions) {
         if (q.question_type === "open_ended") {
           const text = (answerData[q.id]?.text as string || "").trim();
@@ -301,8 +323,8 @@ export default function PollAnswerPage() {
             await supabase.from("poll_responses").insert({
               poll_id: poll.id,
               question_id: q.id,
-              user_id: user?.id || null,
-              voter_fingerprint: fingerprint || null,
+              user_id: isProtected ? null : user?.id || null,
+              voter_fingerprint: isProtected ? null : fingerprint || null,
               response_text: text,
             });
           }
@@ -475,6 +497,26 @@ export default function PollAnswerPage() {
         pollTitle={poll.question}
         onUnlock={() => setPasswordUnlocked(true)}
       />
+    );
+  }
+
+  // Verified-voting gate — a member link (?t=...) is required to vote.
+  if (poll.requires_verification && tokenReady && !memberToken && !hasVotedFlag) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto text-center">
+          <div className="rounded-2xl border bg-card p-8">
+            <h1 className="text-xl font-display text-foreground mb-2">
+              {poll.question}
+            </h1>
+            <p className="text-muted-foreground">
+              This poll uses verified voting. Please open it using the personal
+              voting link that was sent to you — a code alone won&apos;t work,
+              which is how we make sure only invited members vote, once each.
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
