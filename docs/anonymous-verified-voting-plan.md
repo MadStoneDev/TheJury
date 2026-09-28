@@ -1,0 +1,163 @@
+# Anonymous & verified voting — implementation plan
+
+These are the two headline Organisation features on the homepage and pricing
+page. Neither is built today: the `polls` table has no anonymity or verification
+columns, and votes are written **client-side** (browser Supabase client, anon
+key), with double-voting prevented only by unique indexes on
+`votes(poll_id, user_id)` and `votes(poll_id, voter_fingerprint)` (migration
+`013_audit_fixes.sql`).
+
+Because this is the core of the product's trust pitch, it must be built
+correctly and in order. **A half-built version that leaks who voted, or lets a
+member vote twice, is worse than not shipping it.**
+
+> **Ordering constraint:** the database migration must be applied to the live
+> Coolify DB (run by Richard) *before* any app code that references the new
+> columns/tables is deployed — otherwise production queries break. Build order
+> below respects this.
+
+---
+
+## 1. What each feature means (the guarantees)
+
+**Anonymous voting** — the poll *owner* cannot see who cast which ballot.
+- One person, one vote is still enforced.
+- For an anonymous poll we do **not** store `user_id` on the vote (even for
+  signed-in voters) and we do **not** expose any voter identifier in results.
+- Dedup uses a per-poll **salted hash** of the identifier, stored on the vote,
+  never the raw identifier. The owner sees tallies and turnout counts, never
+  identities.
+- Honest limit to state on the Security page: anonymity is *from the poll
+  owner*. Server operators/DB admins are covered by the hosting/security policy,
+  not cryptographic anonymity. Don't overclaim.
+
+**Verified voting (one link per member)** — only invited members can vote, once.
+- Owner adds a member list (labels and/or emails).
+- Each member gets a unique, unguessable **token**; the vote link is
+  `/answer/{CODE}?t={TOKEN}`.
+- A token can be redeemed exactly once. Redeeming it records the vote and marks
+  the token used, **atomically**.
+- Owner sees **turnout** (which members have voted) but, if the poll is *also*
+  anonymous, not how each voted. Verified + anonymous is the AGM ballot case and
+  must compose.
+
+---
+
+## 2. Why a server-side vote path is required
+
+Client-side RLS cannot safely enforce "consume this token exactly once *and*
+insert the vote, atomically" — a malicious client controls exactly what it
+inserts and can mark a token used without voting, or vote without a valid token.
+Anonymous dedup by client-supplied fingerprint is likewise trivially spoofed.
+
+**Therefore:** verified and anonymous polls must submit votes through a
+**server-side path** — a Postgres `SECURITY DEFINER` function called via RPC, or
+a Next.js server action / API route using the service-role key. Recommendation:
+a `SECURITY DEFINER` SQL function `cast_verified_vote(...)` so the token check,
+vote insert, and token-consume happen in one transaction inside the database.
+Open polls keep the existing client-side path unchanged.
+
+---
+
+## 3. Database migration
+
+The finalised, hardened migration is
+**`supabase/migrations/017_verified_anonymous_voting.sql`** — that file is the
+source of truth (this section is just an overview). It adds:
+
+- `polls.is_anonymous`, `polls.requires_verification`.
+- `app_secrets` (global pepper) and `poll_anon_salts` (per-poll salt) — both RLS
+  on with no policy and REVOKEd from app roles; only SECURITY DEFINER functions
+  read them.
+- `poll_members` (token, required label, optional email, `used_at`), with owners
+  granted SELECT on everything **except `used_at`**.
+- `votes.anon_hash` and `votes.member_id`, each with a partial unique index for
+  dedup.
+- Functions: `add_poll_members()` (owner+tier checked, generates url-safe
+  tokens), `get_poll_turnout()` (used/total only), and `cast_verified_vote()`
+  (the sole vote path for these polls — validates tier, active/time-window,
+  option membership and the member token, computes `anon_hash` server-side, and
+  never stores `user_id`).
+
+Keep the existing client-side insert path for open, non-anonymous polls (no
+behaviour change there).
+
+---
+
+## 4. Tier gating
+
+Add two feature keys to `TierConfig` (`lib/stripe.ts`) — `anonymousVoting`,
+`verifiedVoting` — both `false` on Free, `true` on `pro`/`team`. Add labels +
+descriptions in `lib/featureGate.ts`. Enforce server-side in the vote path and
+in poll create/update (`lib/tierEnforcement.ts`), not just the UI.
+
+---
+
+## 5. App changes
+
+- **Create/Edit (`components/PollForm.tsx`)**: two gated toggles ("Anonymous
+  voting", "Require a member link to vote"). When verification is on, a member
+  editor: paste/CSV names or emails → generates the roll on save. Show the
+  generated links for copy/download, and (optional, later) email them.
+- **Answer flow (`app/answer/[pollCode]/page.tsx` + `lib/supabaseHelpers.ts`)**:
+  if `requires_verification`, read `?t=` token, block voting without a valid
+  unused token, and submit through `cast_verified_vote` RPC. If `is_anonymous`,
+  submit through the RPC with a server-computed `anon_hash` and no `user_id`.
+- **Results (`.../results/[pollCode]`)**: for verified polls show a **turnout**
+  panel (used / total). For anonymous polls, suppress any per-voter detail and
+  label results "Anonymous". The PDF results record should note the mode.
+- **Marketing/Security copy**: once shipped, remove the `CLAIM-FLAG`s and state
+  the honest anonymity guarantee (anonymous *to the owner*).
+
+---
+
+## 6. Build order (phased)
+
+1. **Migration** (`017`) — Richard applies it to Coolify; regenerate
+   `database.types.ts`.
+2. **Tier keys + enforcement** — inert until UI exists.
+3. **Create/Edit UI** — toggles + member editor + link export.
+4. **Vote path** — `cast_verified_vote` RPC wired into the answer flow.
+5. **Results** — turnout + anonymous labelling; PDF note.
+6. **Copy** — drop CLAIM-FLAGs, update Security page + comparison table.
+
+Each phase is independently reviewable. Phases 2–6 are app code that must not
+deploy before Phase 1 is live.
+
+---
+
+## 7. Decisions (answered)
+
+1. **Anonymity scope wording** — state "anonymous to the poll owner" honestly on
+   the Security page, and note hosting/admin access is covered by the security
+   policy.
+2. **Member distribution** — copy/download links (CSV) only for now; email
+   distribution later.
+3. **Member identifier** — label required, email optional.
+4. **Signed-in verified voting** — the token is the sole gate; no login
+   required. `cast_verified_vote` never stores `user_id`.
+
+### Security hardening applied to migration 017
+
+- **Compose without linkage.** `member_id` is stored on the vote only for
+  verified **non-anonymous** polls. For verified **anonymous** polls it is NULL;
+  one-vote is enforced by consuming the token's `used_at` atomically, so the
+  ballot is unlinkable to a member.
+- **No timing correlation.** Owners cannot read `poll_members.used_at` (column
+  grant omits it) or per-member redemption times; turnout is exposed only as
+  used/total via `get_poll_turnout()`.
+- **Salt + pepper, unreadable.** The per-poll salt lives in `poll_anon_salts`
+  (RLS on, no policy, REVOKEd) — not on `polls` — and is combined with a global
+  `app_secrets.pepper` in the HMAC. Neither is readable by any app role, so the
+  owner cannot recompute `anon_hash`.
+- **Server-computed hash.** The client never sends `anon_hash`;
+  `cast_verified_vote` computes it from `auth.uid()` + salt + pepper.
+- **The function checks everything** (it bypasses RLS): token required when
+  `requires_verification`, poll active + in time window, options belong to the
+  poll, and the owner's tier allows the feature.
+- **Tokens** are generated server-side with `gen_random_bytes(24)`, url-safe.
+- **`Referrer-Policy: no-referrer`** is set on `/answer/[pollCode]` (see
+  `next.config.ts`) so the `?t=` token can't leak via the `Referer` header.
+- **Honest limit documented:** guest (not-signed-in) voting on an anonymous poll
+  cannot fully prevent repeat voting — verified voting is the guarantee. This
+  goes on the Security page.

@@ -23,6 +23,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async headers() {
+    // Verified-voting links carry a member token in the query string
+    // (/answer/CODE?t=...). no-referrer stops that token leaking to any
+    // third party via the Referer header when the voting page loads external
+    // resources or the voter follows an outbound link.
+    return [
+      {
+        source: "/answer/:pollCode*",
+        headers: [{ key: "Referrer-Policy", value: "no-referrer" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
