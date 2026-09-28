@@ -6,12 +6,12 @@ import { LegalShell, Section, P, List } from "@/components/legal/Legal";
 //  - Exact hosting provider and Australian region.
 //  - Backup location, frequency and retention periods.
 //  - Security contact address.
-// CLAIM-FLAG (anonymous-voting): the anonymity description below must match the
-//   real implementation. Per internal notes, votes are written client-side and
-//   anonymity depends on how the poll is configured and on database rules —
-//   confirm what is actually stored against an anonymous response before launch.
-// CLAIM-FLAG (verified-voting): verified one-link-per-member voting is described
-//   as not yet available. Update this section when it ships.
+// Anonymous and verified voting are implemented (migration 017): anonymous and
+// verified ballots are cast through a server-side function that never stores
+// voter identity, computes the anonymity hash server-side, and consumes a
+// single-use member token for verified polls. The copy below states the honest
+// guarantee — anonymous FROM THE POLL OWNER — and the real limit (a guest link
+// on an anonymous poll can't fully prevent repeat voting; verified voting can).
 
 export const metadata: Metadata = {
   title: "Security & data hosting | TheJury",
@@ -72,26 +72,40 @@ export default function SecurityPage() {
 
       <Section heading="How anonymous voting works">
         <P>
-          A poll can be run as anonymous. In that case we do not attach a name or
-          an account to a response. To stop the same person voting twice, the
-          poll uses a device identifier (and, in some cases, the network address)
-          only to check for repeat votes. It is not shown to you and is not used
-          to identify the voter.
+          A poll can be run as anonymous. When it is, the ballot is recorded
+          through a server-side process that never stores a name or an account
+          against the vote — so the result is anonymous to you, the poll owner,
+          and to your admins. You see the tallies, never who cast which ballot.
         </P>
         <P>
-          If your vote must be genuinely unlinkable from the voter for a formal
-          process, contact us first so we can confirm the current behaviour suits
-          your requirement.
+          To stop the same signed-in person voting twice, the poll stores a
+          one-way hash of their account, salted with a per-poll value and a
+          server secret that no account can read. It can&apos;t be turned back
+          into an identity, including by us in normal operation.
+        </P>
+        <P>
+          One honest limit: if you share an anonymous poll as an open link that
+          guests can use without signing in, there is no reliable way to stop a
+          determined person voting more than once. When one vote per person must
+          be guaranteed, use verified voting below. Anonymity here means
+          anonymous from the poll owner; access by the hosting provider or a
+          database administrator is governed by this security policy, not by
+          cryptographic anonymity.
         </P>
       </Section>
 
       <Section heading="How verified voting works">
         <P>
-          Verified voting sends each eligible member their own private link, so
-          you can run an election or a motion with one vote per person and a
-          clear record of who was eligible. This is on our roadmap and is not yet
-          available. We will update this page when it ships, rather than describe
-          it as something you can rely on today.
+          Verified voting gives each member their own single-use link. Only those
+          links can vote, and each one works once — so you can run an election or
+          a motion with one vote per member. The link is the only key; no account
+          or login is required to use it.
+        </P>
+        <P>
+          You can see turnout — how many of the issued links have been used — but
+          if the poll is also anonymous, you cannot see how any individual member
+          voted, and their redemption time is never exposed. That combination is
+          the secret ballot: a verifiable turnout with an unlinkable vote.
         </P>
       </Section>
 

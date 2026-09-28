@@ -4,9 +4,9 @@ import { Check, Minus } from "lucide-react";
 // pricing pages (hosting and anonymity: high confidence; entry prices vary by
 // source and change over time — see the footnote). Kept fair: Google Forms is
 // credited with free CSV export, and competitors' anonymous-by-default support.
-// CLAIM-FLAG: the TheJury column's "Anonymous voting", "Verified voting" and the
-// PDF half of "Results record" are target-state. CSV export and Australian
-// hosting exist today; confirm the rest before relying on this table publicly.
+// TheJury column: anonymous voting, verified voting and the PDF results record
+// are implemented (migration 017 + the results/export flow). This table can be
+// relied on once that work is deployed and the migration is applied.
 
 type Cell = true | false | string;
 

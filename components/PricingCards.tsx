@@ -7,10 +7,10 @@ import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 import type { TierName, TierConfig } from "@/lib/stripe";
 
-// CLAIM-FLAG (pricing + features): prices are placeholders (see lib/stripe.ts).
-// "Anonymous voting", "Verified voting" and the PDF results record are the
-// target-state features the tiers are sold on; CSV export exists today, the rest
-// need confirming before launch. Contact email is a placeholder.
+// CLAIM-FLAG (pricing): prices are placeholders (see lib/stripe.ts) and the
+// contact email is a placeholder. Anonymous voting, verified voting and the PDF
+// results record are now implemented (migration 017 + the export flow); they go
+// live for these tiers once that work is deployed and the migration is applied.
 const CONTACT_EMAIL = "hello@thejury.app"; // placeholder — confirm
 
 // AUD only: TheJury is an Australian-first product and Stripe charges in AUD,
