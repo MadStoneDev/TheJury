@@ -113,16 +113,41 @@ in poll create/update (`lib/tierEnforcement.ts`), not just the UI.
 
 ## 6. Build order (phased)
 
-1. **Migration** (`017`) — Richard applies it to Coolify; regenerate
-   `database.types.ts`.
-2. **Tier keys + enforcement** — inert until UI exists.
-3. **Create/Edit UI** — toggles + member editor + link export.
-4. **Vote path** — `cast_verified_vote` RPC wired into the answer flow.
-5. **Results** — turnout + anonymous labelling; PDF note.
-6. **Copy** — drop CLAIM-FLAGs, update Security page + comparison table.
+1. **Migration** (`017`) — ✅ written. Richard applies it to Coolify, then
+   regenerates `database.types.ts` (a bridge is committed in the meantime).
+2. **Tier keys + enforcement** — ✅ `anonymousVoting`/`verifiedVoting` in
+   `TierConfig`, enforced in `validatePollWriteForTier`.
+3. **Create/Edit UI** — ✅ gated toggles + member editor + CSV link export on
+   the success screen (member management on existing polls is a follow-up).
+4. **Vote path** — ✅ `cast_verified_vote` RPC wired into the answer flow, with
+   the member-link gate and no identity stored on protected polls.
+5. **Results** — ✅ turnout badge (aggregate RPC) + anonymous label + PDF note.
+6. **Copy** — ✅ Security page rewritten to the honest guarantees;
+   comparison/pricing CLAIM-FLAGs cleared.
 
-Each phase is independently reviewable. Phases 2–6 are app code that must not
-deploy before Phase 1 is live.
+Each phase is independently reviewable and committed separately. Phases 2–6 are
+app code that must not deploy before Phase 1 is live.
+
+### Deploy checklist (Richard)
+
+1. Apply `supabase/migrations/017_verified_anonymous_voting.sql` on Coolify.
+2. Regenerate `database.types.ts` from the live DB and confirm it matches the
+   hand-written bridge (polls flags, votes columns, `poll_members`, the three
+   functions).
+3. Merge `feat/au-public-review-fixes`, then `feat/verified-anonymous-voting`.
+4. Smoke-test: an anonymous poll (signed-in dedup + guest), and a verified poll
+   (valid link votes once; reused link rejected; no-link is gated; turnout
+   shows used/total; owner can't see who voted how).
+
+### Follow-ups (not in this branch)
+
+- Manage the member roll on an **existing** poll (add/remove after creation).
+- Email the member links from TheJury (needs the email sender + rate limits).
+- Consider routing anonymous-poll result reads through an aggregate-only RPC and
+  tightening the `votes` SELECT policy, so a determined owner can't read raw
+  vote rows (and their timestamps) for anonymous polls. The base `votes` RLS
+  lives only on the live DB (missing from the repo's migrations), so finalize
+  this with the current policy in hand.
 
 ---
 
