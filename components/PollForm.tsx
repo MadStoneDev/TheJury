@@ -70,6 +70,13 @@ const AIGenerateModal = dynamic(() => import("@/components/AIGenerateModal"), {
 });
 import { hashPassword } from "@/lib/passwordUtils";
 
+// Loaded on demand, matching ShareModal, so the QR library isn't in the
+// initial poll-form bundle.
+const QRCodeSVG = dynamic(
+  () => import("qrcode.react").then((m) => ({ default: m.QRCodeSVG })),
+  { ssr: false },
+);
+
 interface PollOption {
   id: string;
   text: string;
@@ -811,16 +818,10 @@ export default function PollForm({ pollCode }: PollFormProps) {
         }
       }
 
+      // No confetti here: creating a poll is an administrative step for a
+      // council, church or committee, not a celebration. The success screen's
+      // check-mark animation is acknowledgement enough.
       setShowSuccess(true);
-
-      import("canvas-confetti").then((m) =>
-        m.default({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 },
-          colors: ["#10b981", "#14b8a6", "#34d399", "#6ee7b7"],
-        }),
-      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
@@ -884,6 +885,18 @@ export default function PollForm({ pollCode }: PollFormProps) {
                 <h3 className="font-semibold text-foreground mb-4 text-sm">
                   Share your poll:
                 </h3>
+
+                {/* Poll code — read it out to a room; voters enter it at
+                    /answer. Shown for every tier. */}
+                <div className="bg-card rounded-lg border p-3 mb-3 text-center">
+                  <div className="text-xs text-muted-foreground mb-1">
+                    Poll code
+                  </div>
+                  <div className="font-mono text-2xl font-semibold tracking-[0.2em] text-foreground">
+                    {generatedPollCode}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2 bg-card rounded-lg border p-3">
                   <div className="flex-1 truncate">
                     <div className="text-xs text-muted-foreground mb-0.5">
@@ -907,6 +920,22 @@ export default function PollForm({ pollCode }: PollFormProps) {
                     {copiedLink ? "Copied!" : "Copy"}
                   </Button>
                 </div>
+
+                {/* QR follows the same gate as the share modal. */}
+                {canUseFeature(userTier, "qrCodes") &&
+                  typeof window !== "undefined" && (
+                    <div className="mt-3 flex flex-col items-center gap-2 bg-card rounded-lg border p-4">
+                      <div className="p-3 bg-white border-2 border-emerald-500/20 rounded-xl">
+                        <QRCodeSVG
+                          value={`${window.location.origin}/answer/${generatedPollCode}`}
+                          size={128}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Scan to open the poll
+                      </div>
+                    </div>
+                  )}
               </div>
 
               <div className="flex flex-wrap justify-center gap-3">

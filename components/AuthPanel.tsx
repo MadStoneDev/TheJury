@@ -14,7 +14,7 @@ export function AuthPanel() {
 
   const copy = isSignup
     ? "Unlimited polls, unlimited votes, no card — that's the free tier, forever."
-    : "This is a real poll someone settled in four minutes — yours takes about the same.";
+    : "A motion, put to the members and settled in minutes — with a record for the minutes.";
 
   return (
     <div
@@ -32,15 +32,14 @@ export function AuthPanel() {
 
       <div className="max-w-[420px]">
         <PollResultCard
-          question="Where are we doing Friday drinks?"
-          meta="24 votes · settled in 4 minutes"
+          question="Motion: adopt the proposed 2027 budget"
+          meta="38 of 41 members voted"
           live={false}
-          footer="Decided · results locked"
+          footer="Carried · results locked"
           options={[
-            { label: "The Alehouse", pct: 58 },
-            { label: "Rooftop bar", pct: 24 },
-            { label: "Order in, stay put", pct: 12 },
-            { label: "Skip it this week", pct: 6 },
+            { label: "In favour", pct: 82 },
+            { label: "Against", pct: 13 },
+            { label: "Abstain", pct: 5 },
           ]}
         />
         <p className="mt-6 text-[18px] font-light leading-relaxed text-jury-muted">

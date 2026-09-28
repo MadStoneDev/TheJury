@@ -3,8 +3,10 @@ import { checkPollCodeExists } from "@/lib/supabaseHelpers";
 
 export const generateUniquePollCode = async (): Promise<string> => {
   const generateCode = (length: number): string => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    // Uppercase only, and no ambiguous glyphs (0/O, 1/I) so a room can read a
+    // code off a screen and type it without confusion. Matches the "six-
+    // character code" promised on the homepage.
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     let result = "";
     for (let i = 0; i < length; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -26,16 +28,15 @@ export const generateUniquePollCode = async (): Promise<string> => {
     return null;
   };
 
-  // Try 8 characters first
-  let code = await tryLength(8, 5);
+  // Six characters, matching the homepage promise and the newer polls.
+  let code = await tryLength(6, 5);
   if (code) return code;
 
-  // Try 9 characters
-  code = await tryLength(9, 5);
+  // Grow the code space only if six-character codes keep colliding.
+  code = await tryLength(7, 5);
   if (code) return code;
 
-  // Try 10 characters
-  code = await tryLength(10, 5);
+  code = await tryLength(8, 5);
   if (code) return code;
 
   // If all fail, throw an error

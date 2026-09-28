@@ -41,7 +41,9 @@ import { DEFAULT_EMBED_THEME } from "@/components/EmbedThemeEditor";
 import {
   updateEmbedSettingsAction,
   exportPollCsvAction,
+  exportPollPdfAction,
 } from "@/app/actions/polls";
+import { downloadResultsPdf } from "@/lib/pdfUtils";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { pluralize } from "@/lib/utils";
 
@@ -191,6 +193,34 @@ export default function PollResultsPage() {
     if (res.ok) {
       downloadCsv(res.data!.csv, pollCode);
       toast.success("CSV exported!");
+    } else {
+      setUpgradeFeature("csvExport");
+      setUpgradeModalOpen(true);
+      toast.error(res.error);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!poll) return;
+    // Same server-side tier gate as CSV: the data is only returned to a paying
+    // owner. The PDF is then rendered in the browser (lib/pdfUtils.ts).
+    const res = await exportPollPdfAction({
+      pollId: poll.id,
+      pollCode,
+      pollTitle: poll.question,
+      totalVoters,
+      isMultiQuestion,
+      results: flatResults,
+      questionResults,
+    });
+    if (res.ok) {
+      try {
+        await downloadResultsPdf(res.data!);
+        toast.success("PDF exported!");
+      } catch (err) {
+        console.error("Failed to build PDF:", err);
+        toast.error("Couldn't generate the PDF. Please try again.");
+      }
     } else {
       setUpgradeFeature("csvExport");
       setUpgradeModalOpen(true);
@@ -583,19 +613,34 @@ export default function PollResultsPage() {
             Share Poll
           </Button>
           {totalVoters > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleExportCSV}
-              className="gap-1.5"
-            >
-              {canUseFeature(userTier, "csvExport") ? (
-                <IconDownload size={14} />
-              ) : (
-                <IconLock size={14} className="text-muted-foreground" />
-              )}
-              Export CSV
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPDF}
+                className="gap-1.5"
+              >
+                {canUseFeature(userTier, "csvExport") ? (
+                  <IconDownload size={14} />
+                ) : (
+                  <IconLock size={14} className="text-muted-foreground" />
+                )}
+                Export PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCSV}
+                className="gap-1.5"
+              >
+                {canUseFeature(userTier, "csvExport") ? (
+                  <IconDownload size={14} />
+                ) : (
+                  <IconLock size={14} className="text-muted-foreground" />
+                )}
+                Export CSV
+              </Button>
+            </>
           )}
           {showResultsToVoters && (
             <Button

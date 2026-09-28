@@ -48,7 +48,7 @@ export default function ChartSelector({
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground"
             }`}
-            title={isLocked ? "Upgrade to Pro for more chart types" : label}
+            title={isLocked ? "Upgrade to Organisation for more chart types" : label}
           >
             <Icon size={14} />
             {label}

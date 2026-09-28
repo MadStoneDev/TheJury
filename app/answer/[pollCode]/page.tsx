@@ -309,21 +309,30 @@ export default function PollAnswerPage() {
         }
       }
 
-      const qResults = await getPollResultsByQuestion(poll.id);
-      setQuestionResults(qResults);
-
-      const { count: voterCount } = await supabase
-        .from("votes")
-        .select("*", { count: "exact", head: true })
-        .eq("poll_id", poll.id);
-
-      setTotalVoters(voterCount || 0);
-
+      // The vote is now recorded. Switch to the results view immediately so the
+      // button never lingers on "Submitting…" while we load the (slower)
+      // tallies — a failed or slow tally load must not undo a counted vote.
       setJustVotedFor([...allOptionIds]);
       setHasVotedFlag(true);
+      setIsSubmitting(false);
       fireConfetti();
       track("vote_cast", { poll_code: pollCode });
       toast.success("Vote submitted!");
+
+      try {
+        const qResults = await getPollResultsByQuestion(poll.id);
+        setQuestionResults(qResults);
+
+        const { count: voterCount } = await supabase
+          .from("votes")
+          .select("*", { count: "exact", head: true })
+          .eq("poll_id", poll.id);
+
+        setTotalVoters(voterCount || 0);
+      } catch (err) {
+        // Vote already counted; results will fill in on the next load.
+        console.error("Error loading results after vote:", err);
+      }
     } catch (err) {
       console.error("Error submitting vote:", err);
       const message =

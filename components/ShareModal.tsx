@@ -206,10 +206,11 @@ export default function ShareModal({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground mb-1">
-                    QR codes are a Pro feature
+                    QR codes are an Organisation feature
                   </p>
                   <p className="text-xs text-muted-foreground mb-2">
-                    Upgrade to generate QR codes for easy sharing.
+                    Upgrade to Organisation to generate QR codes for easy
+                    sharing.
                   </p>
                   <Button
                     variant="brand"

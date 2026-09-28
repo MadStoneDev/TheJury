@@ -1,13 +1,36 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { ScrollReveal } from "@/components/motion";
 import { AUDIENCES } from "@/lib/marketing/audiences";
+import { getCurrentUser } from "@/lib/supabaseHelpers";
 
 // RAVENCI is a registered business name of Richard Haddad (sole trader, QLD).
 const ABN = "ABN 35 664 615 205";
 
 export function Footer() {
+  // Mirror the navbar: don't invite a signed-in visitor to "Get Started" /
+  // "Sign In". `known` gates the swap so we render the guest links until we've
+  // confirmed auth, avoiding a hydration mismatch.
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [known, setKnown] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getCurrentUser()
+      .then((user) => {
+        if (active) setIsLoggedIn(!!user);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setKnown(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <ScrollReveal>
       <footer className="relative border-t border-border bg-muted/50 dark:bg-slate-950/80">
@@ -94,22 +117,45 @@ export function Footer() {
                 Resources
               </h4>
               <ul className="space-y-2.5">
-                <li>
-                  <Link
-                    href="/auth/sign-up"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Get Started
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/auth/login"
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    Sign In
-                  </Link>
-                </li>
+                {known && isLoggedIn ? (
+                  <>
+                    <li>
+                      <Link
+                        href="/dashboard"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        My Dashboard
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/profile"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Profile
+                      </Link>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li>
+                      <Link
+                        href="/auth/sign-up"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Get Started
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/auth/login"
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Sign In
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
             </div>
 

@@ -285,3 +285,52 @@ export async function exportPollCsvAction(
     data: { csv, filename: `poll-results-${input.pollCode}-${date}.csv` },
   };
 }
+
+export interface ResultsRecordData {
+  pollTitle: string;
+  pollCode: string;
+  totalVoters: number;
+  isMultiQuestion: boolean;
+  results?: PollResult[];
+  questionResults?: QuestionResult[];
+  generatedAt: string;
+}
+
+/**
+ * Authorise a PDF results record. PDF and CSV are the one "Results record"
+ * feature, so this shares the CSV tier gate and ownership check — the data is
+ * only returned to a paying owner. The PDF itself is rendered in the browser
+ * from this payload (see lib/pdfUtils.ts) to keep server dependencies light.
+ */
+export async function exportPollPdfAction(
+  input: ExportCsvInput,
+): Promise<ActionResult<ResultsRecordData>> {
+  const supabase = await createClient();
+  const auth = await getUserAndTier(supabase);
+  if (!auth) return { ok: false, error: "You must be signed in." };
+
+  if (!canExportCsv(auth.tier)) {
+    return {
+      ok: false,
+      error:
+        "The PDF results record is an Organisation feature. Upgrade to export your results.",
+    };
+  }
+
+  if (!(await assertOwner(supabase, input.pollId, auth.userId))) {
+    return { ok: false, error: "You don't have permission to export this poll." };
+  }
+
+  return {
+    ok: true,
+    data: {
+      pollTitle: input.pollTitle,
+      pollCode: input.pollCode,
+      totalVoters: input.totalVoters,
+      isMultiQuestion: input.isMultiQuestion,
+      results: input.results,
+      questionResults: input.questionResults,
+      generatedAt: new Date().toISOString(),
+    },
+  };
+}

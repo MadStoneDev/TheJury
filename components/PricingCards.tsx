@@ -13,24 +13,19 @@ import type { TierName, TierConfig } from "@/lib/stripe";
 // need confirming before launch. Contact email is a placeholder.
 const CONTACT_EMAIL = "hello@thejury.app"; // placeholder — confirm
 
-type Currency = "AUD" | "USD" | "EUR";
+// AUD only: TheJury is an Australian-first product and Stripe charges in AUD,
+// so we never display a converted price we don't actually bill.
+const CURRENCY_SYMBOL = "A$";
 
-const CURRENCY_CONFIG: Record<Currency, { symbol: string; rate: number }> = {
-  AUD: { symbol: "A$", rate: 1 },
-  USD: { symbol: "$", rate: 0.63 },
-  EUR: { symbol: "€", rate: 0.58 },
-};
-
-function convert(aud: number, currency: Currency): string {
-  if (aud === 0) return "0";
-  return String(Math.round(aud * CURRENCY_CONFIG[currency].rate));
+function money(aud: number): string {
+  return String(aud);
 }
 
 const FREE_FEATURES = [
   "Public polls with live results",
   "Unlimited polls, single admin",
   "Multiple choice and rating questions",
-  "Share by link, code or QR",
+  "Share by link or code",
   "No account needed to vote",
   "TheJury branding on the poll page",
 ];
@@ -84,13 +79,12 @@ export default function PricingCards({
 }: PricingCardsProps) {
   const router = useRouter();
   const [annual, setAnnual] = useState(false);
-  const [currency, setCurrency] = useState<Currency>("AUD");
   const [compareOpen, setCompareOpen] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
 
   const org = tiers.pro;
   const council = tiers.team;
-  const { symbol } = CURRENCY_CONFIG[currency];
+  const symbol = CURRENCY_SYMBOL;
   const savings = Math.round(
     ((org.priceMonthly * 12 - org.priceAnnualTotal) /
       (org.priceMonthly * 12)) *
@@ -152,8 +146,8 @@ export default function PricingCards({
     }`;
 
   const orgPrice = annual
-    ? convert(org.priceAnnualTotal, currency)
-    : convert(org.priceMonthly, currency);
+    ? money(org.priceAnnualTotal)
+    : money(org.priceMonthly);
   const orgSuffix = annual ? "/yr" : "/mo";
   const orgNote = annual
     ? `Billed yearly. ${savings > 0 ? `Save ${savings}%.` : ""}`
@@ -180,19 +174,7 @@ export default function PricingCards({
           </button>
         </div>
       </div>
-      <div className="mb-12 flex justify-center">
-        <div className="inline-flex items-center rounded-full border border-jury-border bg-jury-surface p-1">
-          {(Object.keys(CURRENCY_CONFIG) as Currency[]).map((c) => (
-            <button
-              key={c}
-              onClick={() => setCurrency(c)}
-              className={segBtn(currency === c)}
-            >
-              {CURRENCY_CONFIG[c].symbol} {c}
-            </button>
-          ))}
-        </div>
-      </div>
+      <div className="mb-12" />
 
       {/* Cards */}
       <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-3">
@@ -312,7 +294,7 @@ export default function PricingCards({
           <div className="mt-2 flex items-baseline gap-1">
             <span className="font-display text-[40px] leading-none text-jury-text">
               From {symbol}
-              {convert(council.priceMonthly, currency)}
+              {money(council.priceMonthly)}
             </span>
             <span className="text-[14px] text-jury-dim">/mo</span>
           </div>
@@ -416,7 +398,7 @@ export default function PricingCards({
       </div>
 
       <p className="mt-8 text-center text-[13px] text-jury-dim">
-        Prices shown in {currency}. Cancel any time. Your polls stay live on the
+        Prices shown in AUD. Cancel any time. Your polls stay live on the
         free tier.
       </p>
     </div>

@@ -1,8 +1,15 @@
 ﻿// dashboard/page.tsx
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PollDashboardPage from "@/components/PollDashboardPage";
 import { ensureUserHasProfile } from "@/utils/profileChecker";
+
+export const metadata: Metadata = {
+  title: "Dashboard | TheJury",
+  description: "Your polls, results and settings.",
+  robots: { index: false, follow: false },
+};
 
 export default async function PollDashboard() {
   const supabase = await createClient();
