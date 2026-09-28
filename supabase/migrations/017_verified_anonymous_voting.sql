@@ -19,6 +19,12 @@
 
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
+-- pgcrypto lives in the `extensions` schema on Supabase (and may be in `public`
+-- elsewhere). Put both on the path so gen_random_bytes()/hmac() resolve here at
+-- migration time (column DEFAULT parsing, the app_secrets insert) and so the
+-- functions below can find them at runtime.
+SET search_path = public, extensions;
+
 -- ── Poll-level flags ────────────────────────────────────────────────────────
 ALTER TABLE public.polls
   ADD COLUMN IF NOT EXISTS is_anonymous boolean NOT NULL DEFAULT false,
@@ -65,22 +71,21 @@ ALTER TABLE public.poll_members ENABLE ROW LEVEL SECURITY;
 
 -- Owners may read their roll (to distribute links) but NOT used_at — that would
 -- let them correlate redemption times with vote timestamps. used_at is exposed
--- only as an aggregate via get_poll_turnout(). Writes go through the definer
--- functions below, so no INSERT/UPDATE grant here.
+-- only as an aggregate via get_poll_turnout(). All writes go through the definer
+-- functions below, so no INSERT/UPDATE/DELETE grant here.
+--
+-- DELETE is intentionally NOT granted yet: votes.member_id references
+-- poll_members, so deleting a member who has already voted would raise a raw FK
+-- error. Member management (add/remove) on an existing poll is a follow-up that
+-- will surface a clear message ("this member has already voted") or choose an
+-- explicit ON DELETE behaviour. Until then the roll is create-only.
 REVOKE ALL ON public.poll_members FROM anon, authenticated;
 GRANT SELECT (id, poll_id, token, label, email, created_at)
   ON public.poll_members TO authenticated;
-GRANT DELETE ON public.poll_members TO authenticated;
 
 DROP POLICY IF EXISTS "Owners read their poll members" ON public.poll_members;
 CREATE POLICY "Owners read their poll members" ON public.poll_members
   FOR SELECT USING (
-    EXISTS (SELECT 1 FROM public.polls p
-            WHERE p.id = poll_members.poll_id AND p.user_id = auth.uid())
-  );
-DROP POLICY IF EXISTS "Owners delete their poll members" ON public.poll_members;
-CREATE POLICY "Owners delete their poll members" ON public.poll_members
-  FOR DELETE USING (
     EXISTS (SELECT 1 FROM public.polls p
             WHERE p.id = poll_members.poll_id AND p.user_id = auth.uid())
   );
@@ -98,6 +103,25 @@ CREATE UNIQUE INDEX IF NOT EXISTS votes_unique_anon_per_poll
 CREATE UNIQUE INDEX IF NOT EXISTS votes_unique_member_per_poll
   ON public.votes (poll_id, member_id) WHERE member_id IS NOT NULL;
 
+-- ── Close the client insert path for protected polls ─────────────────────────
+-- Anonymous/verified polls must be voted on ONLY through cast_verified_vote (a
+-- SECURITY DEFINER function, which bypasses RLS). A RESTRICTIVE policy is ANDed
+-- with whatever permissive INSERT policy the base schema already has, so this
+-- tightens the client path without needing to know that policy's name: a direct
+-- insert from anon/authenticated is rejected when the target poll is anonymous
+-- or requires verification. The definer function is unaffected (it runs as the
+-- table owner and bypasses RLS).
+DROP POLICY IF EXISTS "No direct votes on protected polls" ON public.votes;
+CREATE POLICY "No direct votes on protected polls" ON public.votes
+  AS RESTRICTIVE FOR INSERT TO anon, authenticated
+  WITH CHECK (
+    NOT EXISTS (
+      SELECT 1 FROM public.polls p
+      WHERE p.id = votes.poll_id
+        AND (p.is_anonymous OR p.requires_verification)
+    )
+  );
+
 -- ── add_poll_members: generate the roll (owner + tier checked) ───────────────
 -- Returns the created rows (with tokens) so the owner can download the links.
 CREATE OR REPLACE FUNCTION public.add_poll_members(
@@ -105,7 +129,7 @@ CREATE OR REPLACE FUNCTION public.add_poll_members(
   p_members jsonb          -- [{ "label": "...", "email": "..."? }, ...]
 )
 RETURNS TABLE (id uuid, label text, email text, token text)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
   v_owner uuid;
   v_tier  text;
@@ -146,7 +170,7 @@ END $$;
 -- ── get_poll_turnout: aggregate only (used / total), never timestamps ────────
 CREATE OR REPLACE FUNCTION public.get_poll_turnout(p_poll_id uuid)
 RETURNS TABLE (used bigint, total bigint)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM polls WHERE polls.id = p_poll_id AND polls.user_id = auth.uid()
@@ -160,21 +184,24 @@ BEGIN
 END $$;
 
 -- ── cast_verified_vote: the only vote path for anonymous/verified polls ──────
+-- Drop any earlier (pre-fingerprint) signature so re-runs replace cleanly.
+DROP FUNCTION IF EXISTS public.cast_verified_vote(uuid, text, jsonb, jsonb);
 CREATE OR REPLACE FUNCTION public.cast_verified_vote(
-  p_poll_id uuid,
-  p_token   text,           -- required iff the poll requires verification
-  p_options jsonb,          -- array of option ids (text)
-  p_answers jsonb           -- structured answers ({} if none)
+  p_poll_id     uuid,
+  p_token       text,       -- required iff the poll requires verification
+  p_fingerprint text,       -- guest device fingerprint (anonymous polls); hashed here, never stored raw
+  p_options     jsonb,      -- array of option ids (text)
+  p_answers     jsonb       -- structured answers ({} if none)
 )
 RETURNS void
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
   v_poll        polls%ROWTYPE;
-  v_tier        text;
   v_member      poll_members%ROWTYPE;
   v_qcount      int;
   v_member_id   uuid := NULL;
   v_anon_hash   text := NULL;
+  v_ident       text := NULL;
   v_salt        bytea;
   v_pepper      bytea;
 BEGIN
@@ -188,11 +215,11 @@ BEGIN
     RAISE EXCEPTION 'this poll does not use verified or anonymous voting';
   END IF;
 
-  -- Owner's tier must allow the enabled feature(s).
-  SELECT subscription_tier INTO v_tier FROM profiles WHERE profiles.id = v_poll.user_id;
-  IF coalesce(v_tier, 'free') NOT IN ('pro', 'team') THEN
-    RAISE EXCEPTION 'this poll''s features are not available on its owner''s plan';
-  END IF;
+  -- Tier is deliberately NOT re-checked here. The feature is gated when the poll
+  -- is created (validatePollWriteForTier) and when the member roll is generated
+  -- (add_poll_members). Re-checking the owner's CURRENT tier would stop an
+  -- in-progress poll accepting votes if the owner downgraded mid-poll, so
+  -- existing polls are grandfathered.
 
   -- Active + time window.
   IF NOT v_poll.is_active THEN
@@ -248,17 +275,29 @@ BEGIN
     END IF;
   END IF;
 
-  -- Anonymous: derive a per-poll, peppered hash of the signed-in voter. Guests
-  -- (auth.uid() null) get no hash — repeat voting is not preventable for them.
-  IF v_poll.is_anonymous AND auth.uid() IS NOT NULL THEN
-    INSERT INTO poll_anon_salts (poll_id) VALUES (p_poll_id)
-      ON CONFLICT (poll_id) DO NOTHING;
-    SELECT salt INTO v_salt FROM poll_anon_salts WHERE poll_anon_salts.poll_id = p_poll_id;
-    SELECT pepper INTO v_pepper FROM app_secrets WHERE app_secrets.id = 1;
-    v_anon_hash := encode(
-      hmac(convert_to(auth.uid()::text, 'UTF8'), v_salt || v_pepper, 'sha256'),
-      'hex'
-    );
+  -- Anonymous: derive a per-poll, peppered hash of the voter for dedup, never
+  -- storing a raw identifier. Prefer the signed-in account; otherwise fall back
+  -- to the guest device fingerprint. A domain-separator prefix stops a uid and a
+  -- fingerprint ever colliding. A fingerprint is spoofable, so this is
+  -- best-effort for guests (verified voting is the hard guarantee) — but it
+  -- restores the duplicate protection open polls have always had.
+  IF v_poll.is_anonymous THEN
+    IF auth.uid() IS NOT NULL THEN
+      v_ident := 'uid:' || auth.uid()::text;
+    ELSIF p_fingerprint IS NOT NULL AND p_fingerprint <> '' THEN
+      v_ident := 'fp:' || p_fingerprint;
+    END IF;
+
+    IF v_ident IS NOT NULL THEN
+      INSERT INTO poll_anon_salts (poll_id) VALUES (p_poll_id)
+        ON CONFLICT (poll_id) DO NOTHING;
+      SELECT salt INTO v_salt FROM poll_anon_salts WHERE poll_anon_salts.poll_id = p_poll_id;
+      SELECT pepper INTO v_pepper FROM app_secrets WHERE app_secrets.id = 1;
+      v_anon_hash := encode(
+        hmac(convert_to(v_ident, 'UTF8'), v_salt || v_pepper, 'sha256'),
+        'hex'
+      );
+    END IF;
   END IF;
 
   -- Never store user_id on anonymous/verified ballots.
@@ -275,13 +314,48 @@ BEGIN
   END IF;
 END $$;
 
+-- ── Enforce feature tier when a flag is SET (not at vote time) ───────────────
+-- Grandfathering: an existing anonymous/verified poll keeps accepting votes if
+-- the owner later downgrades, because the tier is checked only when a flag flips
+-- ON (insert, or an update that turns it on) — never on each vote. This also
+-- closes the gap from not re-checking tier in cast_verified_vote: a Free user
+-- cannot enable these features by writing to polls directly, bypassing the app.
+CREATE OR REPLACE FUNCTION public.enforce_voting_feature_tier()
+RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
+DECLARE
+  v_tier       text;
+  v_turning_on boolean;
+BEGIN
+  v_turning_on :=
+    (TG_OP = 'INSERT' AND (NEW.is_anonymous OR NEW.requires_verification))
+    OR (TG_OP = 'UPDATE' AND (
+         (NEW.is_anonymous AND NOT COALESCE(OLD.is_anonymous, false))
+      OR (NEW.requires_verification AND NOT COALESCE(OLD.requires_verification, false))
+    ));
+
+  IF v_turning_on THEN
+    SELECT subscription_tier INTO v_tier FROM profiles WHERE profiles.id = NEW.user_id;
+    IF COALESCE(v_tier, 'free') NOT IN ('pro', 'team') THEN
+      RAISE EXCEPTION 'Anonymous and verified voting require an Organisation plan';
+    END IF;
+  END IF;
+
+  RETURN NEW;
+END $$;
+
+DROP TRIGGER IF EXISTS enforce_voting_feature_tier ON public.polls;
+CREATE TRIGGER enforce_voting_feature_tier
+  BEFORE INSERT OR UPDATE ON public.polls
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_voting_feature_tier();
+
 -- ── Execution grants ─────────────────────────────────────────────────────────
 REVOKE ALL ON FUNCTION public.add_poll_members(uuid, jsonb) FROM public;
 REVOKE ALL ON FUNCTION public.get_poll_turnout(uuid) FROM public;
-REVOKE ALL ON FUNCTION public.cast_verified_vote(uuid, text, jsonb, jsonb) FROM public;
+REVOKE ALL ON FUNCTION public.cast_verified_vote(uuid, text, text, jsonb, jsonb) FROM public;
 
 GRANT EXECUTE ON FUNCTION public.add_poll_members(uuid, jsonb) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_poll_turnout(uuid) TO authenticated;
 -- Guests must be able to redeem a member link, so anon may execute the vote fn.
-GRANT EXECUTE ON FUNCTION public.cast_verified_vote(uuid, text, jsonb, jsonb)
+GRANT EXECUTE ON FUNCTION public.cast_verified_vote(uuid, text, text, jsonb, jsonb)
   TO anon, authenticated;

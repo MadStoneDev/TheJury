@@ -303,6 +303,10 @@ export default function PollAnswerPage() {
         const { error: rpcError } = await supabase.rpc("cast_verified_vote", {
           p_poll_id: poll.id,
           p_token: poll.requires_verification ? memberToken : null,
+          // Guest dedup for anonymous polls: the fingerprint is hashed
+          // server-side (never stored raw). Signed-in voters are deduped by
+          // account server-side, so the fingerprint is ignored for them.
+          p_fingerprint: poll.is_anonymous ? fingerprint ?? null : null,
           p_options: allOptionIds,
           p_answers: answers,
         });

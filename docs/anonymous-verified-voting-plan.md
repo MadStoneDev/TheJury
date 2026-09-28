@@ -142,12 +142,17 @@ app code that must not deploy before Phase 1 is live.
 ### Follow-ups (not in this branch)
 
 - Manage the member roll on an **existing** poll (add/remove after creation).
+  Removal must handle the `votes.member_id` FK — either block deleting a voted
+  member with a clear message, or choose an explicit `ON DELETE` behaviour — and
+  only then re-grant `DELETE` on `poll_members`.
 - Email the member links from TheJury (needs the email sender + rate limits).
-- Consider routing anonymous-poll result reads through an aggregate-only RPC and
-  tightening the `votes` SELECT policy, so a determined owner can't read raw
-  vote rows (and their timestamps) for anonymous polls. The base `votes` RLS
-  lives only on the live DB (missing from the repo's migrations), so finalize
-  this with the current policy in hand.
+- **Anonymous raw-read hardening (separate from the INSERT policy above).**
+  Route anonymous-poll result reads through an aggregate-only RPC and tighten the
+  `votes` **SELECT** policy so a determined owner can't read raw vote rows (and
+  their `created_at`) for anonymous polls and correlate them. The base `votes`
+  RLS lives only on the live DB (missing from the repo's migrations), so finalise
+  this with the current policy in hand — this is the live-policy pull that was
+  offered.
 
 ---
 
@@ -184,5 +189,27 @@ app code that must not deploy before Phase 1 is live.
 - **`Referrer-Policy: no-referrer`** is set on `/answer/[pollCode]` (see
   `next.config.ts`) so the `?t=` token can't leak via the `Referer` header.
 - **Honest limit documented:** guest (not-signed-in) voting on an anonymous poll
-  cannot fully prevent repeat voting — verified voting is the guarantee. This
-  goes on the Security page.
+  is now deduped best-effort by a server-side hash of the device fingerprint
+  (see round 2) — but a fingerprint is spoofable, so verified voting remains the
+  hard guarantee. This is stated on the Security page.
+
+### Security hardening — round 2 (from the pre-apply review)
+
+- **Client insert path closed.** A RESTRICTIVE `INSERT` policy on `votes` rejects
+  direct client inserts for any poll that is anonymous or requires verification,
+  so those polls can only be voted on through `cast_verified_vote`. It ANDs with
+  the existing permissive policy, so it needed no knowledge of that policy.
+- **pgcrypto schema.** The migration and all functions use
+  `search_path = public, extensions` so `gen_random_bytes()` / `hmac()` resolve
+  whether pgcrypto is in `extensions` (Supabase) or `public`.
+- **Guest dedup restored.** `cast_verified_vote` takes a fingerprint, hashes it
+  server-side (salt + pepper, with a `uid:` / `fp:` domain separator) into
+  `anon_hash`, and never stores the raw value.
+- **Grandfathering.** The vote-time tier check is removed, so a poll keeps
+  accepting votes if its owner downgrades mid-poll. Tier is instead enforced by
+  a `BEFORE INSERT/UPDATE` trigger on `polls` that fires only when a flag flips
+  ON — which also stops a Free user enabling the feature by writing to `polls`
+  directly.
+- **Member deletion deferred safely.** No `DELETE` grant on `poll_members` yet
+  (a voted member would hit the `votes.member_id` FK), so the roll is
+  create-only until the member-management follow-up handles it explicitly.

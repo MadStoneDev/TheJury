@@ -1329,6 +1329,7 @@ export type Database = {
         Args: {
           p_poll_id: string
           p_token: string | null
+          p_fingerprint: string | null
           p_options: Json
           p_answers: Json
         }

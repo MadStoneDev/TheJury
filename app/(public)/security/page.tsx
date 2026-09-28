@@ -107,6 +107,12 @@ export default function SecurityPage() {
           voted, and their redemption time is never exposed. That combination is
           the secret ballot: a verifiable turnout with an unlinkable vote.
         </P>
+        <P>
+          You generate the member links and hold them, so it&apos;s up to you to
+          send each member their own link and keep the list secure. Turnout is
+          measured against the links you created, so for a meaningful result,
+          check it against the links you actually distributed.
+        </P>
       </Section>
 
       <Section heading="Backups and retention">
