@@ -8,7 +8,7 @@ import { GoogleAnalytics } from "@next/third-parties/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const defaultUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXT_PUBLIC_APP_URL ||
   (process.env.NODE_ENV === "production"
     ? "https://thejury.app"
     : "http://localhost:3888");
