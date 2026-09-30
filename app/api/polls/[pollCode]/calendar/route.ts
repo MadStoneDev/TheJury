@@ -8,7 +8,7 @@ import { rateLimit, getIPFromRequest } from "@/lib/rateLimit";
 // Only works for polls whose question settings carry `scheduleDates` (created
 // via /jury schedule). Public — the whole group adds the winning night.
 
-const SITE = (process.env.NEXT_PUBLIC_SITE_URL || "https://thejury.app").replace(/\/$/, "");
+const SITE = (process.env.NEXT_PUBLIC_APP_URL || "https://thejury.app").replace(/\/$/, "");
 
 function svc() {
   return createServiceClient(
