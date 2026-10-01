@@ -162,6 +162,21 @@ export type Database = {
           },
         ]
       }
+      app_secrets: {
+        Row: {
+          id: number
+          pepper: string
+        }
+        Insert: {
+          id?: number
+          pepper: string
+        }
+        Update: {
+          id?: number
+          pepper?: string
+        }
+        Relationships: []
+      }
       custom_domains: {
         Row: {
           id: string
@@ -356,6 +371,29 @@ export type Database = {
           },
         ]
       }
+      poll_anon_salts: {
+        Row: {
+          poll_id: string
+          salt: string
+        }
+        Insert: {
+          poll_id: string
+          salt?: string
+        }
+        Update: {
+          poll_id?: string
+          salt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_anon_salts_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: true
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poll_embeds: {
         Row: {
           id: string
@@ -390,6 +428,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "poll_embeds_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_members: {
+        Row: {
+          id: string
+          poll_id: string
+          token: string
+          label: string
+          email: string | null
+          used_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          poll_id: string
+          token: string
+          label: string
+          email?: string | null
+          used_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          poll_id?: string
+          token?: string
+          label?: string
+          email?: string | null
+          used_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_members_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
             referencedRelation: "polls"
@@ -575,44 +651,6 @@ export type Database = {
             columns: ["experiment_id"]
             isOneToOne: false
             referencedRelation: "ab_experiments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      poll_members: {
-        Row: {
-          id: string
-          poll_id: string
-          token: string
-          label: string
-          email: string | null
-          used_at: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          poll_id: string
-          token: string
-          label: string
-          email?: string | null
-          used_at?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          poll_id?: string
-          token?: string
-          label?: string
-          email?: string | null
-          used_at?: string | null
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poll_members_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
             referencedColumns: ["id"]
           },
         ]
@@ -1217,6 +1255,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "votes_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "poll_members"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "votes_poll_id_fkey"
             columns: ["poll_id"]
             isOneToOne: false
@@ -1290,6 +1335,13 @@ export type Database = {
       }
     }
     Functions: {
+      add_poll_members: {
+        Args: {
+          p_poll_id: string
+          p_members: Json
+        }
+        Returns: Json[]
+      }
       assign_variant: {
         Args: {
           experiment_uuid: string
@@ -1298,42 +1350,33 @@ export type Database = {
         }
         Returns: string
       }
+      cast_verified_vote: {
+        Args: {
+          p_poll_id: string
+          p_token: string
+          p_fingerprint: string
+          p_options: Json
+          p_answers: Json
+        }
+        Returns: undefined
+      }
       generate_unique_username: {
         Args: {
           base_name: string
         }
         Returns: string
       }
-      add_poll_members: {
-        Args: {
-          p_poll_id: string
-          p_members: Json
-        }
-        Returns: {
-          id: string
-          label: string
-          email: string | null
-          token: string
-        }[]
-      }
       get_poll_turnout: {
         Args: {
           p_poll_id: string
         }
-        Returns: {
-          used: number
-          total: number
-        }[]
+        Returns: Json[]
       }
-      cast_verified_vote: {
+      poll_uses_protected_voting: {
         Args: {
           p_poll_id: string
-          p_token: string | null
-          p_fingerprint: string | null
-          p_options: Json
-          p_answers: Json
         }
-        Returns: undefined
+        Returns: boolean
       }
     }
     Enums: {
