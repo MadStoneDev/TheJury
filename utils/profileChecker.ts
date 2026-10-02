@@ -2,24 +2,36 @@
 import { Profile } from "@/lib/supabaseHelpers";
 import { generateUniqueFantasyUsernameServer } from "@/utils/usernameGenerator";
 import { createClient } from "@/lib/supabase/server";
+import { timed } from "@/lib/perfLog";
+import type { User } from "@supabase/supabase-js";
 
-export const ensureUserHasProfile = async (): Promise<boolean> => {
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+export const ensureUserHasProfile = async (
+  // Callers that already authenticated can pass the user + client to avoid a
+  // second getUser() round-trip.
+  providedUser?: User,
+  providedClient?: ServerClient,
+): Promise<boolean> => {
   try {
-    const supabase = await createClient();
+    const supabase = providedClient ?? (await createClient());
 
-    // Get the current user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user) return false;
+    let resolvedUser = providedUser ?? null;
+    if (!resolvedUser) {
+      const { data, error: userError } = await timed(
+        "ensureUserHasProfile.getUser",
+        () => supabase.auth.getUser(),
+      );
+      if (userError || !data.user) return false;
+      resolvedUser = data.user;
+    }
+    const user = resolvedUser;
 
     // Check if profile exists
-    const { data: existingProfile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
+    const { data: existingProfile, error: profileError } = await timed(
+      "ensureUserHasProfile.selectProfile",
+      () => supabase.from("profiles").select("*").eq("id", user.id).single(),
+    );
 
     // If profile exists, return true
     if (existingProfile && !profileError) return true;
@@ -46,23 +58,31 @@ export const ensureUserHasProfile = async (): Promise<boolean> => {
 };
 
 // Alternative version that also returns the profile if you need it
-export const ensureUserHasProfileAndReturn =
-  async (): Promise<Profile | null> => {
+export const ensureUserHasProfileAndReturn = async (
+  // Callers that already authenticated can pass the user + client to avoid a
+  // second getUser() round-trip.
+  providedUser?: User,
+  providedClient?: ServerClient,
+): Promise<Profile | null> => {
     try {
-      const supabase = await createClient();
+      const supabase = providedClient ?? (await createClient());
 
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser();
-      if (userError || !user) return null;
+      let resolvedUser = providedUser ?? null;
+      if (!resolvedUser) {
+        const { data, error: userError } = await timed(
+          "ensureProfile.getUser",
+          () => supabase.auth.getUser(),
+        );
+        if (userError || !data.user) return null;
+        resolvedUser = data.user;
+      }
+      const user = resolvedUser;
 
       // Check if profile exists
-      const { data: existingProfile, error: profileError } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
+      const { data: existingProfile, error: profileError } = await timed(
+        "ensureProfile.selectProfile",
+        () => supabase.from("profiles").select("*").eq("id", user.id).single(),
+      );
 
       // If profile exists, return it
       if (existingProfile && !profileError) return existingProfile;

@@ -37,6 +37,7 @@ import PasswordGate from "@/components/PasswordGate";
 import { useRealtimeVotes } from "@/hooks/useRealtimeVotes";
 import { useRealtimePollState } from "@/hooks/useRealtimePollState";
 import { track } from "@/lib/analytics";
+import { timed } from "@/lib/perfLog";
 
 export default function PollAnswerPage() {
   const params = useParams();
@@ -132,7 +133,9 @@ export default function PollAnswerPage() {
 
       setIsLoading(true);
       try {
-        const pollData = await getPollByCode(pollCode);
+        const pollData = await timed("answer.getPollByCode", () =>
+          getPollByCode(pollCode),
+        );
         if (!pollData) {
           setLoadError("Poll not found");
           return;
@@ -169,16 +172,19 @@ export default function PollAnswerPage() {
         // User, A/B experiment, results and vote count are all independent
         // (they only need pollData.id) — fetch them together instead of in a
         // 4-hop serial chain. Reuse the questions loaded by getPollByCode.
-        const [user, abExp, qResults, { count: voterCount }] =
-          await Promise.all([
-            getCurrentUser(),
-            getABExperiment(pollData.id),
-            getPollResultsByQuestion(pollData.id, pollData.questions),
-            supabase
-              .from("votes")
-              .select("*", { count: "exact", head: true })
-              .eq("poll_id", pollData.id),
-          ]);
+        const [user, abExp, qResults, { count: voterCount }] = await timed(
+          "answer.parallelLoad(user+ab+results+count)",
+          () =>
+            Promise.all([
+              getCurrentUser(),
+              getABExperiment(pollData.id),
+              getPollResultsByQuestion(pollData.id, pollData.questions),
+              supabase
+                .from("votes")
+                .select("*", { count: "exact", head: true })
+                .eq("poll_id", pollData.id),
+            ]),
+        );
         cachedUserRef.current = user;
         setQuestionResults(qResults);
         setTotalVoters(voterCount || 0);
@@ -300,21 +306,25 @@ export default function PollAnswerPage() {
       const isProtected = poll.is_anonymous || poll.requires_verification;
 
       if (isProtected) {
-        const { error: rpcError } = await supabase.rpc("cast_verified_vote", {
-          p_poll_id: poll.id,
-          p_token: poll.requires_verification ? memberToken : null,
-          // Guest dedup for anonymous polls: the fingerprint is hashed
-          // server-side (never stored raw). Signed-in voters are deduped by
-          // account server-side, so the fingerprint is ignored for them.
-          p_fingerprint: poll.is_anonymous ? fingerprint ?? null : null,
-          p_options: allOptionIds,
-          p_answers: answers,
-        });
+        const { error: rpcError } = await timed("vote.castVerifiedVoteRPC", () =>
+          supabase.rpc("cast_verified_vote", {
+            p_poll_id: poll.id,
+            p_token: poll.requires_verification ? memberToken : null,
+            // Guest dedup for anonymous polls: the fingerprint is hashed
+            // server-side (never stored raw). Signed-in voters are deduped by
+            // account server-side, so the fingerprint is ignored for them.
+            p_fingerprint: poll.is_anonymous ? fingerprint ?? null : null,
+            p_options: allOptionIds,
+            p_answers: answers,
+          }),
+        );
         if (rpcError) throw new Error(rpcError.message);
-      } else if (user) {
-        await submitVote(poll.id, allOptionIds, user.id, undefined, undefined, answers);
       } else {
-        await submitVote(poll.id, allOptionIds, undefined, undefined, fingerprint, answers);
+        await timed("vote.submitVote", () =>
+          user
+            ? submitVote(poll.id, allOptionIds, user.id, undefined, undefined, answers)
+            : submitVote(poll.id, allOptionIds, undefined, undefined, fingerprint, answers),
+        );
       }
 
       // Submit open-ended responses to poll_responses. On protected polls we
@@ -346,13 +356,17 @@ export default function PollAnswerPage() {
       toast.success("Vote submitted!");
 
       try {
-        const qResults = await getPollResultsByQuestion(poll.id);
+        const qResults = await timed("vote.resultsAfterVote", () =>
+          getPollResultsByQuestion(poll.id),
+        );
         setQuestionResults(qResults);
 
-        const { count: voterCount } = await supabase
-          .from("votes")
-          .select("*", { count: "exact", head: true })
-          .eq("poll_id", poll.id);
+        const { count: voterCount } = await timed("vote.countAfterVote", () =>
+          supabase
+            .from("votes")
+            .select("*", { count: "exact", head: true })
+            .eq("poll_id", poll.id),
+        );
 
         setTotalVoters(voterCount || 0);
       } catch (err) {

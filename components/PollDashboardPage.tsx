@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from "react";
+import { timed } from "@/lib/perfLog";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -75,16 +76,18 @@ export default function PollDashboardPage() {
     const loadPolls = async () => {
       setIsLoading(true);
       try {
-        const user = await getCurrentUser();
+        const user = await timed("dashboard.client.getCurrentUser", () =>
+          getCurrentUser(),
+        );
         if (!user) {
           router.push("/auth/login");
           return;
         }
         cachedUserIdRef.current = user.id;
-        const [userPolls, profile] = await Promise.all([
-          getUserPolls(user.id),
-          getProfile(user.id),
-        ]);
+        const [userPolls, profile] = await timed(
+          "dashboard.client.pollsAndProfile",
+          () => Promise.all([getUserPolls(user.id), getProfile(user.id)]),
+        );
         setPolls(userPolls);
         setUserTier((profile?.subscription_tier as TierName) || "free");
       } catch (err) {
