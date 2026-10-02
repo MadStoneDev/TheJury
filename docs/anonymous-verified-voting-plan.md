@@ -151,13 +151,17 @@ app code that must not deploy before Phase 1 is live.
   member with a clear message, or choose an explicit `ON DELETE` behaviour — and
   only then re-grant `DELETE` on `poll_members`.
 - Email the member links from TheJury (needs the email sender + rate limits).
-- **Anonymous raw-read hardening (separate from the INSERT policy above).**
-  Route anonymous-poll result reads through an aggregate-only RPC and tighten the
-  `votes` **SELECT** policy so a determined owner can't read raw vote rows (and
-  their `created_at`) for anonymous polls and correlate them. The base `votes`
-  RLS lives only on the live DB (missing from the repo's migrations), so finalise
-  this with the current policy in hand — this is the live-policy pull that was
-  offered.
+- **Anonymous raw-read hardening** — ✅ done in `018`. Pulled the live `votes`
+  policies (the permissive "Anyone can view votes for active polls" exposes raw
+  rows to any client). A column-level hide would have broken the client tally,
+  the analytics `created_at` read and the `select("*")` count queries, so `018`
+  instead **coarsens the timestamp at the source**: anonymous ballots store
+  `created_at` truncated to the day (precise for non-anonymous), removing the
+  ordering/when-did-they-vote correlation for every reader. `test_018.sql`
+  covers it. Remaining identifiers on an anonymous ballot are already NULL
+  (user_id/voter_fingerprint/member_id) or a non-reversible HMAC (anon_hash); if
+  you later want anon_hash off the readable row entirely, move it to an
+  RLS-locked dedup side table.
 
 ---
 

@@ -76,6 +76,9 @@ export default function SecurityPage() {
           through a server-side process that never stores a name or an account
           against the vote — so the result is anonymous to you, the poll owner,
           and to your admins. You see the tallies, never who cast which ballot.
+          We also record only the day a vote was cast, not the exact time, so
+          ballots can&apos;t be put in order or matched to when someone was seen
+          voting.
         </P>
         <P>
           To stop the same signed-in person voting twice, the poll stores a
