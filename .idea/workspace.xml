@@ -3,9 +3,8 @@
   <component name="ChangeListManager">
     <list default="true" id="078c4042-f9a0-4b86-885c-e4e24e89ec06" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.claude/settings.local.json" beforeDir="false" afterPath="$PROJECT_DIR$/.claude/settings.local.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/database.types.ts" beforeDir="false" afterPath="$PROJECT_DIR$/database.types.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,7 +65,9 @@
       <updated>1770384216561</updated>
       <workItem from="1770384218803" duration="3631000" />
       <workItem from="1770989499081" duration="1638000" />
-      <workItem from="1771063845977" duration="14150000" />
+      <workItem from="1771063845977" duration="17386000" />
+      <workItem from="1771202247069" duration="5000" />
+      <workItem from="1776006534975" duration="1685000" />
     </task>
     <servers />
   </component>

@@ -19,7 +19,10 @@
       "Bash(grep:*)",
       "Bash(npx tsc:*)",
       "Bash(npm ls:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(cd:*)",
+      "Bash(find:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }
